@@ -1,0 +1,26 @@
+{
+  "name": "Système de Suivi des Nageurs",
+  "short_name": "Suivi Nageurs",
+  "description": "Application complète de collecte, analyse et retours personnalisés pour le suivi des performances des nageurs",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a73e8",
+  "theme_color": "#1a73e8",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "health", "productivity"],
+  "lang": "fr"
+}
