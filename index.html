@@ -1,1 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Système de Suivi des Nageurs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>Système de Suivi des Nageurs</h1>
+                </div>
+                <button class="nav-toggle">☰</button>
+                <nav>
+                    <ul>
+                        <li><a href="#dashboard" class="active">Tableau de Bord</a></li>
+                        <li><a href="#saisie">Saisie des Données</a></li>
+                        <li><a href="#analyse">Analyse</a></li>
+                        <li><a href="#retours">Retours Personnalisés</a></li>
+                    </ul>
+                </nav>
+                <div class="user-actions">
+                    <button class="btn btn-primary" id="addSwimmerBtn">Nouveau Nageur</button>
+                    <button class="btn btn-danger" id="resetDataBtn">Compte 0</button>
+                </div>
+            </div>
+        </div>
+    </header>
 
+    <main class="dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <h2 class="dashboard-title">Tableau de Bord - Suivi des Nageurs</h2>
+                <select class="athlete-selector" id="athleteSelector">
+                    <option value="all">Tous les nageurs</option>
+                </select>
+            </div>
+
+            <div id="dashboardContent">
+                <!-- Le contenu sera généré dynamiquement -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div class="modal" id="addSwimmerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Ajouter un Nouveau Nageur</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addSwimmerForm">
+                    <div class="form-group">
+                        <label for="swimmerName">Nom complet</label>
+                        <input type="text" id="swimmerName" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="swimmerAge">Âge</label>
+                            <input type="number" id="swimmerAge" class="form-control" min="10" max="50" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="swimmerGender">Genre</label>
+                            <select id="swimmerGender" class="form-control" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="male">Homme</option>
+                                <option value="female">Femme</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="swimmerSpecialty">Spécialité</label>
+                        <select id="swimmerSpecialty" class="form-control" required>
+                            <option value="">Sélectionnez...</option>
+                            <option value="crawl">Crawl</option>
+                            <option value="brasse">Brasse</option>
+                            <option value="dos">Dos</option>
+                            <option value="papillon">Papillon</option>
+                            <option value="4nages">4 Nages</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelAddBtn">Annuler</button>
+                <button class="btn btn-primary" id="confirmAddBtn">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="dataEntryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="dataEntryTitle">Saisie des Données</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dataEntryForm">
+                    <!-- Le contenu du formulaire sera généré dynamiquement -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelDataBtn">Annuler</button>
+                <button class="btn btn-primary" id="saveDataBtn">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Système de Suivi des Nageurs</h3>
+                    <p>Application complète de collecte, analyse et retours personnalisés.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Logique du Système</h3>
+                    <a href="#saisie">1. Collecte des données</a>
+                    <a href="#analyse">2. Analyse et traitement</a>
+                    <a href="#retours">3. Génération de retours</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p>Email: contact@suivi-nageurs.fr</p>
+                    <p>Téléphone: +33 1 23 45 67 89</p>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 Système de Suivi des Nageurs. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
