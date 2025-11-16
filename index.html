@@ -6,6 +6,8 @@
     <title>Système de Suivi des Nageurs</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -25,8 +27,15 @@
                     </ul>
                 </nav>
                 <div class="user-actions">
-                    <button class="btn btn-primary" id="addSwimmerBtn">Nouveau Nageur</button>
-                    <button class="btn btn-danger" id="resetDataBtn">Compte 0</button>
+                    <button class="btn btn-primary" id="addSwimmerBtn">➕ Nouveau Nageur</button>
+                    <button class="btn" id="createTestSwimmerBtn" style="background: #17a2b8; color: white;">🧪 Nageur Test</button>
+                    <button class="btn btn-secondary" id="exportPdfBtn" style="display: none;">📄 Export PDF</button>
+                    <button class="btn btn-secondary" id="compareSwimmersBtn" style="display: none;">📊 Comparer</button>
+                    <button class="btn btn-secondary" id="exportDataBtn">💾 Exporter JSON</button>
+                    <label for="importDataFile" class="btn btn-secondary" style="margin: 0; cursor: pointer;">📂 Importer</label>
+                    <input type="file" id="importDataFile" accept=".json" style="display: none;">
+                    <button class="btn" id="themeToggleBtn" style="background: #6c757d; color: white;">🌙 Mode Sombre</button>
+                    <button class="btn btn-danger" id="resetDataBtn">🔄 Réinitialiser</button>
                 </div>
             </div>
         </div>
@@ -36,9 +45,12 @@
         <div class="container">
             <div class="dashboard-header">
                 <h2 class="dashboard-title">Tableau de Bord - Suivi des Nageurs</h2>
-                <select class="athlete-selector" id="athleteSelector">
-                    <option value="all">Tous les nageurs</option>
-                </select>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn btn-secondary" id="viewHistoryBtn" style="display: none;">📋 Historique</button>
+                    <select class="athlete-selector" id="athleteSelector">
+                        <option value="all">Tous les nageurs</option>
+                    </select>
+                </div>
             </div>
 
             <div id="dashboardContent">
@@ -101,13 +113,129 @@
                 <button class="close-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="dataEntryForm">
+                <form id="dataEntryForm" onsubmit="return false;">
                     <!-- Le contenu du formulaire sera généré dynamiquement -->
                 </form>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" id="cancelDataBtn">Annuler</button>
                 <button class="btn btn-primary" id="saveDataBtn">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editSwimmerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Modifier le Nageur</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editSwimmerForm">
+                    <input type="hidden" id="editSwimmerId">
+                    <div class="form-group">
+                        <label for="editSwimmerName">Nom complet</label>
+                        <input type="text" id="editSwimmerName" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editSwimmerAge">Âge</label>
+                            <input type="number" id="editSwimmerAge" class="form-control" min="10" max="50" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editSwimmerGender">Genre</label>
+                            <select id="editSwimmerGender" class="form-control" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="male">Homme</option>
+                                <option value="female">Femme</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editSwimmerSpecialty">Spécialité</label>
+                        <select id="editSwimmerSpecialty" class="form-control" required>
+                            <option value="">Sélectionnez...</option>
+                            <option value="crawl">Crawl</option>
+                            <option value="brasse">Brasse</option>
+                            <option value="dos">Dos</option>
+                            <option value="papillon">Papillon</option>
+                            <option value="4nages">4 Nages</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="deleteSwimmerBtn">Supprimer</button>
+                <button class="btn btn-outline" id="cancelEditBtn">Annuler</button>
+                <button class="btn btn-primary" id="confirmEditBtn">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="dataHistoryModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="historyTitle">Historique des Données</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="dataTypeFilter">Type de données</label>
+                    <select id="dataTypeFilter" class="form-control">
+                        <option value="all">Toutes</option>
+                        <option value="wellbeing">Bien-être</option>
+                        <option value="training">Entraînement</option>
+                        <option value="performance">Performance</option>
+                        <option value="medical">Médical</option>
+                        <option value="race">Performances de Course</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dateFrom">Du</label>
+                        <input type="date" id="dateFrom" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="dateTo">Au</label>
+                        <input type="date" id="dateTo" class="form-control">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="applyFiltersBtn" style="margin-bottom: 15px;">Appliquer les filtres</button>
+                <div id="historyTableContainer"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="closeHistoryBtn">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="compareModal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Comparaison Multi-Nageurs</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Sélectionner les nageurs à comparer (2 à 4)</label>
+                    <div id="swimmerCheckboxes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <!-- Généré dynamiquement -->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="compareMetric">Métrique à comparer</label>
+                    <select id="compareMetric" class="form-control">
+                        <option value="wellbeing">Bien-être (moyenne)</option>
+                        <option value="training">Charge d'entraînement</option>
+                        <option value="vma">VMA</option>
+                        <option value="strength">Force (épaule)</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="generateComparisonBtn" style="margin-bottom: 20px;">Générer la comparaison</button>
+                <div id="comparisonResult"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="closeCompareBtn">Fermer</button>
             </div>
         </div>
     </div>

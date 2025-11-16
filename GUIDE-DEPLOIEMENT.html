@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide de Déploiement - Suivi des Nageurs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a73e8 0%, #34a853 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #1a73e8;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .step:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #1a73e8;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .step h2 {
+            color: #1a73e8;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .code-block code {
+            display: block;
+        }
+        
+        .button {
+            display: inline-block;
+            background: #1a73e8;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+        
+        .button:hover {
+            background: #0d62d9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(26,115,232,0.3);
+        }
+        
+        .button-success {
+            background: #34a853;
+        }
+        
+        .button-success:hover {
+            background: #2d9245;
+        }
+        
+        .alert {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-left-color: #0dcaf0;
+        }
+        
+        .alert-success {
+            background: #d1e7dd;
+            border-left-color: #198754;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .footer-links {
+            margin: 20px 0;
+        }
+        
+        .footer-links a {
+            color: #1a73e8;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        
+        .success-box {
+            background: linear-gradient(135deg, #34a853 0%, #0f9d58 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .success-box h3 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .success-box a {
+            color: white;
+            text-decoration: underline;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Guide de Déploiement</h1>
+            <p>Système de Suivi des Nageurs</p>
+        </div>
+        
+        <div class="content">
+            <div class="alert alert-info">
+                <strong>💡 Bon à savoir :</strong> Le déploiement est 100% gratuit et prend environ 5 minutes !
+            </div>
+            
+            <!-- Étape 1 -->
+            <div class="step">
+                <h2><span class="step-number">1</span> Ouvrir PowerShell</h2>
+                <p>Appuyez sur <strong>Windows + X</strong> puis sélectionnez <strong>Windows PowerShell</strong></p>
+            </div>
+            
+            <!-- Étape 2 -->
+            <div class="step">
+                <h2><span class="step-number">2</span> Naviguer vers le projet</h2>
+                <div class="code-block">
+                    <code>cd "c:\Users\ordi\Desktop\suivi-nageurs"</code>
+                </div>
+            </div>
+            
+            <!-- Étape 3 -->
+            <div class="step">
+                <h2><span class="step-number">3</span> Créer un compte GitHub (si nécessaire)</h2>
+                <p>Si vous n'avez pas encore de compte GitHub :</p>
+                <a href="https://github.com/signup" class="button" target="_blank">Créer un compte GitHub (gratuit)</a>
+            </div>
+            
+            <!-- Étape 4 -->
+            <div class="step">
+                <h2><span class="step-number">4</span> Créer un nouveau repository</h2>
+                <ol>
+                    <li>Allez sur <a href="https://github.com/new" target="_blank">github.com/new</a></li>
+                    <li>Nom du repository : <strong>suivi-nageurs</strong></li>
+                    <li>Description : <em>Application de suivi des nageurs</em></li>
+                    <li>Public ou Private : <strong>Public</strong> (pour GitHub Pages gratuit)</li>
+                    <li>⚠️ <strong>NE COCHEZ PAS</strong> "Add a README file"</li>
+                    <li>Cliquez sur <strong>Create repository</strong></li>
+                </ol>
+                <a href="https://github.com/new" class="button button-success" target="_blank">Créer le Repository</a>
+            </div>
+            
+            <!-- Étape 5 -->
+            <div class="step">
+                <h2><span class="step-number">5</span> Déployer avec le script</h2>
+                <p>Dans PowerShell, exécutez :</p>
+                <div class="code-block">
+                    <code>.\deploy.ps1</code>
+                </div>
+                <div class="alert">
+                    <strong>⚠️ Important :</strong> Suivez les instructions à l'écran. Vous devrez peut-être créer un Personal Access Token.
+                </div>
+            </div>
+            
+            <!-- Étape 6 -->
+            <div class="step">
+                <h2><span class="step-number">6</span> Créer un Personal Access Token</h2>
+                <p>Si demandé lors du push :</p>
+                <ol>
+                    <li>Allez sur <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a></li>
+                    <li>Cliquez sur <strong>Generate new token (classic)</strong></li>
+                    <li>Note : <em>Déploiement suivi-nageurs</em></li>
+                    <li>Cochez <strong>repo</strong> (toutes les sous-options)</li>
+                    <li>Cliquez sur <strong>Generate token</strong></li>
+                    <li>⚠️ <strong>COPIEZ</strong> le token (vous ne le reverrez plus !)</li>
+                    <li>Collez-le comme mot de passe dans PowerShell</li>
+                </ol>
+                <a href="https://github.com/settings/tokens/new" class="button" target="_blank">Créer un Token</a>
+            </div>
+            
+            <!-- Étape 7 -->
+            <div class="step">
+                <h2><span class="step-number">7</span> Activer GitHub Pages</h2>
+                <ol>
+                    <li>Sur GitHub, allez dans votre repository <strong>suivi-nageurs</strong></li>
+                    <li>Cliquez sur <strong>Settings</strong> (⚙️)</li>
+                    <li>Dans le menu de gauche : <strong>Pages</strong></li>
+                    <li>Source : <strong>GitHub Actions</strong></li>
+                    <li>Attendez 1-2 minutes</li>
+                </ol>
+            </div>
+            
+            <!-- Étape 8 -->
+            <div class="step">
+                <h2><span class="step-number">8</span> Vérifier le déploiement</h2>
+                <ol>
+                    <li>Allez dans l'onglet <strong>Actions</strong> de votre repository</li>
+                    <li>Vous verrez un workflow en cours (🟠) ou terminé (✅)</li>
+                    <li>Une fois vert ✅, retournez dans <strong>Settings → Pages</strong></li>
+                    <li>L'URL de votre site s'affichera en haut</li>
+                </ol>
+            </div>
+            
+            <!-- Success -->
+            <div class="success-box">
+                <h3>🎉 Félicitations !</h3>
+                <p>Votre application est maintenant en ligne !</p>
+                <br>
+                <p>Elle sera accessible à :</p>
+                <a href="#" id="siteUrl">https://youssefjamaidt.github.io/suivi-nageurs/</a>
+            </div>
+            
+            <!-- Mises à jour -->
+            <div class="step">
+                <h2>🔄 Mettre à jour l'application</h2>
+                <p>Pour publier des modifications futures :</p>
+                <div class="code-block">
+                    <code>cd "c:\Users\ordi\Desktop\suivi-nageurs"<br>git add .<br>git commit -m "Description de vos modifications"<br>git push</code>
+                </div>
+                <p style="margin-top: 15px;">Le site se mettra automatiquement à jour en 1-2 minutes ! ⚡</p>
+            </div>
+            
+            <div class="alert alert-success">
+                <strong>✅ Données sécurisées :</strong> Les données sont stockées localement dans le navigateur de chaque utilisateur. N'oubliez pas d'exporter régulièrement avec le bouton "💾 Exporter JSON" !
+            </div>
+        </div>
+        
+        <div class="footer">
+            <h3>📚 Documentation Complète</h3>
+            <div class="footer-links">
+                <a href="DEPLOIEMENT.md">Guide Détaillé</a>
+                <a href="README.md">Documentation</a>
+                <a href="ANALYSE_ET_AMELIORATIONS.md">Analyse du Projet</a>
+            </div>
+            <p style="margin-top: 20px; color: #6c757d;">
+                💼 Achbal Sportifs Natation - Amri Jamai Youssef<br>
+                📧 youssef.yakachi@gmail.com | 📱 +212 614 032 759
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Mettre à jour l'URL avec le vrai username si possible
+        const urlElement = document.getElementById('siteUrl');
+        if (urlElement) {
+            urlElement.addEventListener('click', function(e) {
+                e.preventDefault();
+                const username = prompt('Entrez votre nom d\'utilisateur GitHub:', 'youssefjamaidt');
+                if (username) {
+                    const newUrl = `https://${username}.github.io/suivi-nageurs/`;
+                    urlElement.href = newUrl;
+                    urlElement.textContent = newUrl;
+                    window.open(newUrl, '_blank');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
