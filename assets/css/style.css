@@ -63,12 +63,40 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 15px 0;
+    position: relative;
+}
+
+.btn-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: absolute;
+    left: 0;
+}
+
+.btn-back:hover {
+    background-color: var(--primary-dark);
+    transform: translateX(-3px);
+}
+
+.btn-back i {
+    font-size: 1rem;
 }
 
 .logo {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex: 1;
+    justify-content: center;
 }
 
 .logo h1 {
@@ -83,6 +111,10 @@ header {
     font-size: 1.5rem;
     cursor: pointer;
     color: var(--dark-color);
+}
+
+nav {
+    padding: 8px 0;
 }
 
 nav ul {
@@ -103,6 +135,81 @@ nav a {
 nav a:hover, nav a.active {
     background-color: var(--primary-color);
     color: white;
+}
+
+/* Boutons d'actions compacts */
+.header-actions-compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 10px;
+}
+
+.btn-compact {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-compact:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-compact-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-compact-primary:hover {
+    background-color: #0d62d9;
+}
+
+.btn-compact-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-compact-info:hover {
+    background-color: #138496;
+}
+
+.btn-compact-secondary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-compact-secondary:hover {
+    background-color: #2d8e47;
+}
+
+.btn-compact-dark {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-compact-dark:hover {
+    background-color: #5a6268;
+}
+
+.btn-compact-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-compact-danger:hover {
+    background-color: #d33426;
 }
 
 .user-actions {
@@ -167,6 +274,20 @@ nav a:hover, nav a.active {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.dashboard-header h2 {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.dashboard-header > div:first-of-type {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .dashboard-title {
@@ -576,8 +697,28 @@ footer {
 
 /* Responsive styles */
 @media (max-width: 768px) {
+    .btn-back {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        position: static;
+        margin-bottom: 10px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .logo {
+        justify-content: flex-start;
+    }
+
     .nav-toggle {
         display: block;
+        position: absolute;
+        right: 0;
+        top: 15px;
     }
 
     nav {
@@ -585,7 +726,7 @@ footer {
         top: 100%;
         left: 0;
         width: 100%;
-        background-color: white;
+        background-color: var(--card-bg);
         box-shadow: var(--shadow);
         display: none;
     }
@@ -602,6 +743,16 @@ footer {
     nav a {
         display: block;
         padding: 10px 15px;
+    }
+    
+    .header-actions-compact {
+        gap: 5px;
+        padding: 8px 0;
+    }
+    
+    .btn-compact {
+        padding: 4px 8px;
+        font-size: 12px;
     }
 
     .dashboard-header {

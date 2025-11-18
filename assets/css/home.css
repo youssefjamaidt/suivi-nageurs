@@ -1,0 +1,142 @@
+:root {
+    --primary-color: #1a73e8;
+    --primary-dark: #1557b0;
+    --background: #f5f7fa;
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --card-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.sport-card {
+    width: 300px;
+    height: 300px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--card-shadow);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.sport-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(26, 115, 232, 0.05) 0%, rgba(26, 115, 232, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sport-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--card-shadow-hover);
+}
+
+.sport-card:hover::before {
+    opacity: 1;
+}
+
+.card-content {
+    text-align: center;
+    z-index: 1;
+    padding: 30px;
+}
+
+.icon {
+    font-size: 120px;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease;
+}
+
+.sport-card:hover .icon {
+    transform: scale(1.1);
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a73e8;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0;
+    transition: color 0.3s ease;
+}
+
+.sport-card:hover h2 {
+    color: #1557b0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sport-card {
+        width: 250px;
+        height: 250px;
+    }
+
+    .icon {
+        font-size: 100px;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .sport-card {
+        width: 200px;
+        height: 200px;
+    }
+
+    .icon {
+        font-size: 80px;
+        margin-bottom: 15px;
+    }
+
+    h2 {
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+    }
+
+    .card-content {
+        padding: 20px;
+    }
+}

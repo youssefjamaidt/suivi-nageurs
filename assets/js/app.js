@@ -82,6 +82,35 @@ function createTestSwimmer() {
                 ]
             ],
             dates: ['2024-11-02', '2024-11-08', '2024-11-14']
+        },
+        technical: {
+            crawl: { dates: [] },
+            breaststroke: { dates: [] },
+            backstroke: { dates: [] },
+            butterfly: { dates: [] },
+            medley: { dates: [] },
+            startsAndTurns: { dates: [] }
+        },
+        attendance: {
+            records: [
+                { date: '2024-11-01', status: 'present', session: 'Matin' },
+                { date: '2024-11-01', status: 'present', session: 'Après-midi' },
+                { date: '2024-11-04', status: 'present', session: 'Matin' },
+                { date: '2024-11-04', status: 'late', session: 'Après-midi', lateMinutes: 15 },
+                { date: '2024-11-05', status: 'present', session: 'Matin' },
+                { date: '2024-11-06', status: 'absent', session: 'Matin', reason: 'Maladie', justified: 'yes' },
+                { date: '2024-11-07', status: 'present', session: 'Matin' },
+                { date: '2024-11-07', status: 'present', session: 'Après-midi' },
+                { date: '2024-11-08', status: 'present', session: 'Matin' },
+                { date: '2024-11-11', status: 'late', session: 'Matin', lateMinutes: 10 },
+                { date: '2024-11-11', status: 'present', session: 'Après-midi' },
+                { date: '2024-11-12', status: 'present', session: 'Matin' },
+                { date: '2024-11-13', status: 'present', session: 'Matin' },
+                { date: '2024-11-13', status: 'absent', session: 'Après-midi', reason: 'Examen scolaire', justified: 'yes' },
+                { date: '2024-11-14', status: 'present', session: 'Matin' },
+                { date: '2024-11-15', status: 'present', session: 'Matin' },
+                { date: '2024-11-15', status: 'present', session: 'Après-midi' }
+            ]
         }
     };
     
@@ -387,6 +416,210 @@ function addNewSwimmer(name, age, gender, specialty) {
             event: [],           // Nom de l'événement
             races: [],           // Tableau d'objets {style: "Crawl", distance: "50m", time: "26:50"}
             dates: []
+        },
+        
+        // Suivi technique
+        technical: {
+            crawl: {
+                // Position du corps et équilibre
+                alignementCorporel: [],
+                rotationEpaules: [],
+                stabiliteHanches: [],
+                flottaison: [],
+                // Mouvement des bras
+                entreeDansEau: [],
+                phaseTraction: [],
+                phasePoussee: [],
+                retourAerien: [],
+                longueurMouvement: [],
+                // Battement de jambes
+                amplitudeBattement: [],
+                frequenceBattement: [],
+                flexibiliteChevilles: [],
+                coordinationBras: [],
+                // Respiration et coordination
+                techniqueRespiration: [],
+                timingRespiration: [],
+                rythmeNage: [],
+                coordinationGlobale: [],
+                // Métriques
+                coupsParLongueur: [],
+                tempsGlisse: [],
+                frequenceNage: [],
+                distanceParCycle: [],
+                // Observations
+                pointsForts: [],
+                pointsAmeliorer: [],
+                exercicesRecommandes: [],
+                dates: []
+            },
+            breaststroke: {
+                // Position du corps
+                alignementHorizontal: [],
+                positionTete: [],
+                stabiliteTronc: [],
+                // Mouvement des bras
+                mouvementEcartement: [],
+                mouvementTraction: [],
+                mouvementRetour: [],
+                synchronisationBrasRespiration: [],
+                // Mouvement des jambes
+                positionGenoux: [],
+                mouvementCiseaux: [],
+                flexionChevilles: [],
+                puissancePropulsion: [],
+                // Coordination et timing
+                coordinationBrasJambes: [],
+                timingRespiration: [],
+                phaseGlisse: [],
+                fluiditeMouvement: [],
+                // Métriques
+                tempsGlisseApres: [],
+                amplitudeMouvementJambes: [],
+                mouvementsParLongueur: [],
+                // Observations
+                pointsForts: [],
+                pointsAmeliorer: [],
+                exercicesRecommandes: [],
+                dates: []
+            },
+            backstroke: {
+                // Position du corps
+                flottaisonHorizontale: [],
+                positionHanches: [],
+                stabiliteTete: [],
+                alignmentGeneral: [],
+                // Mouvement des bras
+                entreeDansEau: [],
+                phaseSousMarine: [],
+                retourAerien: [],
+                continuiteMouvement: [],
+                // Battement de jambes
+                amplitudeBattement: [],
+                surfacePieds: [],
+                frequenceBattement: [],
+                coordinationBras: [],
+                // Respiration et orientation
+                regulariteRespiratoire: [],
+                orientationLigne: [],
+                consciencePosition: [],
+                // Virages
+                approcheMur: [],
+                rotation: [],
+                impulsion: [],
+                couleeApresVirage: [],
+                // Métriques
+                coupsParLongueur: [],
+                distanceCoulee: [],
+                stabiliteLigne: [],
+                // Observations
+                pointsForts: [],
+                pointsAmeliorer: [],
+                exercicesRecommandes: [],
+                dates: []
+            },
+            butterfly: {
+                // Mouvement corporel
+                mouvementOndulatoire: [],
+                coordinationTeteBuste: [],
+                fluiditeOndulation: [],
+                amplitudeMouvement: [],
+                // Mouvement des bras
+                entreeDansEau: [],
+                phaseTraction: [],
+                phasePoussee: [],
+                retourAerien: [],
+                // Battement dauphin
+                amplitudeBattement: [],
+                coordinationBras: [],
+                puissanceBattement: [],
+                synchronisation: [],
+                // Respiration
+                timingRespiration: [],
+                hauteurTete: [],
+                retourRapide: [],
+                // Coordination globale
+                uniteMouvement: [],
+                rythme: [],
+                energieDepensee: [],
+                // Métriques
+                mouvementsParLongueur: [],
+                tempsEntreRespirations: [],
+                distanceParCycle: [],
+                // Observations
+                pointsForts: [],
+                pointsAmeliorer: [],
+                exercicesRecommandes: [],
+                dates: []
+            },
+            medley: {
+                // Général
+                transitionsNages: [],
+                rythmeGlobal: [],
+                energieManagement: [],
+                strategieCourse: [],
+                // Papillon (départ)
+                techniquePapillon: [],
+                conservationEnergie: [],
+                // Dos (2ème nage)
+                techniqueDos: [],
+                transitionPapillonDos: [],
+                // Brasse (3ème nage)
+                techniqueBrasse: [],
+                transitionDosBrasse: [],
+                // Crawl (4ème nage)
+                techniqueCrawl: [],
+                transitionBrasseCrawl: [],
+                finCourse: [],
+                // Virages spécifiques
+                viragePapillonDos: [],
+                virageDosBrasse: [],
+                virageBrasseCrawl: [],
+                // Observations
+                pointsFortsParNage: [],
+                transitionsAmeliorer: [],
+                strategieRecommandee: [],
+                repartitionEffort: [],
+                dates: []
+            },
+            startsAndTurns: {
+                // Départs plongeons
+                positionDepart: [],
+                impulsion: [],
+                trajectoire: [],
+                entreeDansEau: [],
+                // Coulées initiales
+                profondeur: [],
+                distance: [],
+                positionCorps: [],
+                battementUnderwater: [],
+                // Virages crawl/dos
+                approcheMurCrawl: [],
+                rotationCrawl: [],
+                appuiPiedsCrawl: [],
+                impulsionCrawl: [],
+                couleeApresVirageCrawl: [],
+                // Virages brasse/papillon
+                approcheMurBrasse: [],
+                toucherSimultane: [],
+                rotationBrasse: [],
+                impulsionBrasse: [],
+                // Arrivées
+                approcheMurArrivee: [],
+                toucherFinal: [],
+                vitesseMaintenue: [],
+                // Observations
+                pointsFortsTechniques: [],
+                tempsReaction: [],
+                efficaciteCoulees: [],
+                exercicesAmelioration: [],
+                dates: []
+            }
+        },
+        
+        // Suivi de présence
+        attendance: {
+            records: []  // {date, status, session, lateMinutes?, reason?, justified?}
         }
     };
 
@@ -430,7 +663,9 @@ function getDataEntryTitle(dataType) {
         'training': 'Saisie de l\'Entraînement',
         'performance': 'Saisie des Performances',
         'medical': 'Saisie du Statut Médical',
-        'race': 'Saisie des Performances de Course'
+        'race': 'Saisie des Performances de Course',
+        'technical': 'Saisie du Suivi Technique',
+        'attendance': 'Saisie de la Présence'
     };
     return titles[dataType] || 'Saisie des Données';
 }
@@ -581,10 +816,364 @@ function generateDataEntryForm(dataType) {
                 </div>
             `;
             
+        case 'technical':
+            return `
+                <div class="form-group">
+                    <label for="entryDate">Date</label>
+                    <input type="date" id="entryDate" class="form-control" value="${today}" required>
+                </div>
+                <div class="form-group">
+                    <label for="technicalCategory">Catégorie technique</label>
+                    <select id="technicalCategory" class="form-control" onchange="updateTechnicalFields()" required>
+                        <option value="">-- Sélectionner --</option>
+                        <option value="crawl">Crawl (Nage Libre)</option>
+                        <option value="breaststroke">Brasse</option>
+                        <option value="backstroke">Dos Crawlé</option>
+                        <option value="butterfly">Papillon</option>
+                        <option value="medley">4 Nages</option>
+                        <option value="startsAndTurns">Départs et Virages</option>
+                    </select>
+                </div>
+                <div id="technicalFieldsContainer">
+                    <!-- Les champs seront générés dynamiquement -->
+                </div>
+            `;
+            
+        case 'attendance':
+            return `
+                <div class="form-group">
+                    <label for="entryDate">Date</label>
+                    <input type="date" id="entryDate" class="form-control" value="${today}" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sessionType">Séance</label>
+                        <select id="sessionType" class="form-control" required>
+                            <option value="Matin">Matin</option>
+                            <option value="Après-midi">Après-midi</option>
+                            <option value="Soir">Soir</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="attendanceStatus">Statut</label>
+                        <select id="attendanceStatus" class="form-control" onchange="updateAttendanceFields()" required>
+                            <option value="present">Présent</option>
+                            <option value="late">Retard</option>
+                            <option value="absent">Absent</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="attendanceExtraFields">
+                    <!-- Les champs supplémentaires apparaîtront ici -->
+                </div>
+            `;
+            
         default:
             return '<p>Type de données non reconnu</p>';
     }
 }
+
+// Mettre à jour les champs techniques selon la catégorie
+window.updateTechnicalFields = function() {
+    const category = document.getElementById('technicalCategory').value;
+    const container = document.getElementById('technicalFieldsContainer');
+    
+    if (!category) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let html = '<div class="alert" style="background: #e8f0fe; border-left: 5px solid var(--primary-color); padding: 10px; margin: 15px 0; border-radius: 4px;">';
+    html += '<small><strong>📊 Échelle de notation : 1 (Très faible) à 10 (Excellent)</strong></small>';
+    html += '</div>';
+    
+    const createField = (id, label, required = true) => {
+        return `
+            <div class="form-group">
+                <label for="tech_${id}">${label} (1-10)</label>
+                <input type="number" id="tech_${id}" class="form-control" min="1" max="10" step="1" value="5" ${required ? 'required' : ''}>
+            </div>
+        `;
+    };
+    
+    const createTextArea = (id, label) => {
+        return `
+            <div class="form-group">
+                <label for="tech_${id}">${label}</label>
+                <textarea id="tech_${id}" class="form-control" rows="3" placeholder="Saisir vos observations..."></textarea>
+            </div>
+        `;
+    };
+    
+    const createMetricField = (id, label, unit) => {
+        return `
+            <div class="form-group">
+                <label for="tech_${id}">${label}</label>
+                <input type="number" id="tech_${id}" class="form-control" step="0.1" placeholder="${unit}">
+            </div>
+        `;
+    };
+    
+    if (category === 'crawl') {
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Position du Corps et Équilibre</h4>';
+        html += createField('alignementCorporel', 'Alignement corporel');
+        html += createField('rotationEpaules', 'Rotation des épaules');
+        html += createField('stabiliteHanches', 'Stabilité des hanches');
+        html += createField('flottaison', 'Flottaison');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Mouvement des Bras</h4>';
+        html += createField('entreeDansEau', 'Entrée dans l\'eau');
+        html += createField('phaseTraction', 'Phase de traction');
+        html += createField('phasePoussee', 'Phase de poussée');
+        html += createField('retourAerien', 'Retour aérien');
+        html += createField('longueurMouvement', 'Longueur du mouvement');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Battement de Jambes</h4>';
+        html += createField('amplitudeBattement', 'Amplitude du battement');
+        html += createField('frequenceBattement', 'Fréquence du battement');
+        html += createField('flexibiliteChevilles', 'Flexibilité des chevilles');
+        html += createField('coordinationBras', 'Coordination avec les bras');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Respiration et Coordination</h4>';
+        html += createField('techniqueRespiration', 'Technique de respiration');
+        html += createField('timingRespiration', 'Timing de la respiration');
+        html += createField('rythmeNage', 'Rythme de nage');
+        html += createField('coordinationGlobale', 'Coordination globale');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Métriques de Performance</h4>';
+        html += createMetricField('coupsParLongueur', 'Nombre de coups par longueur', 'coups');
+        html += createMetricField('tempsGlisse', 'Temps de glisse', 'secondes');
+        html += createMetricField('frequenceNage', 'Fréquence de nage', 'cycles/min');
+        html += createMetricField('distanceParCycle', 'Distance par cycle', 'mètres');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Observations</h4>';
+        html += createTextArea('pointsForts', 'Points forts');
+        html += createTextArea('pointsAmeliorer', 'Points à améliorer');
+        html += createTextArea('exercicesRecommandes', 'Exercices recommandés');
+    }
+    else if (category === 'breaststroke') {
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Position du Corps</h4>';
+        html += createField('alignementHorizontal', 'Alignement horizontal');
+        html += createField('positionTete', 'Position de la tête');
+        html += createField('stabiliteTronc', 'Stabilité du tronc');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Mouvement des Bras</h4>';
+        html += createField('mouvementEcartement', 'Mouvement d\'écartement');
+        html += createField('mouvementTraction', 'Mouvement de traction');
+        html += createField('mouvementRetour', 'Mouvement de retour');
+        html += createField('synchronisationBrasRespiration', 'Synchronisation bras-respiration');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Mouvement des Jambes</h4>';
+        html += createField('positionGenoux', 'Position des genoux');
+        html += createField('mouvementCiseaux', 'Mouvement de ciseaux');
+        html += createField('flexionChevilles', 'Flexion des chevilles');
+        html += createField('puissancePropulsion', 'Puissance de propulsion');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Coordination et Timing</h4>';
+        html += createField('coordinationBrasJambes', 'Coordination bras-jambes');
+        html += createField('timingRespiration', 'Timing de la respiration');
+        html += createField('phaseGlisse', 'Phase de glisse');
+        html += createField('fluiditeMouvement', 'Fluidité du mouvement');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Métriques Spécifiques</h4>';
+        html += createMetricField('tempsGlisseApres', 'Temps de glisse après traction', 'secondes');
+        html += createMetricField('amplitudeMouvementJambes', 'Amplitude du mouvement de jambes', 'cm');
+        html += createMetricField('mouvementsParLongueur', 'Nombre de mouvements par longueur', 'mouvements');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Observations</h4>';
+        html += createTextArea('pointsForts', 'Points forts');
+        html += createTextArea('pointsAmeliorer', 'Points à améliorer');
+        html += createTextArea('exercicesRecommandes', 'Exercices recommandés');
+    }
+    else if (category === 'backstroke') {
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Position du Corps</h4>';
+        html += createField('flottaisonHorizontale', 'Flottaison horizontale');
+        html += createField('positionHanches', 'Position des hanches');
+        html += createField('stabiliteTete', 'Stabilité de la tête');
+        html += createField('alignmentGeneral', 'Alignment général');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Mouvement des Bras</h4>';
+        html += createField('entreeDansEau', 'Entrée dans l\'eau');
+        html += createField('phaseSousMarine', 'Phase sous-marine');
+        html += createField('retourAerien', 'Retour aérien');
+        html += createField('continuiteMouvement', 'Continuité du mouvement');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Battement de Jambes</h4>';
+        html += createField('amplitudeBattement', 'Amplitude du battement');
+        html += createField('surfacePieds', 'Surface des pieds');
+        html += createField('frequenceBattement', 'Fréquence du battement');
+        html += createField('coordinationBras', 'Coordination avec les bras');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Respiration et Orientation</h4>';
+        html += createField('regulariteRespiratoire', 'Régularité respiratoire');
+        html += createField('orientationLigne', 'Orientation dans la ligne');
+        html += createField('consciencePosition', 'Conscience de la position');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Virages</h4>';
+        html += createField('approcheMur', 'Approche du mur');
+        html += createField('rotation', 'Rotation');
+        html += createField('impulsion', 'Impulsion');
+        html += createField('couleeApresVirage', 'Coulée après virage');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Métriques</h4>';
+        html += createMetricField('coupsParLongueur', 'Nombre de coups par longueur', 'coups');
+        html += createMetricField('distanceCoulee', 'Distance parcourue en coulée', 'mètres');
+        html += createMetricField('stabiliteLigne', 'Stabilité dans la ligne', '1-10');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Observations</h4>';
+        html += createTextArea('pointsForts', 'Points forts');
+        html += createTextArea('pointsAmeliorer', 'Points à améliorer');
+        html += createTextArea('exercicesRecommandes', 'Exercices recommandés');
+    }
+    else if (category === 'butterfly') {
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Mouvement Corporel</h4>';
+        html += createField('mouvementOndulatoire', 'Mouvement ondulatoire');
+        html += createField('coordinationTeteBuste', 'Coordination tête-buste');
+        html += createField('fluiditeOndulation', 'Fluidité de l\'ondulation');
+        html += createField('amplitudeMouvement', 'Amplitude du mouvement');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Mouvement des Bras</h4>';
+        html += createField('entreeDansEau', 'Entrée dans l\'eau');
+        html += createField('phaseTraction', 'Phase de traction');
+        html += createField('phasePoussee', 'Phase de poussée');
+        html += createField('retourAerien', 'Retour aérien');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Battement Dauphin</h4>';
+        html += createField('amplitudeBattement', 'Amplitude du battement');
+        html += createField('coordinationBras', 'Coordination avec les bras');
+        html += createField('puissanceBattement', 'Puissance du battement');
+        html += createField('synchronisation', 'Synchronisation');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Respiration</h4>';
+        html += createField('timingRespiration', 'Timing de la respiration');
+        html += createField('hauteurTete', 'Hauteur de la tête');
+        html += createField('retourRapide', 'Retour rapide');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Coordination Globale</h4>';
+        html += createField('uniteMouvement', 'Unité du mouvement');
+        html += createField('rythme', 'Rythme');
+        html += createField('energieDepensee', 'Énergie dépensée');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Métriques</h4>';
+        html += createMetricField('mouvementsParLongueur', 'Nombre de mouvements par longueur', 'mouvements');
+        html += createMetricField('tempsEntreRespirations', 'Temps entre les respirations', 'secondes');
+        html += createMetricField('distanceParCycle', 'Distance par cycle', 'mètres');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Observations</h4>';
+        html += createTextArea('pointsForts', 'Points forts');
+        html += createTextArea('pointsAmeliorer', 'Points à améliorer');
+        html += createTextArea('exercicesRecommandes', 'Exercices recommandés');
+    }
+    else if (category === 'medley') {
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Général</h4>';
+        html += createField('transitionsNages', 'Transitions entre nages');
+        html += createField('rythmeGlobal', 'Rythme global');
+        html += createField('energieManagement', 'Énergie management');
+        html += createField('strategieCourse', 'Stratégie de course');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Papillon (Départ)</h4>';
+        html += createField('techniquePapillon', 'Technique papillon');
+        html += createField('conservationEnergie', 'Conservation d\'énergie');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Dos (2ème Nage)</h4>';
+        html += createField('techniqueDos', 'Technique dos');
+        html += createField('transitionPapillonDos', 'Transition papillon→dos');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Brasse (3ème Nage)</h4>';
+        html += createField('techniqueBrasse', 'Technique brasse');
+        html += createField('transitionDosBrasse', 'Transition dos→brasse');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Crawl (4ème Nage)</h4>';
+        html += createField('techniqueCrawl', 'Technique crawl');
+        html += createField('transitionBrasseCrawl', 'Transition brasse→crawl');
+        html += createField('finCourse', 'Fin de course');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Virages Spécifiques</h4>';
+        html += createField('viragePapillonDos', 'Virage papillon→dos');
+        html += createField('virageDosBrasse', 'Virage dos→brasse');
+        html += createField('virageBrasseCrawl', 'Virage brasse→crawl');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Observations Globales</h4>';
+        html += createTextArea('pointsFortsParNage', 'Points forts par nage');
+        html += createTextArea('transitionsAmeliorer', 'Transitions à améliorer');
+        html += createTextArea('strategieRecommandee', 'Stratégie recommandée');
+        html += createTextArea('repartitionEffort', 'Répartition d\'effort');
+    }
+    else if (category === 'startsAndTurns') {
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Départs Plongeons</h4>';
+        html += createField('positionDepart', 'Position de départ');
+        html += createField('impulsion', 'Impulsion');
+        html += createField('trajectoire', 'Trajectoire');
+        html += createField('entreeDansEau', 'Entrée dans l\'eau');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Coulées Initiales</h4>';
+        html += createField('profondeur', 'Profondeur');
+        html += createField('distance', 'Distance');
+        html += createField('positionCorps', 'Position du corps');
+        html += createField('battementUnderwater', 'Battement underwater');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Virages Crawl/Dos</h4>';
+        html += createField('approcheMurCrawl', 'Approche du mur');
+        html += createField('rotationCrawl', 'Rotation');
+        html += createField('appuiPiedsCrawl', 'Appui des pieds');
+        html += createField('impulsionCrawl', 'Impulsion');
+        html += createField('couleeApresVirageCrawl', 'Coulée après virage');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Virages Brasse/Papillon</h4>';
+        html += createField('approcheMurBrasse', 'Approche du mur');
+        html += createField('toucherSimultane', 'Toucher simultané');
+        html += createField('rotationBrasse', 'Rotation');
+        html += createField('impulsionBrasse', 'Impulsion');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Arrivées</h4>';
+        html += createField('approcheMurArrivee', 'Approche du mur');
+        html += createField('toucherFinal', 'Toucher final');
+        html += createField('vitesseMaintenue', 'Vitesse maintenue');
+        
+        html += '<h4 style="color: var(--primary-color); margin-top: 20px;">Observations Spécifiques</h4>';
+        html += createTextArea('pointsFortsTechniques', 'Points forts techniques');
+        html += createTextArea('tempsReaction', 'Temps de réaction');
+        html += createTextArea('efficaciteCoulees', 'Efficacité des coulées');
+        html += createTextArea('exercicesAmelioration', 'Exercices d\'amélioration');
+    }
+    
+    container.innerHTML = html;
+};
+
+// Mettre à jour les champs de présence selon le statut
+window.updateAttendanceFields = function() {
+    const status = document.getElementById('attendanceStatus').value;
+    const container = document.getElementById('attendanceExtraFields');
+    
+    if (status === 'present') {
+        container.innerHTML = '';
+    } else if (status === 'late') {
+        container.innerHTML = `
+            <div class="form-group">
+                <label for="lateMinutes">Minutes de retard</label>
+                <input type="number" id="lateMinutes" class="form-control" min="1" placeholder="Ex: 15" required>
+            </div>
+            <div class="form-group">
+                <label for="lateReason">Raison (optionnel)</label>
+                <input type="text" id="lateReason" class="form-control" placeholder="Ex: Transport">
+            </div>
+        `;
+    } else if (status === 'absent') {
+        container.innerHTML = `
+            <div class="form-group">
+                <label for="absentReason">Raison de l'absence</label>
+                <input type="text" id="absentReason" class="form-control" placeholder="Ex: Maladie" required>
+            </div>
+            <div class="form-group">
+                <label for="absentJustified">Absence justifiée ?</label>
+                <select id="absentJustified" class="form-control" required>
+                    <option value="yes">Oui</option>
+                    <option value="no">Non</option>
+                </select>
+            </div>
+        `;
+    }
+};
 
 // Sauvegarder les données saisies
 function saveData() {
@@ -671,6 +1260,68 @@ function saveData() {
             swimmer.racePerformances.races.push(raceEntries);
             swimmer.racePerformances.dates.push(date);
             break;
+            
+        case 'technical':
+            const category = document.getElementById('technicalCategory').value;
+            
+            if (!category) {
+                alert('Veuillez sélectionner une catégorie technique');
+                return;
+            }
+            
+            // Récupérer tous les champs du formulaire qui commencent par "tech_"
+            const form = document.getElementById('technicalFieldsContainer');
+            const inputs = form.querySelectorAll('[id^="tech_"]');
+            
+            // Initialiser la structure si elle n'existe pas
+            if (!swimmer.technical[category]) {
+                swimmer.technical[category] = { dates: [] };
+            }
+            
+            // Sauvegarder chaque champ
+            inputs.forEach(input => {
+                const fieldId = input.id.replace('tech_', '');
+                
+                // Initialiser le tableau si nécessaire
+                if (!swimmer.technical[category][fieldId]) {
+                    swimmer.technical[category][fieldId] = [];
+                }
+                
+                // Sauvegarder la valeur selon le type
+                if (input.tagName === 'TEXTAREA') {
+                    swimmer.technical[category][fieldId].push(input.value);
+                } else if (input.type === 'number') {
+                    const value = parseFloat(input.value);
+                    swimmer.technical[category][fieldId].push(isNaN(value) ? null : value);
+                } else {
+                    swimmer.technical[category][fieldId].push(input.value);
+                }
+            });
+            
+            swimmer.technical[category].dates.push(date);
+            break;
+            
+        case 'attendance':
+            const session = document.getElementById('sessionType').value;
+            const status = document.getElementById('attendanceStatus').value;
+            
+            const attendanceRecord = {
+                date: date,
+                session: session,
+                status: status
+            };
+            
+            if (status === 'late') {
+                attendanceRecord.lateMinutes = parseInt(document.getElementById('lateMinutes').value);
+                const reason = document.getElementById('lateReason').value;
+                if (reason) attendanceRecord.reason = reason;
+            } else if (status === 'absent') {
+                attendanceRecord.reason = document.getElementById('absentReason').value;
+                attendanceRecord.justified = document.getElementById('absentJustified').value;
+            }
+            
+            swimmer.attendance.records.push(attendanceRecord);
+            break;
     }
     
     saveToLocalStorage();
@@ -685,7 +1336,7 @@ function saveData() {
 
 let raceEntryCount = 0;
 
-function addRaceEntry() {
+window.addRaceEntry = function() {
     raceEntryCount++;
     const container = document.getElementById('raceEntriesContainer');
     
@@ -742,7 +1393,7 @@ function addRaceEntry() {
     container.appendChild(entryDiv);
 }
 
-function updateTimeFormat(entryId) {
+window.updateTimeFormat = function(entryId) {
     const entry = document.getElementById(`race-entry-${entryId}`);
     const select = entry.querySelector('select');
     const input = document.getElementById(`time-input-${entryId}`);
@@ -762,7 +1413,7 @@ function updateTimeFormat(entryId) {
     }
 }
 
-function removeRaceEntry(entryId) {
+window.removeRaceEntry = function(entryId) {
     const entry = document.getElementById(`race-entry-${entryId}`);
     if (entry) {
         entry.remove();
@@ -781,6 +1432,8 @@ function analyzeSwimmerData(swimmer) {
         performance: analyzePerformance(swimmer.performance),
         medical: analyzeMedical(swimmer.medical),
         race: analyzeRacePerformances(swimmer.racePerformances || {dates: []}),
+        technical: analyzeTechnical(swimmer.technical || {}),
+        attendance: analyzeAttendance(swimmer.attendance || {records: []}),
         recommendations: []
     };
     
@@ -1396,6 +2049,26 @@ function showDataEntry() {
                             <button class="btn btn-primary data-entry-btn" data-type="race">Saisir</button>
                         </div>
                     </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Suivi Technique</h3>
+                            <div class="card-icon">🎯</div>
+                        </div>
+                        <div class="card-content">
+                            <p>Évaluer les aspects techniques par nage (0-5).</p>
+                            <button class="btn btn-primary data-entry-btn" data-type="technical">Saisir</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Suivi de Présence</h3>
+                            <div class="card-icon">✅</div>
+                        </div>
+                        <div class="card-content">
+                            <p>Enregistrer présence, retards et absences.</p>
+                            <button class="btn btn-primary data-entry-btn" data-type="attendance">Saisir</button>
+                        </div>
+                    </div>
                 </div>
             </div>`;
     } else {
@@ -1434,6 +2107,12 @@ function showAnalysis() {
         
         // Médical
         content += generateAnalysisCard('Statut Médical', analysis.medical, '🏥');
+        
+        // Suivi Technique
+        content += generateAnalysisCard('Suivi Technique', analysis.technical, '🎯');
+        
+        // Suivi de Présence
+        content += generateAnalysisCard('Suivi de Présence', analysis.attendance, '✅');
         
         content += `</div>`;
         
@@ -1478,6 +2157,26 @@ function showAnalysis() {
                     <div class="card-content">
                         <div class="chart-container">
                             <canvas id="performanceRadarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Suivi Technique</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="chart-container">
+                            <canvas id="technicalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Statistiques de Présence</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="chart-container">
+                            <canvas id="attendanceChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -1564,6 +2263,73 @@ function getAnalysisDetails(data, title) {
             return `VMA: ${data.recent.vma}, Force épaule: ${data.recent.shoulder}kg`;
         case 'Statut Médical':
             return `Disponibilité: ${data.recent.availability}/3`;
+        case 'Suivi Technique':
+            if (data.status === 'no_data') return '';
+            let html = `<div style="margin-top: 15px;">`;
+            html += `<p style="font-size: 16px; font-weight: 500; margin-bottom: 10px;">Moyenne globale: <strong>${data.overallAverage}/10</strong></p>`;
+            
+            // Catégories évaluées
+            if (Object.keys(data.categoryStats).length > 0) {
+                html += `<div style="margin: 15px 0;">`;
+                html += `<h4 style="font-size: 14px; color: var(--primary-color); margin-bottom: 8px;">Nages évaluées:</h4>`;
+                Object.values(data.categoryStats).forEach(cat => {
+                    const color = cat.status === 'excellent' ? '#28a745' : 
+                                 cat.status === 'good' ? '#17a2b8' : 
+                                 cat.status === 'warning' ? '#ffc107' : '#dc3545';
+                    html += `<div style="display: flex; justify-content: space-between; margin: 5px 0; padding: 5px; background: #f8f9fa; border-radius: 4px;">`;
+                    html += `<span>${cat.name}</span>`;
+                    html += `<strong style="color: ${color}">${cat.average}/10</strong>`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+            
+            // Points forts
+            if (data.strengths && data.strengths.length > 0) {
+                html += `<div style="margin: 15px 0;">`;
+                html += `<h4 style="font-size: 14px; color: #28a745; margin-bottom: 8px;">💪 Points forts:</h4>`;
+                html += `<ul style="margin: 0; padding-left: 20px;">`;
+                data.strengths.slice(0, 3).forEach(s => {
+                    html += `<li style="font-size: 13px;">${s.category} - ${s.field} (${s.score}/10)</li>`;
+                });
+                html += `</ul></div>`;
+            }
+            
+            // Points faibles
+            if (data.weaknesses && data.weaknesses.length > 0) {
+                html += `<div style="margin: 15px 0;">`;
+                html += `<h4 style="font-size: 14px; color: #dc3545; margin-bottom: 8px;">⚠️ À améliorer:</h4>`;
+                html += `<ul style="margin: 0; padding-left: 20px;">`;
+                data.weaknesses.slice(0, 3).forEach(w => {
+                    html += `<li style="font-size: 13px;">${w.category} - ${w.field} (${w.score}/10)</li>`;
+                });
+                html += `</ul></div>`;
+            }
+            
+            html += `</div>`;
+            return html;
+        case 'Suivi de Présence':
+            if (data.status === 'no_data') return '';
+            let presHtml = `<div style="margin-top: 15px;">`;
+            presHtml += `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px;">`;
+            presHtml += `<div style="text-align: center; padding: 10px; background: #d4edda; border-radius: 4px;">`;
+            presHtml += `<div style="font-size: 24px; font-weight: bold; color: #28a745;">${data.presentRate}%</div>`;
+            presHtml += `<div style="font-size: 12px; color: #666;">Présent</div>`;
+            presHtml += `</div>`;
+            presHtml += `<div style="text-align: center; padding: 10px; background: #fff3cd; border-radius: 4px;">`;
+            presHtml += `<div style="font-size: 24px; font-weight: bold; color: #ffc107;">${data.lateRate}%</div>`;
+            presHtml += `<div style="font-size: 12px; color: #666;">Retard</div>`;
+            presHtml += `</div>`;
+            presHtml += `<div style="text-align: center; padding: 10px; background: #f8d7da; border-radius: 4px;">`;
+            presHtml += `<div style="font-size: 24px; font-weight: bold; color: #dc3545;">${data.absentRate}%</div>`;
+            presHtml += `<div style="font-size: 12px; color: #666;">Absent</div>`;
+            presHtml += `</div>`;
+            presHtml += `</div>`;
+            if (data.unjustifiedAbsences > 0) {
+                presHtml += `<p style="color: #dc3545; font-weight: 500;">⚠️ ${data.unjustifiedAbsences} absence(s) non justifiée(s)</p>`;
+            }
+            presHtml += `</div>`;
+            return presHtml;
         default:
             return 'Détails non disponibles';
     }
@@ -1793,6 +2559,74 @@ function displayDataHistory(swimmer) {
         });
     }
     
+    if ((dataType === 'all' || dataType === 'technical') && swimmer.technical) {
+        const categories = ['crawl', 'backstroke', 'breaststroke', 'butterfly', 'turns', 'starts'];
+        const categoryNames = {
+            crawl: 'Crawl',
+            backstroke: 'Dos',
+            breaststroke: 'Brasse',
+            butterfly: 'Papillon',
+            turns: 'Virages',
+            starts: 'Départs'
+        };
+        
+        categories.forEach(cat => {
+            if (swimmer.technical[cat] && swimmer.technical[cat].dates) {
+                swimmer.technical[cat].dates.forEach((date, index) => {
+                    if (isDateInRange(date, dateFrom, dateTo)) {
+                        const fields = Object.keys(swimmer.technical[cat]).filter(key => key !== 'dates');
+                        const values = fields.map(field => {
+                            const fieldNames = {
+                                entries: 'Entrées', rotation: 'Rotation', breathing: 'Respiration',
+                                kicks: 'Battements', armMovement: 'Bras', pullPhase: 'Traction',
+                                kickPhase: 'Battement', coordination: 'Coordination',
+                                undulation: 'Ondulation', approach: 'Approche', pushOff: 'Poussée',
+                                underwaterPhase: 'Sous-marine', position: 'Position',
+                                reaction: 'Réaction', flight: 'Vol', entry: 'Entrée', underwater: 'Sous-marin'
+                            };
+                            return `${fieldNames[field] || field}: ${swimmer.technical[cat][field][index]}`;
+                        }).join(', ');
+                        
+                        allData.push({
+                            type: 'Technique',
+                            date: date,
+                            index: index,
+                            data: `${categoryNames[cat]} | ${values}`,
+                            category: 'technical',
+                            subCategory: cat
+                        });
+                    }
+                });
+            }
+        });
+    }
+    
+    if ((dataType === 'all' || dataType === 'attendance') && swimmer.attendance && swimmer.attendance.records) {
+        swimmer.attendance.records.forEach((record, index) => {
+            if (isDateInRange(record.date, dateFrom, dateTo)) {
+                let statusText = '';
+                if (record.status === 'present') {
+                    statusText = '✅ Présent';
+                } else if (record.status === 'late') {
+                    statusText = `⏰ Retard (${record.lateMinutes || 0} min)`;
+                    if (record.reason) statusText += ` - ${record.reason}`;
+                } else if (record.status === 'absent') {
+                    statusText = `❌ Absent`;
+                    if (record.reason) statusText += ` - ${record.reason}`;
+                    if (record.justified) statusText += ` (${record.justified === 'yes' ? 'Justifié' : 'Non justifié'})`;
+                }
+                
+                allData.push({
+                    type: 'Présence',
+                    date: record.date,
+                    index: index,
+                    data: `${record.session} | ${statusText}`,
+                    category: 'attendance'
+                });
+            }
+        });
+    }
+    
     // Trier par date (plus récent en premier)
     allData.sort((a, b) => new Date(b.date) - new Date(a.date));
     
@@ -1893,6 +2727,16 @@ function deleteDataEntry(category, index) {
                 if (swimmer.racePerformances.races) {
                     swimmer.racePerformances.races.splice(index, 1);
                 }
+            }
+            break;
+        case 'technical':
+            // Pour technical, nous devons parcourir toutes les catégories pour trouver la bonne entrée
+            // Cette approche fonctionne car nous passons également le subCategory depuis displayDataHistory
+            alert('Suppression du suivi technique non encore implémentée dans cette interface. Utilisez l\'export/import JSON pour gérer ces données.');
+            return;
+        case 'attendance':
+            if (swimmer.attendance && swimmer.attendance.records) {
+                swimmer.attendance.records.splice(index, 1);
             }
             break;
     }
@@ -2286,12 +3130,8 @@ function generateSwimmerDashboard(swimmer) {
             </div>
             
             <div class="section">
-                <h3 class="section-title">Dernières Recommandations</h3>
-                <div class="feedback-box">
-                    <ul>
-                        ${analysis.recommendations.slice(0, 3).map(rec => `<li>${rec}</li>`).join('')}
-                    </ul>
-                </div>
+                <h3 class="section-title">Recommandations Personnalisées</h3>
+                ${generateRecommendationsSection(analysis)}
             </div>
             
             ${generateRacePerformanceCharts(swimmer)}
@@ -2534,6 +3374,86 @@ function formatDate(dateString) {
 // GRAPHIQUES PERFORMANCES DE COURSE
 // =============================================
 
+function generateRecommendationsSection(analysis) {
+    let html = '';
+    
+    // Recommandations techniques détaillées
+    if (analysis.technical && analysis.technical.recommendations && analysis.technical.recommendations.length > 0) {
+        html += `<div class="card" style="margin-bottom: 20px;">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h3 class="card-title">🎯 Recommandations Techniques</h3>
+            </div>
+            <div class="card-content">`;
+        
+        analysis.technical.recommendations.forEach(rec => {
+            const bgColor = rec.type === 'success' ? '#d4edda' : 
+                           rec.type === 'warning' ? '#fff3cd' : 
+                           rec.type === 'alert' ? '#f8d7da' : 
+                           rec.type === 'priority' ? '#f5c6cb' : '#d1ecf1';
+            
+            const borderColor = rec.type === 'success' ? '#28a745' : 
+                               rec.type === 'warning' ? '#ffc107' : 
+                               rec.type === 'alert' ? '#dc3545' : 
+                               rec.type === 'priority' ? '#c82333' : '#17a2b8';
+            
+            html += `<div style="background: ${bgColor}; border-left: 4px solid ${borderColor}; padding: 15px; margin: 10px 0; border-radius: 4px;">
+                <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #333;">
+                    ${rec.icon} ${rec.title}
+                </h4>
+                <p style="margin: 5px 0; color: #555;">${rec.message}</p>
+                <p style="margin: 8px 0 0 0; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 4px; font-style: italic; font-size: 14px;">
+                    💡 <strong>Action:</strong> ${rec.action}
+                </p>
+            </div>`;
+        });
+        
+        html += `</div></div>`;
+    }
+    
+    // Recommandations sur la présence
+    if (analysis.attendance && analysis.attendance.recommendations && analysis.attendance.recommendations.length > 0) {
+        html += `<div class="card" style="margin-bottom: 20px;">
+            <div class="card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                <h3 class="card-title">✅ Recommandations Présence</h3>
+            </div>
+            <div class="card-content">
+                <ul style="margin: 0; padding-left: 20px;">`;
+        
+        analysis.attendance.recommendations.forEach(rec => {
+            html += `<li style="margin: 10px 0; font-size: 14px;">${rec}</li>`;
+        });
+        
+        html += `</ul></div></div>`;
+    }
+    
+    // Recommandations générales
+    const generalRecs = analysis.recommendations.filter(rec => typeof rec === 'string');
+    if (generalRecs.length > 0) {
+        html += `<div class="card">
+            <div class="card-header">
+                <h3 class="card-title">📋 Recommandations Générales</h3>
+            </div>
+            <div class="card-content">
+                <ul style="margin: 0; padding-left: 20px;">`;
+        
+        generalRecs.slice(0, 5).forEach(rec => {
+            html += `<li style="margin: 10px 0; font-size: 14px;">${rec}</li>`;
+        });
+        
+        html += `</ul></div></div>`;
+    }
+    
+    // Si aucune recommandation
+    if (!html) {
+        html = `<div class="feedback-box" style="text-align: center; padding: 40px;">
+            <p style="font-size: 18px; color: #28a745;">✨ Excellent travail !</p>
+            <p>Continuez sur cette lancée et maintenez votre régularité.</p>
+        </div>`;
+    }
+    
+    return html;
+}
+
 function generateRacePerformanceCharts(swimmer) {
     if (!swimmer.racePerformances || !swimmer.racePerformances.races || swimmer.racePerformances.races.length === 0) {
         return '';
@@ -2694,6 +3614,596 @@ function createRaceChart(style, styleData, dates) {
             }
         }
     });
+}
+
+// =============================================
+// ANALYSE DU SUIVI TECHNIQUE
+// =============================================
+
+function analyzeTechnical(technical) {
+    if (!technical || Object.keys(technical).length === 0) {
+        return {
+            status: 'no_data',
+            message: 'Aucune donnée technique',
+            recommendations: ['Commencer à enregistrer des évaluations techniques pour suivre la progression']
+        };
+    }
+    
+    const categories = ['crawl', 'breaststroke', 'backstroke', 'butterfly', 'medley', 'startsAndTurns'];
+    const categoryStats = {};
+    let totalEvaluations = 0;
+    const strengths = [];
+    const weaknesses = [];
+    const improvements = [];
+    const recentProgress = [];
+    
+    categories.forEach(category => {
+        if (!technical[category] || !technical[category].dates || technical[category].dates.length === 0) {
+            return;
+        }
+        
+        const catData = technical[category];
+        const fields = Object.keys(catData).filter(key => 
+            key !== 'dates' && 
+            key !== 'pointsForts' && 
+            key !== 'pointsAmeliorer' && 
+            key !== 'exercicesRecommandes' &&
+            key !== 'pointsFortsParNage' &&
+            key !== 'transitionsAmeliorer' &&
+            key !== 'strategieRecommandee' &&
+            key !== 'repartitionEffort' &&
+            key !== 'pointsFortsTechniques' &&
+            key !== 'tempsReaction' &&
+            key !== 'efficaciteCoulees' &&
+            key !== 'exercicesAmelioration'
+        );
+        
+        const lastIndex = catData.dates.length - 1;
+        
+        let categoryAvg = 0;
+        let fieldCount = 0;
+        const fieldAverages = {};
+        const fieldTrends = {};
+        
+        fields.forEach(field => {
+            if (catData[field] && catData[field].length > 0) {
+                const values = catData[field].filter(v => v !== null && !isNaN(v));
+                if (values.length === 0) return;
+                
+                const lastValue = values[values.length - 1];
+                const avgValue = values.reduce((a, b) => a + b, 0) / values.length;
+                
+                fieldAverages[field] = {
+                    last: lastValue,
+                    average: avgValue.toFixed(2),
+                    trend: values.length >= 2 ? calculateTrend(values) : 0
+                };
+                
+                categoryAvg += lastValue;
+                fieldCount++;
+                
+                // Détecter forces et faiblesses (échelle 1-10)
+                if (lastValue >= 8) {
+                    strengths.push({
+                        category: getCategoryName(category),
+                        field: getFieldName(field),
+                        score: lastValue
+                    });
+                } else if (lastValue <= 4) {
+                    weaknesses.push({
+                        category: getCategoryName(category),
+                        field: getFieldName(field),
+                        score: lastValue
+                    });
+                }
+                
+                // Détecter améliorations significatives
+                if (values.length >= 2) {
+                    const previousValue = values[values.length - 2];
+                    const improvement = lastValue - previousValue;
+                    
+                    if (improvement >= 2) {
+                        improvements.push({
+                            category: getCategoryName(category),
+                            field: getFieldName(field),
+                            progress: improvement,
+                            from: previousValue,
+                            to: lastValue
+                        });
+                    }
+                    
+                    // Progression récente (3 dernières mesures)
+                    if (values.length >= 3) {
+                        const recent = values.slice(-3);
+                        const recentTrend = calculateTrend(recent);
+                        if (Math.abs(recentTrend) > 0.3) {
+                            recentProgress.push({
+                                category: getCategoryName(category),
+                                field: getFieldName(field),
+                                trend: recentTrend > 0 ? 'up' : 'down',
+                                value: Math.abs(recentTrend).toFixed(2)
+                            });
+                        }
+                    }
+                }
+            }
+        });
+        
+        if (fieldCount > 0) {
+            const avgScore = (categoryAvg / fieldCount).toFixed(2);
+            
+            // Récupérer les observations textuelles de la dernière évaluation
+            const observations = {
+                pointsForts: catData.pointsForts?.[lastIndex] || catData.pointsFortsParNage?.[lastIndex] || catData.pointsFortsTechniques?.[lastIndex] || '',
+                pointsAmeliorer: catData.pointsAmeliorer?.[lastIndex] || catData.transitionsAmeliorer?.[lastIndex] || '',
+                exercices: catData.exercicesRecommandes?.[lastIndex] || catData.exercicesAmelioration?.[lastIndex] || ''
+            };
+            
+            categoryStats[category] = {
+                name: getCategoryName(category),
+                average: avgScore,
+                evaluations: catData.dates.length,
+                lastDate: catData.dates[lastIndex],
+                fields: fieldAverages,
+                observations: observations,
+                status: avgScore >= 8 ? 'excellent' : avgScore >= 6 ? 'good' : avgScore >= 4 ? 'warning' : 'poor'
+            };
+            totalEvaluations += catData.dates.length;
+        }
+    });
+    
+    // Déterminer le statut global
+    let status = 'good';
+    const avgScores = Object.values(categoryStats).map(c => parseFloat(c.average));
+    const overallAvg = avgScores.length > 0 ? avgScores.reduce((a, b) => a + b, 0) / avgScores.length : 0;
+    
+    if (overallAvg >= 8) {
+        status = 'excellent';
+    } else if (overallAvg <= 4) {
+        status = 'poor';
+    } else if (overallAvg < 6 || weaknesses.length > strengths.length) {
+        status = 'warning';
+    }
+    
+    // Générer des recommandations personnalisées
+    const recommendations = generateTechnicalRecommendations(
+        categoryStats, 
+        strengths, 
+        weaknesses, 
+        improvements,
+        recentProgress
+    );
+    
+    return {
+        status,
+        overallAverage: overallAvg.toFixed(2),
+        categoryStats,
+        strengths: strengths.slice(0, 5),
+        weaknesses: weaknesses.slice(0, 5),
+        improvements: improvements.slice(0, 5),
+        recentProgress: recentProgress.slice(0, 5),
+        totalEvaluations,
+        recommendations
+    };
+}
+
+function generateTechnicalRecommendations(categoryStats, strengths, weaknesses, improvements, recentProgress) {
+    const recommendations = [];
+    
+    // Recommandations basées sur les améliorations
+    if (improvements.length > 0) {
+        improvements.sort((a, b) => b.progress - a.progress);
+        const best = improvements[0];
+        recommendations.push({
+            type: 'success',
+            icon: '🎉',
+            title: 'Excellente progression détectée',
+            message: `${best.category} - ${best.field} : progression de ${best.from}/10 à ${best.to}/10 (+${best.progress} points)`,
+            action: 'Continuez sur cette lancée et consolidez ces acquis'
+        });
+    }
+    
+    // Recommandations basées sur les points forts
+    if (strengths.length > 0) {
+        strengths.sort((a, b) => b.score - a.score);
+        const topStrengths = strengths.slice(0, 3).map(s => `${s.field} (${s.score}/10)`).join(', ');
+        recommendations.push({
+            type: 'info',
+            icon: '💪',
+            title: 'Points forts identifiés',
+            message: topStrengths,
+            action: 'Exploitez ces forces en compétition et servez-vous en pour progresser sur d\'autres aspects'
+        });
+    }
+    
+    // Recommandations prioritaires basées sur les faiblesses
+    if (weaknesses.length > 0) {
+        weaknesses.sort((a, b) => a.score - b.score);
+        const critical = weaknesses[0];
+        
+        recommendations.push({
+            type: 'warning',
+            icon: '⚠️',
+            title: 'Point critique à travailler',
+            message: `${critical.category} - ${critical.field} : ${critical.score}/10`,
+            action: generateSpecificExercise(critical.category, critical.field)
+        });
+        
+        // Si plusieurs faiblesses
+        if (weaknesses.length >= 3) {
+            recommendations.push({
+                type: 'warning',
+                icon: '🎯',
+                title: 'Plan d\'amélioration nécessaire',
+                message: `${weaknesses.length} aspects nécessitent une attention particulière`,
+                action: 'Établir un programme d\'entraînement ciblé sur 4-6 semaines avec focus sur ces points'
+            });
+        }
+    }
+    
+    // Recommandations basées sur la progression récente
+    const upwardTrends = recentProgress.filter(p => p.trend === 'up');
+    const downwardTrends = recentProgress.filter(p => p.trend === 'down');
+    
+    if (downwardTrends.length > 2) {
+        recommendations.push({
+            type: 'alert',
+            icon: '📉',
+            title: 'Baisse de performance détectée',
+            message: `${downwardTrends.length} aspects en régression récente`,
+            action: 'Vérifier la fatigue, la technique et ajuster le programme d\'entraînement'
+        });
+    }
+    
+    if (upwardTrends.length >= 3) {
+        recommendations.push({
+            type: 'success',
+            icon: '📈',
+            title: 'Progression constante',
+            message: `${upwardTrends.length} aspects en amélioration continue`,
+            action: 'Excellente dynamique ! Maintenez l\'intensité et la régularité'
+        });
+    }
+    
+    // Analyse par catégorie
+    const categoryArray = Object.values(categoryStats);
+    if (categoryArray.length > 0) {
+        const bestCategory = categoryArray.reduce((max, cat) => 
+            parseFloat(cat.average) > parseFloat(max.average) ? cat : max
+        );
+        const worstCategory = categoryArray.reduce((min, cat) => 
+            parseFloat(cat.average) < parseFloat(min.average) ? cat : min
+        );
+        
+        // Si une nage est significativement plus faible
+        if (parseFloat(worstCategory.average) < 5 && categoryArray.length > 1) {
+            recommendations.push({
+                type: 'priority',
+                icon: '🏊',
+                title: `Focus sur ${worstCategory.name}`,
+                message: `Moyenne de ${worstCategory.average}/10 - nettement en dessous des autres nages`,
+                action: generateCategoryPlan(worstCategory.name)
+            });
+        }
+        
+        // Si une nage est excellente
+        if (parseFloat(bestCategory.average) >= 8.5) {
+            recommendations.push({
+                type: 'success',
+                icon: '🏆',
+                title: `Excellence en ${bestCategory.name}`,
+                message: `Moyenne de ${bestCategory.average}/10 - niveau compétitif atteint`,
+                action: 'Utilisez cette nage comme référence technique pour les autres styles'
+            });
+        }
+    }
+    
+    // Recommandations générales si peu de données
+    if (Object.keys(categoryStats).length <= 2) {
+        recommendations.push({
+            type: 'info',
+            icon: '📊',
+            title: 'Élargir l\'évaluation',
+            message: 'Seulement quelques catégories évaluées',
+            action: 'Effectuer des évaluations sur toutes les nages pour un suivi complet'
+        });
+    }
+    
+    return recommendations;
+}
+
+function generateSpecificExercise(category, field) {
+    const exercises = {
+        'crawl': {
+            'alignementCorporel': 'Exercice du Superman : nager avec un bras le long du corps, alterner tous les 25m',
+            'rotationEpaules': 'Nage avec planche latérale : 6 battements sur le côté, puis une traction',
+            'entreeDansEau': 'Exercice de la fermeture éclair : main glisse le long du corps avant l\'entrée',
+            'phaseTraction': 'Nage avec palettes : 8x50m en se concentrant sur la phase de traction',
+            'amplitudeBattement': 'Battements avec palmes courtes : 10x25m pour développer l\'amplitude',
+            'techniqueRespiration': 'Respiration tous les 3 temps : améliorer la coordination bilatérale'
+        },
+        'breaststroke': {
+            'mouvementEcartement': 'Écartement avec planche : isoler le mouvement des bras',
+            'coordinationBrasJambes': 'Brasse 2 temps (2 mouvements de bras, 1 de jambes)',
+            'phaseGlisse': 'Brasse avec temps de glisse prolongé : 3 secondes minimum',
+            'positionGenoux': 'Battements de brasse au mur : focus sur la position des genoux'
+        },
+        'backstroke': {
+            'flottaisonHorizontale': 'Exercice de la flèche dorsale : 8x15m en position streamline',
+            'orientationLigne': 'Nage avec repères visuels : regarder les drapeaux et les lignes',
+            'approcheMur': 'Virages dos : 10 répétitions en comptant les mouvements',
+            'continuiteMouvement': 'Rattrapage dos : maintenir un bras devant en permanence'
+        },
+        'butterfly': {
+            'mouvementOndulatoire': 'Ondulations sans bras : 10x15m en position streamline',
+            'coordinationTeteBuste': 'Papillon un bras : alterner bras droit/gauche tous les 25m',
+            'amplitudeBattement': 'Double battement avec planche : isoler le travail des jambes',
+            'timingRespiration': 'Papillon 3-5 temps : respirer tous les 3 ou 5 mouvements'
+        },
+        'medley': {
+            'transitionsNages': 'Enchaînement 4 nages 4x100m : travailler spécifiquement les transitions',
+            'energieManagement': 'Test 200m 4 nages : établir les temps de passage par nage',
+            'viragePapillonDos': 'Virages papillon-dos isolés : 15 répétitions'
+        },
+        'startsAndTurns': {
+            'positionDepart': 'Départs sur plot : 10 répétitions avec analyse vidéo',
+            'trajectoire': 'Départs avec marquage : viser un point précis à 5m',
+            'rotationCrawl': 'Virages culbute : 20 répétitions avec focus sur la rotation',
+            'couleeApresVirageCrawl': 'Coulées chronométrées : viser 7-8m minimum',
+            'battementUnderwater': 'Battements dauphins underwater : 10x15m'
+        }
+    };
+    
+    const categoryExercises = exercises[category.toLowerCase().replace(' ', '')];
+    if (categoryExercises && categoryExercises[field]) {
+        return categoryExercises[field];
+    }
+    
+    return 'Consulter l\'entraîneur pour un programme personnalisé sur cet aspect';
+}
+
+function generateCategoryPlan(categoryName) {
+    const plans = {
+        'Crawl': 'Plan 4 semaines : Séances techniques 3x/semaine avec focus rotation et traction. Vidéo tous les 10 jours.',
+        'Brasse': 'Plan 4 semaines : Travail de coordination et timing. Exercices éducatifs quotidiens (10 min).',
+        'Dos': 'Plan 4 semaines : Orientation et virages. Exercices de flottaison et travail spécifique de coulée.',
+        'Papillon': 'Plan 4 semaines : Ondulation et timing respiratoire. Progression : 1 bras → papillon complet.',
+        '4 Nages': 'Plan 6 semaines : Focus sur nages faibles + transitions. Chrono par nage chaque semaine.',
+        'Départs et Virages': 'Plan 3 semaines : Technique de départ 2x/semaine + virages chaque séance. Chronométrage systématique.'
+    };
+    
+    return plans[categoryName] || 'Établir un programme spécifique avec l\'entraîneur';
+}
+
+function getCategoryName(category) {
+    const names = {
+        crawl: 'Crawl',
+        backstroke: 'Dos',
+        breaststroke: 'Brasse',
+        butterfly: 'Papillon',
+        medley: '4 Nages',
+        startsAndTurns: 'Départs et Virages'
+    };
+    return names[category] || category;
+}
+
+function getFieldName(field) {
+    const names = {
+        // Crawl
+        alignementCorporel: 'Alignement corporel',
+        rotationEpaules: 'Rotation des épaules',
+        stabiliteHanches: 'Stabilité des hanches',
+        flottaison: 'Flottaison',
+        entreeDansEau: 'Entrée dans l\'eau',
+        phaseTraction: 'Phase de traction',
+        phasePoussee: 'Phase de poussée',
+        retourAerien: 'Retour aérien',
+        longueurMouvement: 'Longueur du mouvement',
+        amplitudeBattement: 'Amplitude du battement',
+        frequenceBattement: 'Fréquence du battement',
+        flexibiliteChevilles: 'Flexibilité des chevilles',
+        coordinationBras: 'Coordination avec les bras',
+        techniqueRespiration: 'Technique de respiration',
+        timingRespiration: 'Timing de la respiration',
+        rythmeNage: 'Rythme de nage',
+        coordinationGlobale: 'Coordination globale',
+        
+        // Brasse
+        alignementHorizontal: 'Alignement horizontal',
+        positionTete: 'Position de la tête',
+        stabiliteTronc: 'Stabilité du tronc',
+        mouvementEcartement: 'Mouvement d\'écartement',
+        mouvementTraction: 'Mouvement de traction',
+        mouvementRetour: 'Mouvement de retour',
+        synchronisationBrasRespiration: 'Synchronisation bras-respiration',
+        positionGenoux: 'Position des genoux',
+        mouvementCiseaux: 'Mouvement de ciseaux',
+        flexionChevilles: 'Flexion des chevilles',
+        puissancePropulsion: 'Puissance de propulsion',
+        coordinationBrasJambes: 'Coordination bras-jambes',
+        phaseGlisse: 'Phase de glisse',
+        fluiditeMouvement: 'Fluidité du mouvement',
+        
+        // Dos
+        flottaisonHorizontale: 'Flottaison horizontale',
+        positionHanches: 'Position des hanches',
+        stabiliteTete: 'Stabilité de la tête',
+        alignmentGeneral: 'Alignment général',
+        phaseSousMarine: 'Phase sous-marine',
+        continuiteMouvement: 'Continuité du mouvement',
+        surfacePieds: 'Surface des pieds',
+        regulariteRespiratoire: 'Régularité respiratoire',
+        orientationLigne: 'Orientation dans la ligne',
+        consciencePosition: 'Conscience de la position',
+        approcheMur: 'Approche du mur',
+        rotation: 'Rotation',
+        impulsion: 'Impulsion',
+        couleeApresVirage: 'Coulée après virage',
+        
+        // Papillon
+        mouvementOndulatoire: 'Mouvement ondulatoire',
+        coordinationTeteBuste: 'Coordination tête-buste',
+        fluiditeOndulation: 'Fluidité de l\'ondulation',
+        amplitudeMouvement: 'Amplitude du mouvement',
+        puissanceBattement: 'Puissance du battement',
+        synchronisation: 'Synchronisation',
+        hauteurTete: 'Hauteur de la tête',
+        retourRapide: 'Retour rapide',
+        uniteMouvement: 'Unité du mouvement',
+        rythme: 'Rythme',
+        energieDepensee: 'Énergie dépensée',
+        
+        // 4 Nages
+        transitionsNages: 'Transitions entre nages',
+        rythmeGlobal: 'Rythme global',
+        energieManagement: 'Énergie management',
+        strategieCourse: 'Stratégie de course',
+        techniquePapillon: 'Technique papillon',
+        conservationEnergie: 'Conservation d\'énergie',
+        techniqueDos: 'Technique dos',
+        transitionPapillonDos: 'Transition papillon→dos',
+        techniqueBrasse: 'Technique brasse',
+        transitionDosBrasse: 'Transition dos→brasse',
+        techniqueCrawl: 'Technique crawl',
+        transitionBrasseCrawl: 'Transition brasse→crawl',
+        finCourse: 'Fin de course',
+        viragePapillonDos: 'Virage papillon→dos',
+        virageDosBrasse: 'Virage dos→brasse',
+        virageBrasseCrawl: 'Virage brasse→crawl',
+        
+        // Départs et Virages
+        positionDepart: 'Position de départ',
+        trajectoire: 'Trajectoire',
+        profondeur: 'Profondeur',
+        distance: 'Distance',
+        positionCorps: 'Position du corps',
+        battementUnderwater: 'Battement underwater',
+        approcheMurCrawl: 'Approche du mur (crawl)',
+        rotationCrawl: 'Rotation (crawl)',
+        appuiPiedsCrawl: 'Appui des pieds (crawl)',
+        impulsionCrawl: 'Impulsion (crawl)',
+        couleeApresVirageCrawl: 'Coulée après virage (crawl)',
+        approcheMurBrasse: 'Approche du mur (brasse)',
+        toucherSimultane: 'Toucher simultané',
+        rotationBrasse: 'Rotation (brasse)',
+        impulsionBrasse: 'Impulsion (brasse)',
+        approcheMurArrivee: 'Approche du mur (arrivée)',
+        toucherFinal: 'Toucher final',
+        vitesseMaintenue: 'Vitesse maintenue'
+    };
+    return names[field] || field;
+}
+
+// =============================================
+// ANALYSE DE LA PRÉSENCE
+// =============================================
+
+function analyzeAttendance(attendance) {
+    if (!attendance || !attendance.records || attendance.records.length === 0) {
+        return {
+            status: 'no_data',
+            message: 'Aucune donnée de présence',
+            recommendations: ['Commencer à enregistrer la présence pour suivre l\'assiduité']
+        };
+    }
+    
+    const records = attendance.records;
+    const total = records.length;
+    const presentCount = records.filter(r => r.status === 'present').length;
+    const lateCount = records.filter(r => r.status === 'late').length;
+    const absentCount = records.filter(r => r.status === 'absent').length;
+    
+    const presentRate = ((presentCount / total) * 100).toFixed(1);
+    const lateRate = ((lateCount / total) * 100).toFixed(1);
+    const absentRate = ((absentCount / total) * 100).toFixed(1);
+    
+    // Analyser les absences justifiées
+    const absences = records.filter(r => r.status === 'absent');
+    const justifiedAbsences = absences.filter(r => r.justified === 'yes').length;
+    const unjustifiedAbsences = absences.filter(r => r.justified === 'no').length;
+    
+    // Analyser les retards
+    const lateRecords = records.filter(r => r.status === 'late');
+    const avgLateMinutes = lateRecords.length > 0 
+        ? (lateRecords.reduce((sum, r) => sum + (r.lateMinutes || 0), 0) / lateRecords.length).toFixed(0)
+        : 0;
+    
+    // Analyser les 10 dernières séances
+    const recentRecords = records.slice(-10);
+    const recentAbsences = recentRecords.filter(r => r.status === 'absent').length;
+    const recentLate = recentRecords.filter(r => r.status === 'late').length;
+    
+    // Déterminer le statut
+    let status = 'good';
+    if (presentRate >= 90 && lateRate < 5) {
+        status = 'excellent';
+    } else if (presentRate < 70 || unjustifiedAbsences > 2) {
+        status = 'poor';
+    } else if (presentRate < 80 || recentAbsences > 3) {
+        status = 'warning';
+    }
+    
+    // Générer des recommandations
+    const recommendations = generateAttendanceRecommendations(
+        presentRate,
+        lateRate,
+        absentRate,
+        unjustifiedAbsences,
+        recentAbsences,
+        recentLate,
+        avgLateMinutes
+    );
+    
+    return {
+        status,
+        total,
+        presentCount,
+        lateCount,
+        absentCount,
+        presentRate,
+        lateRate,
+        absentRate,
+        justifiedAbsences,
+        unjustifiedAbsences,
+        avgLateMinutes,
+        recentAbsences,
+        recentLate,
+        recommendations
+    };
+}
+
+function generateAttendanceRecommendations(presentRate, lateRate, absentRate, unjustified, recentAbsences, recentLate, avgLateMinutes) {
+    const recommendations = [];
+    
+    if (presentRate >= 95) {
+        recommendations.push('🌟 Excellente assiduité ! Continuez ainsi.');
+    } else if (presentRate >= 85) {
+        recommendations.push('✅ Bonne assiduité générale.');
+    } else if (presentRate < 70) {
+        recommendations.push('⚠️ Assiduité préoccupante. Un entretien est recommandé.');
+    }
+    
+    if (unjustified > 2) {
+        recommendations.push(`❌ ${unjustified} absence(s) non justifiée(s) détectée(s). Justification requise.`);
+    }
+    
+    if (recentAbsences > 3) {
+        recommendations.push('📉 Augmentation des absences récentes. Vérifier la motivation et les obstacles.');
+    }
+    
+    if (recentLate > 3) {
+        recommendations.push(`⏰ Retards fréquents récents (moyenne: ${avgLateMinutes} min). Discuter de la ponctualité.`);
+    }
+    
+    if (lateRate > 10) {
+        recommendations.push('⚠️ Taux de retard élevé. Identifier les causes et trouver des solutions.');
+    }
+    
+    if (presentRate >= 90 && lateRate < 5 && unjustified === 0) {
+        recommendations.push('🏆 Comportement exemplaire ! Parfait engagement envers l\'équipe.');
+    }
+    
+    return recommendations;
 }
 
 function convertTimeToSeconds(timeString) {
@@ -3111,6 +4621,157 @@ function initializeAnalysisCharts() {
                             },
                             ticks: {
                                 backdropColor: 'transparent'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Graphique de suivi technique - Moyennes par catégorie
+        const technicalCtx = document.getElementById('technicalChart');
+        if (technicalCtx && swimmer.technical) {
+            const categories = ['crawl', 'backstroke', 'breaststroke', 'butterfly', 'turns', 'starts'];
+            const categoryNames = ['Crawl', 'Dos', 'Brasse', 'Papillon', 'Virages', 'Départs'];
+            const averages = [];
+            
+            categories.forEach(cat => {
+                if (swimmer.technical[cat] && swimmer.technical[cat].dates && swimmer.technical[cat].dates.length > 0) {
+                    const fields = Object.keys(swimmer.technical[cat]).filter(key => key !== 'dates');
+                    const lastIndex = swimmer.technical[cat].dates.length - 1;
+                    let sum = 0;
+                    let count = 0;
+                    
+                    fields.forEach(field => {
+                        if (swimmer.technical[cat][field] && swimmer.technical[cat][field].length > 0) {
+                            sum += swimmer.technical[cat][field][lastIndex];
+                            count++;
+                        }
+                    });
+                    
+                    averages.push(count > 0 ? (sum / count).toFixed(2) : 0);
+                } else {
+                    averages.push(0);
+                }
+            });
+            
+            new Chart(technicalCtx, {
+                type: 'bar',
+                data: {
+                    labels: categoryNames,
+                    datasets: [{
+                        label: 'Moyenne technique (0-5)',
+                        data: averages,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(99, 255, 132, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(99, 255, 132, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Graphique de présence - Statistiques
+        const attendanceCtx = document.getElementById('attendanceChart');
+        if (attendanceCtx && swimmer.attendance && swimmer.attendance.records.length > 0) {
+            const records = swimmer.attendance.records;
+            const presentCount = records.filter(r => r.status === 'present').length;
+            const lateCount = records.filter(r => r.status === 'late').length;
+            const absentCount = records.filter(r => r.status === 'absent').length;
+            
+            new Chart(attendanceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Présent', 'Retard', 'Absent'],
+                    datasets: [{
+                        data: [presentCount, lateCount, absentCount],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(255, 99, 132, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                },
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    return data.labels.map((label, i) => {
+                                        const value = data.datasets[0].data[i];
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return {
+                                            text: `${label}: ${value} (${percentage}%)`,
+                                            fillStyle: data.datasets[0].backgroundColor[i],
+                                            hidden: false,
+                                            index: i
+                                        };
+                                    });
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} séances (${percentage}%)`;
+                                }
                             }
                         }
                     }
