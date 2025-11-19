@@ -6,6 +6,96 @@ let swimmers = [];
 let currentSwimmerId = null;
 let currentDataType = null;
 
+// ===== CACHE SYSTEM POUR PERFORMANCES =====
+const Cache = {
+    _data: {},
+    _timestamps: {},
+    TTL: 5000, // 5 secondes
+    
+    get(key) {
+        const now = Date.now();
+        if (this._data[key] && (now - this._timestamps[key]) < this.TTL) {
+            return this._data[key];
+        }
+        return null;
+    },
+    
+    set(key, value) {
+        this._data[key] = value;
+        this._timestamps[key] = Date.now();
+    },
+    
+    clear() {
+        this._data = {};
+        this._timestamps = {};
+    }
+};
+
+// ===== CHART REGISTRY POUR CLEANUP =====
+const ChartRegistry = {
+    charts: {},
+    
+    register(id, chart) {
+        if (this.charts[id]) {
+            this.charts[id].destroy();
+        }
+        this.charts[id] = chart;
+    },
+    
+    destroy(id) {
+        if (this.charts[id]) {
+            this.charts[id].destroy();
+            delete this.charts[id];
+        }
+    },
+    
+    destroyAll() {
+        Object.values(this.charts).forEach(chart => chart.destroy());
+        this.charts = {};
+    }
+};
+
+// ===== DEBOUNCE UTILITY =====
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// =============================================
+// FONCTION UTILITAIRE - NOTIFICATIONS
+// =============================================
+function showNotification(type, message) {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? '#34a853' : type === 'error' ? '#ea4335' : '#1a73e8'};
+        color: white;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
 // Fonction pour créer un nageur de test avec données complètes
 function createTestSwimmer() {
     const testSwimmer = {
@@ -13,6 +103,78 @@ function createTestSwimmer() {
         name: "Alex Dupont (TEST)",
         age: 22,
         specialty: "Dos & Papillon",
+        
+        // ===== NOUVELLE STRUCTURE (arrays d'objets) =====
+        wellbeingData: [
+            {date: '2024-11-01', sleep: 3, fatigue: 3, pain: 1, stress: 2},
+            {date: '2024-11-03', sleep: 4, fatigue: 2, pain: 1, stress: 3},
+            {date: '2024-11-05', sleep: 3, fatigue: 3, pain: 2, stress: 2},
+            {date: '2024-11-07', sleep: 5, fatigue: 2, pain: 1, stress: 2},
+            {date: '2024-11-09', sleep: 4, fatigue: 3, pain: 1, stress: 3},
+            {date: '2024-11-11', sleep: 4, fatigue: 2, pain: 0, stress: 2},
+            {date: '2024-11-13', sleep: 3, fatigue: 3, pain: 1, stress: 2}
+        ],
+        trainingData: [
+            {date: '2024-11-01', volume: 60, volumeMeters: 3000, rpe: 6, load: 360},
+            {date: '2024-11-03', volume: 75, volumeMeters: 3500, rpe: 7, load: 525},
+            {date: '2024-11-05', volume: 80, volumeMeters: 4000, rpe: 8, load: 640},
+            {date: '2024-11-07', volume: 90, volumeMeters: 4200, rpe: 7, load: 630},
+            {date: '2024-11-09', volume: 85, volumeMeters: 3800, rpe: 8, load: 680},
+            {date: '2024-11-11', volume: 70, volumeMeters: 3200, rpe: 6, load: 420},
+            {date: '2024-11-13', volume: 95, volumeMeters: 4500, rpe: 9, load: 855}
+        ],
+        performanceData: [
+            {date: '2024-11-01', vma: 13.5, shoulderStrength: 2.5, chestStrength: 1.8, legStrength: 3.2},
+            {date: '2024-11-03', vma: 13.8, shoulderStrength: 2.8, chestStrength: 2.0, legStrength: 3.5},
+            {date: '2024-11-05', vma: 14.2, shoulderStrength: 3.0, chestStrength: 2.2, legStrength: 3.8},
+            {date: '2024-11-07', vma: 14.5, shoulderStrength: 3.2, chestStrength: 2.5, legStrength: 4.0},
+            {date: '2024-11-09', vma: 14.3, shoulderStrength: 3.5, chestStrength: 2.7, legStrength: 4.3},
+            {date: '2024-11-11', vma: 14.8, shoulderStrength: 3.7, chestStrength: 2.9, legStrength: 4.5},
+            {date: '2024-11-13', vma: 14.6, shoulderStrength: 4.0, chestStrength: 3.1, legStrength: 4.8}
+        ],
+        medicalData: [
+            {date: '2024-11-01', availability: 3, illnesses: 0, injuries: 0, otherIssues: 0},
+            {date: '2024-11-03', availability: 3, illnesses: 0, injuries: 0, otherIssues: 0},
+            {date: '2024-11-05', availability: 2, illnesses: 1, injuries: 0, otherIssues: 0},
+            {date: '2024-11-07', availability: 3, illnesses: 0, injuries: 0, otherIssues: 0},
+            {date: '2024-11-09', availability: 3, illnesses: 0, injuries: 0, otherIssues: 0},
+            {date: '2024-11-11', availability: 3, illnesses: 0, injuries: 0, otherIssues: 0},
+            {date: '2024-11-13', availability: 3, illnesses: 0, injuries: 0, otherIssues: 0}
+        ],
+        raceData: [
+            {
+                date: '2024-11-05',
+                event: "Championnats Régionaux - Nov 2024",
+                races: [
+                    { style: "Crawl", distance: "50m", time: "26:45" },
+                    { style: "Crawl", distance: "100m", time: "58:30" },
+                    { style: "Dos", distance: "50m", time: "29:80" },
+                    { style: "Dos", distance: "100m", time: "01:05:20" }
+                ]
+            },
+            {
+                date: '2024-11-09',
+                event: "Meeting Interclubs - Nov 2024",
+                races: [
+                    { style: "Crawl", distance: "50m", time: "26:20" },
+                    { style: "Dos", distance: "100m", time: "01:04:85" },
+                    { style: "Papillon", distance: "50m", time: "31:50" },
+                    { style: "Brasse", distance: "100m", time: "01:18:40" }
+                ]
+            },
+            {
+                date: '2024-11-13',
+                event: "Compétition Nationale - Nov 2024",
+                races: [
+                    { style: "Crawl", distance: "100m", time: "57:80" },
+                    { style: "Dos", distance: "100m", time: "01:04:50" },
+                    { style: "Papillon", distance: "50m", time: "31:20" },
+                    { style: "4 Nages", distance: "200m", time: "02:28:90" }
+                ]
+            }
+        ],
+        
+        // ===== ANCIENNE STRUCTURE (pour compatibilité) =====
         wellbeing: {
             sleep: [3, 4, 3, 5, 4, 4, 3],
             fatigue: [3, 2, 3, 2, 3, 2, 3],
@@ -126,23 +288,57 @@ function createTestSwimmer() {
 // =============================================
 function saveToLocalStorage() {
     try {
-        localStorage.setItem('swimmers', JSON.stringify(swimmers));
+        Cache.clear(); // Invalider cache
+        const swimmersData = JSON.stringify(swimmers);
+        const dataSize = new Blob([swimmersData]).size;
+        
+        // Vérifier la taille (5MB = limite approximative)
+        if (dataSize > 4.5 * 1024 * 1024) {
+            console.warn('⚠️ Données volumineuses:', (dataSize / 1024 / 1024).toFixed(2), 'MB');
+            alert('⚠️ Attention: Vos données deviennent volumineuses. Pensez à exporter et archiver.');
+        }
+        
+        localStorage.setItem('swimmers', swimmersData);
         localStorage.setItem('currentSwimmerId', currentSwimmerId);
-        console.log('Données sauvegardées avec succès');
+        console.log('✅ Données sauvegardées:', swimmers.length, 'nageur(s),', (dataSize / 1024).toFixed(2), 'KB');
+        return true;
     } catch (e) {
-        console.error('Erreur lors de la sauvegarde:', e);
-        alert('Erreur: Impossible de sauvegarder les données');
+        console.error('❌ Erreur lors de la sauvegarde:', e);
+        if (e.name === 'QuotaExceededError') {
+            alert('❌ STOCKAGE PLEIN !\n\nVotre navigateur n\'a plus d\'espace de stockage.\n\n' +
+                  'Actions recommandées:\n' +
+                  '1. Exportez vos données (bouton Export)\n' +
+                  '2. Supprimez d\'anciennes données\n' +
+                  '3. Videz le cache du navigateur');
+        } else {
+            alert('❌ Erreur: Impossible de sauvegarder les données\n\n' + e.message);
+        }
+        return false;
     }
 }
 
 function loadFromLocalStorage() {
     try {
+        // Vérifier cache d'abord
+        const cached = Cache.get('swimmers');
+        if (cached) {
+            swimmers = cached;
+            console.log('⚡ Données chargées depuis cache:', swimmers.length, 'nageur(s)');
+            
+            const savedCurrentId = localStorage.getItem('currentSwimmerId');
+            if (savedCurrentId && savedCurrentId !== 'null') {
+                currentSwimmerId = savedCurrentId;
+            }
+            return;
+        }
+        
         const savedSwimmers = localStorage.getItem('swimmers');
         const savedCurrentId = localStorage.getItem('currentSwimmerId');
         
         if (savedSwimmers) {
             swimmers = JSON.parse(savedSwimmers);
-            console.log('Données chargées:', swimmers.length, 'nageur(s)');
+            Cache.set('swimmers', swimmers); // Mise en cache
+            console.log('✅ Données chargées:', swimmers.length, 'nageur(s)');
         }
         
         if (savedCurrentId && savedCurrentId !== 'null') {
@@ -187,39 +383,161 @@ function importData(file) {
 }
 
 // =============================================
-// ÉLÉMENTS DOM
+// ÉLÉMENTS DOM (déclarés globalement, initialisés dans DOMContentLoaded)
 // =============================================
-const dashboardContent = document.getElementById('dashboardContent');
-const athleteSelector = document.getElementById('athleteSelector');
-const addSwimmerBtn = document.getElementById('addSwimmerBtn');
-const resetDataBtn = document.getElementById('resetDataBtn');
-const addSwimmerModal = document.getElementById('addSwimmerModal');
-const dataEntryModal = document.getElementById('dataEntryModal');
-const dataEntryForm = document.getElementById('dataEntryForm');
-const dataEntryTitle = document.getElementById('dataEntryTitle');
+let dashboardContent;
+let athleteSelector;
+let addSwimmerBtn;
+let resetDataBtn;
+let addSwimmerModal;
+let dataEntryModal;
+let dataEntryForm;
+let dataEntryTitle;
 
 // =============================================
 // INITIALISATION
 // =============================================
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser les éléments DOM
+    dashboardContent = document.getElementById('dashboardContent');
+    athleteSelector = document.getElementById('athleteSelector');
+    addSwimmerBtn = document.getElementById('addSwimmerBtn');
+    resetDataBtn = document.getElementById('resetDataBtn');
+    addSwimmerModal = document.getElementById('addSwimmerModal');
+    dataEntryModal = document.getElementById('dataEntryModal');
+    dataEntryForm = document.getElementById('dataEntryForm');
+    dataEntryTitle = document.getElementById('dataEntryTitle');
+    
+    // Charger les données et initialiser l'interface
     loadFromLocalStorage();
     loadTheme();
     initializeEventListeners();
     updateAthleteSelector();
     updateDashboard();
     updateActionButtons();
+    updateQuickInfo();
+    
+    // Synchronisation automatique entre onglets/pages
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'swimmers') {
+            console.log('🔄 Synchronisation: Nageurs modifiés depuis Équipe');
+            loadFromLocalStorage();
+            updateAthleteSelector();
+            updateDashboard();
+            updateQuickInfo();
+            if (typeof showNotification === 'function') {
+                showNotification('info', 'Données actualisées automatiquement');
+            }
+        }
+        if (e.key === 'teams') {
+            console.log('🔄 Synchronisation: Équipes modifiées');
+            loadFromLocalStorage();
+            updateAthleteSelector();
+        }
+    });
+
+    // Actualiser au focus de la page
+    window.addEventListener('focus', function() {
+        const lastSwimmers = localStorage.getItem('swimmers');
+        const currentData = JSON.stringify(swimmers);
+        if (lastSwimmers !== currentData) {
+            console.log('🔄 Rafraîchissement: Retour sur la page dashboard');
+            loadFromLocalStorage();
+            updateAthleteSelector();
+            updateDashboard();
+            updateQuickInfo();
+        }
+    });
+    
+    // Effet scroll pour le sélecteur sticky
+    let lastScrollTop = 0;
+    window.addEventListener('scroll', function() {
+        const stickySelector = document.querySelector('.sticky-selector');
+        if (stickySelector) {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop > 50) {
+                stickySelector.classList.add('scrolled');
+            } else {
+                stickySelector.classList.remove('scrolled');
+            }
+            lastScrollTop = scrollTop;
+        }
+    });
 });
 
 function updateActionButtons() {
     const exportPdfBtn = document.getElementById('exportPdfBtn');
     const compareBtn = document.getElementById('compareSwimmersBtn');
+    const viewHistoryBtn = document.getElementById('viewHistoryBtn');
     
     if (exportPdfBtn) {
-        exportPdfBtn.style.display = currentSwimmerId ? 'block' : 'none';
+        exportPdfBtn.style.display = currentSwimmerId ? 'inline-block' : 'none';
     }
     
     if (compareBtn) {
-        compareBtn.style.display = swimmers.length >= 2 ? 'block' : 'none';
+        compareBtn.style.display = swimmers.length >= 2 ? 'inline-block' : 'none';
+    }
+    
+    if (viewHistoryBtn) {
+        viewHistoryBtn.style.display = currentSwimmerId ? 'inline-block' : 'none';
+    }
+}
+
+// Afficher/cacher les infos rapides du nageur
+function updateQuickInfo() {
+    const quickInfo = document.getElementById('quickSwimmerInfo');
+    if (!quickInfo) return;
+    
+    if (currentSwimmerId) {
+        const swimmer = swimmers.find(s => s.id === currentSwimmerId);
+        if (swimmer) {
+            quickInfo.style.display = 'block';
+            document.getElementById('quickAge').textContent = swimmer.age;
+            document.getElementById('quickSpecialty').textContent = getSpecialtyName(swimmer.specialty);
+            
+            // Compter les données
+            let dataCount = 0;
+            if (swimmer.wellbeingData) dataCount += swimmer.wellbeingData.length;
+            if (swimmer.trainingData) dataCount += swimmer.trainingData.length;
+            if (swimmer.performanceData) dataCount += swimmer.performanceData.length;
+            document.getElementById('quickDataCount').textContent = dataCount;
+            
+            // Dernière performance
+            if (swimmer.raceData && swimmer.raceData.length > 0) {
+                const lastRace = swimmer.raceData[swimmer.raceData.length - 1];
+                document.getElementById('quickLastPerf').textContent = `${lastRace.time} (${lastRace.distance}m)`;
+            } else {
+                document.getElementById('quickLastPerf').textContent = 'Aucune';
+            }
+        }
+    } else {
+        quickInfo.style.display = 'none';
+    }
+}
+
+function getSpecialtyName(specialty) {
+    const names = {
+        'crawl': 'Crawl',
+        'brasse': 'Brasse',
+        'dos': 'Dos',
+        'papillon': 'Papillon',
+        '4nages': '4 Nages'
+    };
+    return names[specialty] || specialty;
+}
+
+// Afficher une section
+function showSection(sectionId) {
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => {
+        section.classList.remove('active');
+        section.style.display = 'none';
+    });
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        targetSection.style.display = 'block';
     }
 }
 
@@ -232,10 +550,13 @@ function initializeEventListeners() {
         document.querySelector('nav').classList.toggle('active');
     });
 
-    // Navigation
+    // Navigation entre sections
     document.querySelectorAll('nav a').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            showSection(targetId);
+            
             document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
             this.classList.add('active');
             
@@ -278,11 +599,9 @@ function initializeEventListeners() {
     // Sélection d'athlète
     athleteSelector.addEventListener('change', function() {
         currentSwimmerId = this.value === 'all' ? null : this.value;
-        const viewHistoryBtn = document.getElementById('viewHistoryBtn');
-        if (viewHistoryBtn) {
-            viewHistoryBtn.style.display = currentSwimmerId ? 'block' : 'none';
-        }
         updateDashboard();
+        updateActionButtons();
+        updateQuickInfo();
     });
 
     // Réinitialisation
@@ -299,6 +618,16 @@ function initializeEventListeners() {
             e.target.value = ''; // Reset input
         }
     });
+    
+    // Bouton actualiser
+    const refreshBtn = document.getElementById('refreshDashboardBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            updateDashboard();
+            updateQuickInfo();
+            showNotification('success', 'Dashboard actualisé');
+        });
+    }
     
     // Export PDF
     document.getElementById('exportPdfBtn').addEventListener('click', generatePdfReport);
@@ -373,8 +702,16 @@ function addNewSwimmer(name, age, gender, specialty) {
         gender: gender,
         specialty: specialty,
         joinDate: new Date().toISOString().split('T')[0],
-        // Données par défaut
-
+        teams: [], // Liste des équipes auxquelles appartient le nageur
+        
+        // ===== NOUVELLE STRUCTURE (arrays d'objets) =====
+        wellbeingData: [],    // [{date, sleep, fatigue, pain, stress}, ...]
+        trainingData: [],     // [{date, volume, volumeMeters, rpe, load}, ...]
+        performanceData: [],  // [{date, vma, shoulderStrength, chestStrength, legStrength}, ...]
+        medicalData: [],      // [{date, availability, illnesses, injuries, otherIssues}, ...]
+        raceData: [],         // [{date, event, races: [{style, distance, time}, ...]}, ...]
+        
+        // ===== ANCIENNE STRUCTURE (pour compatibilité) =====
         // Données de bien-être
         wellbeing: {
             sleep: [],
@@ -637,6 +974,11 @@ function addNewSwimmer(name, age, gender, specialty) {
 
 // Ouvrir le modal de saisie de données
 function openDataEntryModal(dataType) {
+    if (!dataEntryModal || !dataEntryForm || !dataEntryTitle) {
+        console.error('Les éléments du modal ne sont pas encore chargés');
+        return;
+    }
+    
     if (!currentSwimmerId) {
         alert('Veuillez sélectionner un nageur d\'abord');
         return;
@@ -686,22 +1028,26 @@ function generateDataEntryForm(dataType) {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="sleep">Sommeil (1-5)</label>
-                        <input type="number" id="sleep" class="form-control" min="1" max="5" required>
+                        <input type="number" id="sleep" class="form-control" min="1" max="5" required oninput="calculateWellbeingScore()">
                     </div>
                     <div class="form-group">
                         <label for="fatigue">Fatigue (1-5)</label>
-                        <input type="number" id="fatigue" class="form-control" min="1" max="5" required>
+                        <input type="number" id="fatigue" class="form-control" min="1" max="5" required oninput="calculateWellbeingScore()">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="pain">Douleur (1-5)</label>
-                        <input type="number" id="pain" class="form-control" min="1" max="5" required>
+                        <input type="number" id="pain" class="form-control" min="1" max="5" required oninput="calculateWellbeingScore()">
                     </div>
                     <div class="form-group">
                         <label for="stress">Stress (1-5)</label>
-                        <input type="number" id="stress" class="form-control" min="1" max="5" required>
+                        <input type="number" id="stress" class="form-control" min="1" max="5" required oninput="calculateWellbeingScore()">
                     </div>
+                </div>
+                <div class="form-group">
+                    <label for="wellbeingScore">Score de Bien-être (moyenne automatique)</label>
+                    <input type="number" id="wellbeingScore" class="form-control" readonly style="background-color: #f0f0f0; font-weight: bold; font-size: 1.1rem;">
                 </div>
             `;
             
@@ -872,6 +1218,21 @@ function generateDataEntryForm(dataType) {
             return '<p>Type de données non reconnu</p>';
     }
 }
+
+// Calculer automatiquement le score de bien-être
+window.calculateWellbeingScore = function() {
+    const sleep = parseFloat(document.getElementById('sleep')?.value) || 0;
+    const fatigue = parseFloat(document.getElementById('fatigue')?.value) || 0;
+    const pain = parseFloat(document.getElementById('pain')?.value) || 0;
+    const stress = parseFloat(document.getElementById('stress')?.value) || 0;
+    
+    if (sleep > 0 && fatigue > 0 && pain > 0 && stress > 0) {
+        const score = ((sleep + fatigue + pain + stress) / 4).toFixed(2);
+        document.getElementById('wellbeingScore').value = score;
+    } else {
+        document.getElementById('wellbeingScore').value = '';
+    }
+};
 
 // Mettre à jour les champs techniques selon la catégorie
 window.updateTechnicalFields = function() {
@@ -1186,37 +1547,68 @@ function saveData() {
     
     switch(currentDataType) {
         case 'wellbeing':
-            swimmer.wellbeing.sleep.push(parseInt(document.getElementById('sleep').value));
-            swimmer.wellbeing.fatigue.push(parseInt(document.getElementById('fatigue').value));
-            swimmer.wellbeing.pain.push(parseInt(document.getElementById('pain').value));
-            swimmer.wellbeing.stress.push(parseInt(document.getElementById('stress').value));
-            swimmer.wellbeing.dates.push(date);
+            // Nouvelle structure : wellbeingData = [{date, sleep, fatigue, pain, stress, score}, ...]
+            if (!swimmer.wellbeingData) {
+                swimmer.wellbeingData = [];
+            }
+            const sleep = parseInt(document.getElementById('sleep').value);
+            const fatigue = parseInt(document.getElementById('fatigue').value);
+            const pain = parseInt(document.getElementById('pain').value);
+            const stress = parseInt(document.getElementById('stress').value);
+            const score = ((sleep + fatigue + pain + stress) / 4).toFixed(2);
+            
+            swimmer.wellbeingData.push({
+                date: date,
+                sleep: sleep,
+                fatigue: fatigue,
+                pain: pain,
+                stress: stress,
+                score: parseFloat(score)
+            });
             break;
             
         case 'training':
-            swimmer.training.volume.push(parseInt(document.getElementById('volume').value));
-            swimmer.training.volumeMeters.push(parseInt(document.getElementById('volumeMeters').value));
-            swimmer.training.rpe.push(parseInt(document.getElementById('rpe').value));
-            swimmer.training.charge.push(
-                parseInt(document.getElementById('volume').value) * parseInt(document.getElementById('rpe').value)
-            );
-            swimmer.training.dates.push(date);
+            // Nouvelle structure : trainingData = [{date, volume, volumeMeters, rpe, load}, ...]
+            if (!swimmer.trainingData) {
+                swimmer.trainingData = [];
+            }
+            const volume = parseInt(document.getElementById('volume').value);
+            const rpe = parseInt(document.getElementById('rpe').value);
+            swimmer.trainingData.push({
+                date: date,
+                volume: volume,
+                volumeMeters: parseInt(document.getElementById('volumeMeters').value),
+                rpe: rpe,
+                load: volume * rpe
+            });
             break;
             
         case 'performance':
-            swimmer.performance.vma.push(parseFloat(document.getElementById('vma').value));
-            swimmer.performance.shoulderStrength.push(parseFloat(document.getElementById('shoulderStrength').value));
-            swimmer.performance.chestStrength.push(parseFloat(document.getElementById('chestStrength').value));
-            swimmer.performance.legStrength.push(parseFloat(document.getElementById('legStrength').value));
-            swimmer.performance.dates.push(date);
+            // Nouvelle structure : performanceData = [{date, vma, shoulderStrength, chestStrength, legStrength}, ...]
+            if (!swimmer.performanceData) {
+                swimmer.performanceData = [];
+            }
+            swimmer.performanceData.push({
+                date: date,
+                vma: parseFloat(document.getElementById('vma').value),
+                shoulderStrength: parseFloat(document.getElementById('shoulderStrength').value),
+                chestStrength: parseFloat(document.getElementById('chestStrength').value),
+                legStrength: parseFloat(document.getElementById('legStrength').value)
+            });
             break;
             
         case 'medical':
-            swimmer.medical.availability.push(parseInt(document.getElementById('availability').value));
-            swimmer.medical.illnesses.push(parseInt(document.getElementById('illnesses').value));
-            swimmer.medical.injuries.push(parseInt(document.getElementById('injuries').value));
-            swimmer.medical.otherIssues.push(parseInt(document.getElementById('otherIssues').value));
-            swimmer.medical.dates.push(date);
+            // Nouvelle structure : medicalData = [{date, availability, illnesses, injuries, otherIssues}, ...]
+            if (!swimmer.medicalData) {
+                swimmer.medicalData = [];
+            }
+            swimmer.medicalData.push({
+                date: date,
+                availability: parseInt(document.getElementById('availability').value),
+                illnesses: parseInt(document.getElementById('illnesses').value),
+                injuries: parseInt(document.getElementById('injuries').value),
+                otherIssues: parseInt(document.getElementById('otherIssues').value)
+            });
             break;
             
         case 'race':
@@ -1227,9 +1619,9 @@ function saveData() {
                 return;
             }
             
-            // Initialiser races si nécessaire
-            if (!swimmer.racePerformances.races) {
-                swimmer.racePerformances.races = [];
+            // Initialiser raceData si nécessaire (nouvelle structure)
+            if (!swimmer.raceData) {
+                swimmer.raceData = [];
             }
             
             // Récupérer toutes les nages ajoutées
@@ -1256,9 +1648,12 @@ function saveData() {
                 return;
             }
             
-            swimmer.racePerformances.event.push(eventName);
-            swimmer.racePerformances.races.push(raceEntries);
-            swimmer.racePerformances.dates.push(date);
+            // Nouvelle structure : raceData = [{date, event, races: [...]}]
+            swimmer.raceData.push({
+                date: date,
+                event: eventName,
+                races: raceEntries
+            });
             break;
             
         case 'technical':
@@ -1965,8 +2360,19 @@ function updateDashboard() {
 }
 
 function showDashboard() {
+    const container = document.getElementById('dashboardContent');
+    if (!container) return;
+    
     if (swimmers.length === 0) {
-        showEmptyState();
+        container.innerHTML = `
+            <div class="card" style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                <i class="fas fa-swimmer" style="font-size: 4rem; color: #1a73e8; margin-bottom: 20px;"></i>
+                <h3 style="color: #333; margin-bottom: 10px;">Aucun nageur enregistré</h3>
+                <p style="color: #666; font-size: 1.1rem;">Commencez par ajouter votre premier nageur</p>
+                <button class="btn btn-primary" onclick="document.getElementById('addSwimmerBtn').click()" style="margin-top: 20px;">
+                    <i class="fas fa-plus"></i> Ajouter un Nageur
+                </button>
+            </div>`;
         return;
     }
 
@@ -1976,12 +2382,19 @@ function showDashboard() {
         const swimmer = swimmers.find(s => s.id === currentSwimmerId);
         if (swimmer) {
             content = generateSwimmerDashboard(swimmer);
+        } else {
+            content = `
+                <div class="card" style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                    <i class="fas fa-swimmer" style="font-size: 4rem; color: #1a73e8; margin-bottom: 20px;"></i>
+                    <h3 style="color: #333; margin-bottom: 10px;">Sélectionnez un nageur pour commencer</h3>
+                    <p style="color: #666; font-size: 1.1rem;">Utilisez le sélecteur ci-dessus</p>
+                </div>`;
         }
     } else {
         content = generateOverviewDashboard();
     }
     
-    dashboardContent.innerHTML = content;
+    container.innerHTML = content;
     
     if (currentSwimmerId) {
         initializeCharts();
@@ -1989,9 +2402,10 @@ function showDashboard() {
 }
 
 function showDataEntry() {
-    let content = `<div class="section">
-        <h2 class="section-title">Saisie des Données</h2>
-        <p>Sélectionnez un nageur et le type de données à saisir.</p>`;
+    const container = document.getElementById('dataEntryContent');
+    if (!container) return;
+    
+    let content = '';
     
     if (currentSwimmerId) {
         const swimmer = swimmers.find(s => s.id === currentSwimmerId);
@@ -2072,20 +2486,20 @@ function showDataEntry() {
                 </div>
             </div>`;
     } else {
-        content += `<div class="empty-state">
-            <div class="empty-state-icon">👤</div>
-            <h3 class="empty-state-title">Aucun nageur sélectionné</h3>
-            <p class="empty-state-text">Veuillez sélectionner un nageur pour saisir des données.</p>
+        content += `<div class="card" style="text-align: center; padding: 40px 20px;">
+            <i class="fas fa-edit" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
+            <p style="color: #999; font-size: 1.1rem;">Sélectionnez un nageur pour saisir des données</p>
         </div>`;
     }
     
-    content += `</div>`;
-    dashboardContent.innerHTML = content;
+    container.innerHTML = content;
 }
 
 function showAnalysis() {
-    let content = `<div class="section">
-        <h2 class="section-title">Analyse des Données</h2>`;
+    const container = document.getElementById('analysisContent');
+    if (!container) return;
+    
+    let content = '';
     
     if (currentSwimmerId) {
         const swimmer = swimmers.find(s => s.id === currentSwimmerId);
@@ -2191,8 +2605,7 @@ function showAnalysis() {
         </div>`;
     }
     
-    content += `</div>`;
-    dashboardContent.innerHTML = content;
+    container.innerHTML = content;
     
     if (currentSwimmerId) {
         initializeAnalysisCharts();
@@ -2200,8 +2613,10 @@ function showAnalysis() {
 }
 
 function showFeedback() {
-    let content = `<div class="section">
-        <h2 class="section-title">Retours Personnalisés</h2>`;
+    const container = document.getElementById('feedbackContent');
+    if (!container) return;
+    
+    let content = '';
     
     if (currentSwimmerId) {
         const swimmer = swimmers.find(s => s.id === currentSwimmerId);
@@ -2210,15 +2625,13 @@ function showFeedback() {
         content += generatePersonalizedFeedback(swimmer, analysis);
         
     } else {
-        content += `<div class="empty-state">
-            <div class="empty-state-icon">💬</div>
-            <h3 class="empty-state-title">Aucun nageur sélectionné</h3>
-            <p class="empty-state-text">Veuillez sélectionner un nageur pour voir les retours personnalisés.</p>
+        content += `<div class="card" style="text-align: center; padding: 40px 20px;">
+            <i class="fas fa-comments" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
+            <p style="color: #999; font-size: 1.1rem;">Sélectionnez un nageur pour voir les retours personnalisés</p>
         </div>`;
     }
     
-    content += `</div>`;
-    dashboardContent.innerHTML = content;
+    container.innerHTML = content;
 }
 
 function generateAnalysisCard(title, data, icon) {
@@ -2340,6 +2753,8 @@ function getAnalysisDetails(data, title) {
 // =============================================
 
 function updateAthleteSelector() {
+    if (!athleteSelector) return; // Attendre que le DOM soit chargé
+    
     const currentSelection = athleteSelector.value;
     
     athleteSelector.innerHTML = '<option value="all">Tous les nageurs</option>';
@@ -2359,8 +2774,8 @@ function updateAthleteSelector() {
 }
 
 function closeAllModals() {
-    addSwimmerModal.style.display = 'none';
-    dataEntryModal.style.display = 'none';
+    if (addSwimmerModal) addSwimmerModal.style.display = 'none';
+    if (dataEntryModal) dataEntryModal.style.display = 'none';
     const editModal = document.getElementById('editSwimmerModal');
     const historyModal = document.getElementById('dataHistoryModal');
     const compareModal = document.getElementById('compareModal');
@@ -3064,78 +3479,194 @@ function calculateStandardDeviation(arr) {
 // Fonctions pour générer les tableaux de bord
 function generateSwimmerDashboard(swimmer) {
     const analysis = analyzeSwimmerData(swimmer);
-    const overallStatus = getOverallStatus(analysis);
+    
+    // Calculer les statistiques
+    const wellbeingCount = swimmer.wellbeingData ? swimmer.wellbeingData.length : 0;
+    const trainingCount = swimmer.trainingData ? swimmer.trainingData.length : 0;
+    const performanceCount = swimmer.performanceData ? swimmer.performanceData.length : 0;
+    const raceCount = swimmer.raceData ? swimmer.raceData.length : 0;
+    const totalData = wellbeingCount + trainingCount + performanceCount + raceCount;
+    
+    // Dernière performance
+    let lastPerf = 'Aucune';
+    if (swimmer.raceData && swimmer.raceData.length > 0) {
+        const last = swimmer.raceData[swimmer.raceData.length - 1];
+        lastPerf = `${last.time} (${last.distance}m ${last.stroke})`;
+    }
+    
+    // Dernière VMA
+    let lastVMA = 'N/A';
+    if (swimmer.performanceData && swimmer.performanceData.length > 0) {
+        const vmaTests = swimmer.performanceData.filter(p => p.vma);
+        if (vmaTests.length > 0) {
+            lastVMA = vmaTests[vmaTests.length - 1].vma + ' km/h';
+        }
+    }
+    
+    // Bien-être moyen
+    let avgWellbeing = 'N/A';
+    if (swimmer.wellbeingData && swimmer.wellbeingData.length > 0) {
+        const sum = swimmer.wellbeingData.reduce((acc, w) => acc + (w.sleep + w.fatigue + w.stress + w.pain) / 4, 0);
+        avgWellbeing = (sum / swimmer.wellbeingData.length).toFixed(1) + '/10';
+    }
     
     let content = `
-        <div class="section">
-            <div class="swimmer-header">
-                <h3 class="swimmer-name">${swimmer.name}</h3>
-                <div class="swimmer-info">
-                    <span class="badge badge-new">${swimmer.age} ans</span>
-                    <span class="badge badge-new">${swimmer.specialty}</span>
-                    <span class="badge ${getBadgeClass(overallStatus.status)}">${overallStatus.message}</span>
+        <!-- Cartes statistiques -->
+        <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 30px;">
+            <div class="card stats-card" style="border-left: 4px solid #1a73e8;">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-database"></i></div>
+                    <div class="stat-value">${totalData}</div>
+                    <div class="stat-label">Données enregistrées</div>
                 </div>
             </div>
             
-            <div class="cards-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Résumé Bien-être</h3>
-                        <div class="card-icon">😊</div>
-                    </div>
-                    <div class="card-content">
-                        ${generateQuickStats(swimmer.wellbeing, 'wellbeing')}
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Résumé Entraînement</h3>
-                        <div class="card-icon">📊</div>
-                    </div>
-                    <div class="card-content">
-                        ${generateQuickStats(swimmer.training, 'training')}
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Résumé Performance</h3>
-                        <div class="card-icon">💪</div>
-                    </div>
-                    <div class="card-content">
-                        ${generateQuickStats(swimmer.performance, 'performance')}
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Statut Médical</h3>
-                        <div class="card-icon">🏥</div>
-                    </div>
-                    <div class="card-content">
-                        ${generateQuickStats(swimmer.medical, 'medical')}
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Performances de Course</h3>
-                        <div class="card-icon">🏊‍♂️</div>
-                    </div>
-                    <div class="card-content">
-                        ${generateQuickStats(swimmer.racePerformances || {dates: []}, 'race')}
-                    </div>
+            <div class="card stats-card" style="border-left: 4px solid #28a745;">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-heartbeat"></i></div>
+                    <div class="stat-value">${avgWellbeing}</div>
+                    <div class="stat-label">Bien-être moyen</div>
                 </div>
             </div>
             
-            <div class="section">
-                <h3 class="section-title">Recommandations Personnalisées</h3>
-                ${generateRecommendationsSection(analysis)}
+            <div class="card stats-card" style="border-left: 4px solid #ffc107;">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-bolt"></i></div>
+                    <div class="stat-value">${lastVMA}</div>
+                    <div class="stat-label">Dernière VMA</div>
+                </div>
             </div>
             
-            ${generateRacePerformanceCharts(swimmer)}
+            <div class="card stats-card" style="border-left: 4px solid #dc3545;">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-stopwatch"></i></div>
+                    <div class="stat-value" style="font-size: 1.2rem;">${lastPerf}</div>
+                    <div class="stat-label">Dernière performance</div>
+                </div>
+            </div>
         </div>
+        
+        <!-- Détails par catégorie -->
+        <div class="cards-grid" style="margin-bottom: 30px;">
+            <!-- Bien-être -->
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <h3 style="color: white; margin: 0;"><i class="fas fa-smile"></i> Bien-être</h3>
+                    <span class="badge" style="background: rgba(255,255,255,0.3);">${wellbeingCount} entrées</span>
+                </div>
+                <div class="card-body">
+                    ${wellbeingCount > 0 ? `
+                        <div class="stat-item">
+                            <span>Dernière saisie:</span>
+                            <strong>${new Date(swimmer.wellbeingData[wellbeingCount - 1].date).toLocaleDateString('fr-FR')}</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Sommeil:</span>
+                            <strong>${swimmer.wellbeingData[wellbeingCount - 1].sleep}/10</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Fatigue:</span>
+                            <strong>${swimmer.wellbeingData[wellbeingCount - 1].fatigue}/10</strong>
+                        </div>
+                    ` : '<p style="color: #999; text-align: center; padding: 20px;">Aucune donnée</p>'}
+                </div>
+            </div>
+            
+            <!-- Entraînement -->
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                    <h3 style="color: white; margin: 0;"><i class="fas fa-dumbbell"></i> Entraînement</h3>
+                    <span class="badge" style="background: rgba(255,255,255,0.3);">${trainingCount} entrées</span>
+                </div>
+                <div class="card-body">
+                    ${trainingCount > 0 ? `
+                        <div class="stat-item">
+                            <span>Dernière saisie:</span>
+                            <strong>${new Date(swimmer.trainingData[trainingCount - 1].date).toLocaleDateString('fr-FR')}</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Volume:</span>
+                            <strong>${swimmer.trainingData[trainingCount - 1].volume} km</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>RPE:</span>
+                            <strong>${swimmer.trainingData[trainingCount - 1].rpe}/10</strong>
+                        </div>
+                    ` : '<p style="color: #999; text-align: center; padding: 20px;">Aucune donnée</p>'}
+                </div>
+            </div>
+            
+            <!-- Performance -->
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                    <h3 style="color: white; margin: 0;"><i class="fas fa-chart-line"></i> Performance</h3>
+                    <span class="badge" style="background: rgba(255,255,255,0.3);">${performanceCount} entrées</span>
+                </div>
+                <div class="card-body">
+                    ${performanceCount > 0 ? `
+                        <div class="stat-item">
+                            <span>Dernière saisie:</span>
+                            <strong>${new Date(swimmer.performanceData[performanceCount - 1].date).toLocaleDateString('fr-FR')}</strong>
+                        </div>
+                        ${swimmer.performanceData[performanceCount - 1].vma ? `
+                            <div class="stat-item">
+                                <span>VMA:</span>
+                                <strong>${swimmer.performanceData[performanceCount - 1].vma} km/h</strong>
+                            </div>
+                        ` : ''}
+                        ${swimmer.performanceData[performanceCount - 1].shoulderStrength ? `
+                            <div class="stat-item">
+                                <span>Force épaule:</span>
+                                <strong>${swimmer.performanceData[performanceCount - 1].shoulderStrength} kg</strong>
+                            </div>
+                        ` : ''}
+                    ` : '<p style="color: #999; text-align: center; padding: 20px;">Aucune donnée</p>'}
+                </div>
+            </div>
+            
+            <!-- Courses -->
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                    <h3 style="color: white; margin: 0;"><i class="fas fa-swimming-pool"></i> Courses</h3>
+                    <span class="badge" style="background: rgba(255,255,255,0.3);">${raceCount} performances</span>
+                </div>
+                <div class="card-body">
+                    ${raceCount > 0 ? `
+                        <div class="stat-item">
+                            <span>Dernière course:</span>
+                            <strong>${new Date(swimmer.raceData[raceCount - 1].date).toLocaleDateString('fr-FR')}</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>${swimmer.raceData[raceCount - 1].distance}m ${swimmer.raceData[raceCount - 1].stroke}:</span>
+                            <strong>${swimmer.raceData[raceCount - 1].time}</strong>
+                        </div>
+                    ` : '<p style="color: #999; text-align: center; padding: 20px;">Aucune donnée</p>'}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Graphiques de progression -->
+        ${raceCount > 0 ? `
+            <div class="card" style="margin-top: 30px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-area"></i> Progression des Performances</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="performanceChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        ` : ''}
+        
+        ${wellbeingCount > 0 ? `
+            <div class="card" style="margin-top: 30px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-heart"></i> Évolution du Bien-être</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="wellbeingChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        ` : ''}
     `;
     
     return content;
@@ -4238,33 +4769,216 @@ function formatSecondsToTime(seconds) {
     }
 }
 
-function showNotification(type, message) {
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        padding: 15px 20px;
-        background: ${type === 'success' ? '#34a853' : type === 'error' ? '#ea4335' : '#1a73e8'};
-        color: white;
-        border-radius: 4px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 10000;
-        animation: slideIn 0.3s ease-out;
-    `;
+function initializeCharts() {
+    // Graphiques pour l'aperçu du nageur
+    if (!currentSwimmerId) return;
     
-    document.body.appendChild(notification);
+    const swimmer = swimmers.find(s => s.id === currentSwimmerId);
+    if (!swimmer) return;
     
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+    // Graphique de progression des performances
+    const perfChartEl = document.getElementById('performanceChart');
+    if (perfChartEl && swimmer.raceData && swimmer.raceData.length > 0) {
+        const ctx = perfChartEl.getContext('2d');
+        
+        // Grouper par distance
+        const distanceGroups = {};
+        swimmer.raceData.forEach(race => {
+            const key = `${race.distance}m ${race.stroke}`;
+            if (!distanceGroups[key]) {
+                distanceGroups[key] = [];
+            }
+            distanceGroups[key].push({
+                date: race.date,
+                time: race.time
+            });
+        });
+        
+        // Créer un dataset par distance
+        const datasets = [];
+        const colors = [
+            'rgba(26, 115, 232, 1)',
+            'rgba(52, 168, 83, 1)',
+            'rgba(251, 188, 5, 1)',
+            'rgba(234, 67, 53, 1)',
+            'rgba(156, 39, 176, 1)'
+        ];
+        
+        let colorIndex = 0;
+        for (const [distance, races] of Object.entries(distanceGroups)) {
+            datasets.push({
+                label: distance,
+                data: races.map(r => ({x: r.date, y: timeToSeconds(r.time)})),
+                borderColor: colors[colorIndex % colors.length],
+                backgroundColor: colors[colorIndex % colors.length].replace('1)', '0.2)'),
+                borderWidth: 3,
+                tension: 0.3,
+                fill: false,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            });
+            colorIndex++;
+        }
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: { datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'nearest',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + secondsToTime(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'dd/MM'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        reverse: true,
+                        title: {
+                            display: true,
+                            text: 'Temps (secondes)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return secondsToTime(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Graphique d'évolution du bien-être
+    const wellbeingChartEl = document.getElementById('wellbeingChart');
+    if (wellbeingChartEl && swimmer.wellbeingData && swimmer.wellbeingData.length > 0) {
+        const ctx = wellbeingChartEl.getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: swimmer.wellbeingData.map(d => d.date),
+                datasets: [
+                    {
+                        label: 'Sommeil',
+                        data: swimmer.wellbeingData.map(d => d.sleep),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Fatigue',
+                        data: swimmer.wellbeingData.map(d => d.fatigue),
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Douleur',
+                        data: swimmer.wellbeingData.map(d => d.pain),
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Stress',
+                        data: swimmer.wellbeingData.map(d => d.stress),
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Score Global',
+                        data: swimmer.wellbeingData.map(d => d.score || ((d.sleep + d.fatigue + d.pain + d.stress) / 4)),
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Évolution du Bien-être (5 paramètres)'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5,
+                        ticks: {
+                            stepSize: 0.5
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
-function initializeCharts() {
-    // Implémentation des graphiques pour le tableau de bord
+// Fonctions utilitaires pour la conversion de temps
+function timeToSeconds(timeString) {
+    // Convertit "01:23.45" en secondes
+    const parts = timeString.split(':');
+    if (parts.length === 2) {
+        const minutes = parseInt(parts[0]);
+        const seconds = parseFloat(parts[1]);
+        return minutes * 60 + seconds;
+    }
+    return parseFloat(timeString);
+}
+
+function secondsToTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = (seconds % 60).toFixed(2);
+    return mins > 0 ? `${mins}:${secs.padStart(5, '0')}` : `${secs}s`;
 }
 
 function initializeAnalysisCharts() {
@@ -4274,15 +4988,15 @@ function initializeAnalysisCharts() {
         
         // Graphique de bien-être
         const wellbeingCtx = document.getElementById('wellbeingChart');
-        if (wellbeingCtx && swimmer.wellbeing.dates.length > 0) {
+        if (wellbeingCtx && swimmer.wellbeingData && swimmer.wellbeingData.length > 0) {
             new Chart(wellbeingCtx, {
                 type: 'line',
                 data: {
-                    labels: swimmer.wellbeing.dates,
+                    labels: swimmer.wellbeingData.map(d => d.date),
                     datasets: [
                         {
                             label: 'Sommeil',
-                            data: swimmer.wellbeing.sleep,
+                            data: swimmer.wellbeingData.map(d => d.sleep),
                             borderColor: 'rgba(54, 162, 235, 1)',
                             backgroundColor: 'rgba(54, 162, 235, 0.2)',
                             borderWidth: 2,
@@ -4291,7 +5005,7 @@ function initializeAnalysisCharts() {
                         },
                         {
                             label: 'Fatigue',
-                            data: swimmer.wellbeing.fatigue,
+                            data: swimmer.wellbeingData.map(d => d.fatigue),
                             borderColor: 'rgba(255, 99, 132, 1)',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
                             borderWidth: 2,
@@ -4300,7 +5014,7 @@ function initializeAnalysisCharts() {
                         },
                         {
                             label: 'Douleur',
-                            data: swimmer.wellbeing.pain,
+                            data: swimmer.wellbeingData.map(d => d.pain),
                             borderColor: 'rgba(255, 159, 64, 1)',
                             backgroundColor: 'rgba(255, 159, 64, 0.2)',
                             borderWidth: 2,
@@ -4309,12 +5023,22 @@ function initializeAnalysisCharts() {
                         },
                         {
                             label: 'Stress',
-                            data: swimmer.wellbeing.stress,
+                            data: swimmer.wellbeingData.map(d => d.stress),
                             borderColor: 'rgba(153, 102, 255, 1)',
                             backgroundColor: 'rgba(153, 102, 255, 0.2)',
                             borderWidth: 2,
                             tension: 0.4,
                             fill: false
+                        },
+                        {
+                            label: 'Score Global',
+                            data: swimmer.wellbeingData.map(d => d.score || ((d.sleep + d.fatigue + d.pain + d.stress) / 4)),
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: false,
+                            borderDash: [5, 5]
                         }
                     ]
                 },
@@ -4337,6 +5061,14 @@ function initializeAnalysisCharts() {
                                 }
                             }
                         },
+                        title: {
+                            display: true,
+                            text: 'Évolution du Bien-être (5 paramètres)',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
                         tooltip: {
                             backgroundColor: 'rgba(0, 0, 0, 0.8)',
                             padding: 12,
@@ -4353,7 +5085,7 @@ function initializeAnalysisCharts() {
                             beginAtZero: true,
                             max: 5,
                             ticks: {
-                                stepSize: 1
+                                stepSize: 0.5
                             },
                             grid: {
                                 color: 'rgba(0, 0, 0, 0.1)'
@@ -4371,15 +5103,15 @@ function initializeAnalysisCharts() {
         
         // Graphique Volume & RPE
         const volumeRpeCtx = document.getElementById('volumeRpeChart');
-        if (volumeRpeCtx && swimmer.training.dates.length > 0) {
+        if (volumeRpeCtx && swimmer.trainingData && swimmer.trainingData.length > 0) {
             new Chart(volumeRpeCtx, {
                 type: 'line',
                 data: {
-                    labels: swimmer.training.dates,
+                    labels: swimmer.trainingData.map(d => d.date),
                     datasets: [
                         {
                             label: 'Volume (m)',
-                            data: swimmer.training.volumeMeters || [],
+                            data: swimmer.trainingData.map(d => d.volumeMeters || 0),
                             borderColor: 'rgba(54, 162, 235, 1)',
                             backgroundColor: 'rgba(54, 162, 235, 0.2)',
                             borderWidth: 3,
@@ -4389,7 +5121,7 @@ function initializeAnalysisCharts() {
                         },
                         {
                             label: 'RPE',
-                            data: swimmer.training.rpe,
+                            data: swimmer.trainingData.map(d => d.rpe),
                             borderColor: 'rgba(255, 159, 64, 1)',
                             backgroundColor: 'rgba(255, 159, 64, 0.2)',
                             borderWidth: 3,
@@ -4496,14 +5228,14 @@ function initializeAnalysisCharts() {
         
         // Graphique Charge d'entraînement (barres)
         const trainingCtx = document.getElementById('trainingChart');
-        if (trainingCtx && swimmer.training.dates.length > 0) {
+        if (trainingCtx && swimmer.trainingData && swimmer.trainingData.length > 0) {
             new Chart(trainingCtx, {
                 type: 'bar',
                 data: {
-                    labels: swimmer.training.dates,
+                    labels: swimmer.trainingData.map(d => d.date),
                     datasets: [{
                         label: 'Charge d\'entraînement',
-                        data: swimmer.training.charge,
+                        data: swimmer.trainingData.map(d => d.load || 0),
                         backgroundColor: 'rgba(75, 192, 192, 0.7)',
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
@@ -4549,10 +5281,10 @@ function initializeAnalysisCharts() {
         
         // Graphique Radar des Performances
         const performanceRadarCtx = document.getElementById('performanceRadarChart');
-        if (performanceRadarCtx && swimmer.performance.dates.length > 0) {
+        if (performanceRadarCtx && swimmer.performanceData && swimmer.performanceData.length > 0) {
             // Prendre les 3 dernières mesures pour comparaison
-            const recentCount = Math.min(3, swimmer.performance.dates.length);
-            const startIndex = swimmer.performance.dates.length - recentCount;
+            const recentCount = Math.min(3, swimmer.performanceData.length);
+            const startIndex = swimmer.performanceData.length - recentCount;
             
             const datasets = [];
             const colors = [
@@ -4563,13 +5295,14 @@ function initializeAnalysisCharts() {
             
             for (let i = 0; i < recentCount; i++) {
                 const index = startIndex + i;
+                const perf = swimmer.performanceData[index];
                 datasets.push({
-                    label: swimmer.performance.dates[index],
+                    label: perf.date,
                     data: [
-                        swimmer.performance.vma[index],
-                        swimmer.performance.shoulderStrength[index],
-                        swimmer.performance.chestStrength[index],
-                        swimmer.performance.legStrength[index]
+                        perf.vma || 0,
+                        perf.shoulderStrength || 0,
+                        perf.chestStrength || 0,
+                        perf.legStrength || 0
                     ],
                     borderColor: colors[i].border,
                     backgroundColor: colors[i].bg,
@@ -4782,6 +5515,8 @@ function initializeAnalysisCharts() {
 }
 
 function showEmptyState() {
+    if (!dashboardContent) return; // Attendre que le DOM soit chargé
+    
     dashboardContent.innerHTML = `
         <div class="empty-state">
             <div class="empty-state-icon">🏊‍♂️</div>
@@ -4791,7 +5526,10 @@ function showEmptyState() {
         </div>
     `;
     
-    document.getElementById('emptyStateAddBtn').addEventListener('click', () => {
-        addSwimmerModal.style.display = 'flex';
-    });
+    const emptyBtn = document.getElementById('emptyStateAddBtn');
+    if (emptyBtn && addSwimmerModal) {
+        emptyBtn.addEventListener('click', () => {
+            addSwimmerModal.style.display = 'flex';
+        });
+    }
 }

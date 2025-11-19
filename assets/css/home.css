@@ -34,7 +34,9 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 40px;
     width: 100%;
+    flex-wrap: wrap;
 }
 
 .sport-card {
@@ -63,6 +65,18 @@ body {
     background: linear-gradient(135deg, rgba(26, 115, 232, 0.05) 0%, rgba(26, 115, 232, 0.1) 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
+}
+
+.sport-card.team-card::before {
+    background: linear-gradient(135deg, rgba(52, 168, 83, 0.05) 0%, rgba(52, 168, 83, 0.1) 100%);
+}
+
+.sport-card.team-card h2 {
+    color: #34a853;
+}
+
+.sport-card.team-card:hover h2 {
+    color: #2d8e47;
 }
 
 .sport-card:hover {

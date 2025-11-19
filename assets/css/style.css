@@ -910,3 +910,1226 @@ table tbody tr:hover {
 .storage-info i {
     font-size: 1.2rem;
 }
+
+/* =====================================================
+   STYLES POUR L'INTERFACE ÉQUIPE
+   ===================================================== */
+
+/* Sections avec navigation */
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+/* Cartes d'équipe */
+.team-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--secondary-color);
+}
+
+.team-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Liste des nageurs dans l'équipe */
+.swimmer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.swimmer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background-color: var(--light-color);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .swimmer-item {
+    background-color: var(--card-bg);
+}
+
+/* Liste de checkboxes */
+.checkbox-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.checkbox-item:hover {
+    background-color: var(--light-color);
+}
+
+[data-theme="dark"] .checkbox-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Statistiques d'équipe */
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-item span {
+    color: var(--text-color);
+}
+
+.stat-item strong {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+/* Boutons de petite taille */
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+/* Actions de formulaire */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Responsive pour équipes */
+@media (max-width: 768px) {
+    .swimmer-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions button {
+        width: 100%;
+    }
+}
+
+/* =====================================================
+   STYLES POUR CALENDRIER
+   ===================================================== */
+
+.calendar-grid {
+    display: grid;
+    gap: 1px;
+    background-color: var(--border-color);
+    border: 1px solid var(--border-color);
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: var(--primary-color);
+}
+
+.calendar-day-name {
+    padding: 10px;
+    text-align: center;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.calendar-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+}
+
+.calendar-day {
+    min-height: 80px;
+    padding: 8px;
+    background-color: var(--card-bg);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.calendar-day:hover {
+    background-color: var(--light-color);
+}
+
+.calendar-day.empty {
+    background-color: var(--light-color);
+    cursor: default;
+}
+
+.calendar-day.today {
+    background-color: rgba(26, 115, 232, 0.1);
+    border: 2px solid var(--primary-color);
+    font-weight: bold;
+}
+
+[data-theme="dark"] .calendar-day {
+    background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .calendar-day:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .calendar-day.empty {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* =====================================================
+   STYLES POUR CLASSEMENT ET COMPARAISONS
+   ===================================================== */
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.data-table thead {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--light-color);
+}
+
+[data-theme="dark"] .data-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 20px 0;
+}
+
+.chart-container canvas {
+    max-height: 100%;
+}
+
+/* Action plan styling */
+.card ol {
+    padding-left: 20px;
+}
+
+.card ol li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card ol li:last-child {
+    border-bottom: none;
+}
+
+/* =====================================================
+   ATTENDANCE / PRÉSENCE STYLES
+   ===================================================== */
+
+/* Attendance grid layout */
+.attendance-grid {
+    margin-top: 15px;
+}
+
+.attendance-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.attendance-item {
+    padding: 12px;
+    background: var(--light-color);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.attendance-item:hover {
+    background: rgba(0, 123, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.attendance-item label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.attendance-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--success-color);
+}
+
+.swimmer-name {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+/* Stats cards for attendance */
+.stats-card {
+    text-align: center;
+    background: linear-gradient(135deg, var(--light-color) 0%, rgba(255,255,255,0.5) 100%);
+}
+
+.stats-card .stat-icon {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.stats-card .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-color);
+    margin: 10px 0;
+}
+
+.stats-card .stat-label {
+    font-size: 0.95rem;
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+
+/* Alert boxes */
+.alert {
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid;
+    background: var(--light-color);
+}
+
+.alert i {
+    margin-right: 8px;
+}
+
+/* Badge styling */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+}
+
+/* Data table enhancements for attendance */
+.data-table td strong {
+    color: var(--text-color);
+}
+
+.data-table .progress-bar-container {
+    width: 100%;
+    background: #eee;
+    border-radius: 10px;
+    height: 20px;
+    overflow: hidden;
+}
+
+.data-table .progress-bar {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Dark theme adjustments for attendance */
+[data-theme="dark"] .attendance-item {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .attendance-item:hover {
+    background: rgba(0, 123, 255, 0.2);
+}
+
+[data-theme="dark"] .stats-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+}
+
+[data-theme="dark"] .alert {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Calendar attendance indicators */
+.calendar-day[title] {
+    position: relative;
+}
+
+.calendar-day[title]::after {
+    content: '●';
+    position: absolute;
+    bottom: 2px;
+    right: 5px;
+    font-size: 0.7rem;
+}
+
+/* Responsive charts */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 250px;
+    }
+    
+    .calendar-day {
+        min-height: 60px;
+        padding: 5px;
+        font-size: 0.85rem;
+    }
+    
+    .calendar-day-name {
+        padding: 8px 5px;
+        font-size: 0.8rem;
+    }
+    
+    .attendance-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =====================================================
+   BULK ENTRY MODAL IMPROVEMENTS
+   ===================================================== */
+
+/* Modal amélioration */
+#bulkEntryModal .modal-content {
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+#bulkEntryModal .modal-header {
+    background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+
+#bulkEntryModal .modal-header h2 {
+    color: white;
+}
+
+#bulkEntryModal .modal-header p {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+#bulkEntryModal .modal-header .close {
+    color: white;
+    opacity: 0.9;
+    transition: opacity 0.3s;
+}
+
+#bulkEntryModal .modal-header .close:hover {
+    opacity: 1;
+}
+
+/* Tableaux dans les formulaires groupés */
+#bulkEntryForm .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#bulkEntryForm .data-table thead {
+    background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+    color: white;
+}
+
+#bulkEntryForm .data-table thead th {
+    padding: 15px 10px;
+    text-align: left;
+    font-weight: 600;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#bulkEntryForm .data-table thead th:last-child {
+    border-right: none;
+}
+
+#bulkEntryForm .data-table tbody td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+#bulkEntryForm .data-table tbody tr:hover {
+    background: rgba(26, 115, 232, 0.05);
+}
+
+#bulkEntryForm .data-table tbody tr:last-child td {
+    border-bottom: 2px solid var(--border-color);
+}
+
+#bulkEntryForm .data-table input.form-control {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+#bulkEntryForm .data-table input.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+    outline: none;
+}
+
+#bulkEntryForm .data-table select.form-control {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+}
+
+/* Badges dans les tableaux */
+#bulkEntryForm .badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* Alertes d'information */
+#bulkEntryForm .alert {
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+/* Configuration boxes */
+#bulkEntryForm .form-row {
+    display: grid;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+/* Sections de configuration */
+#bulkEntryForm > div:first-child {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Dark mode pour formulaires */
+[data-theme="dark"] #bulkEntryModal .modal-content {
+    background: #292a2d;
+}
+
+[data-theme="dark"] #bulkEntryForm .data-table tbody td {
+    border-bottom: 1px solid #3c4043;
+}
+
+[data-theme="dark"] #bulkEntryForm .data-table input.form-control,
+[data-theme="dark"] #bulkEntryForm .data-table select.form-control {
+    background: #202124;
+    border-color: #3c4043;
+    color: #e8eaed;
+}
+
+[data-theme="dark"] #bulkEntryForm > div:first-child {
+    background: #2d2f31;
+}
+
+/* Responsive pour modal */
+@media (max-width: 1200px) {
+    #bulkEntryModal .modal-content {
+        max-width: 95%;
+        width: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    #bulkEntryForm .data-table {
+        font-size: 0.85rem;
+    }
+    
+    #bulkEntryForm .data-table thead th,
+    #bulkEntryForm .data-table tbody td {
+        padding: 10px 8px;
+    }
+    
+    #bulkEntryForm .data-table input.form-control {
+        font-size: 0.85rem;
+        padding: 6px 8px;
+    }
+    
+    #bulkEntryModal .modal-content {
+        max-width: 98%;
+        margin: 10px;
+    }
+    
+    #bulkEntryModal .modal-header {
+        padding: 15px;
+    }
+}
+
+/* Amélioration des boutons dans les cartes */
+.bulk-entry-btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bulk-entry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bulk-entry-btn i {
+    margin-right: 8px;
+}
+
+/* Icônes dans les cartes */
+.card-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+.card-title {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+/* Feuille de présence - Boutons A/P/E */
+.attendance-modal-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.attendance-modal-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.attendance-modal-swimmer-name {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+    flex: 1;
+}
+
+.attendance-modal-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.attendance-btn {
+    padding: 8px 20px;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.5;
+    min-width: 50px;
+}
+
+.attendance-btn:hover {
+    opacity: 0.8;
+    transform: translateY(-2px);
+}
+
+.attendance-btn.active {
+    opacity: 1;
+    transform: scale(1.05);
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.attendance-btn-absent {
+    background: #dc3545;
+    color: white;
+}
+
+.attendance-btn-absent.active {
+    background: #c82333;
+}
+
+.attendance-btn-present {
+    background: #28a745;
+    color: white;
+}
+
+.attendance-btn-present.active {
+    background: #218838;
+}
+
+.attendance-btn-late {
+    background: #ff9800;
+    color: white;
+}
+
+.attendance-btn-late.active {
+    background: #e68900;
+}
+
+/* Onglets d'analyse */
+.analysis-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.analysis-tab {
+    padding: 12px 24px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: #666;
+    border-bottom: none;
+}
+
+.analysis-tab:hover {
+    background: #f5f7fa;
+    color: #1a73e8;
+}
+
+.analysis-tab.active {
+    background: #1a73e8;
+    color: white;
+    border-color: #1a73e8;
+    transform: translateY(2px);
+}
+
+.analysis-content {
+    display: none;
+}
+
+.analysis-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sélecteur global sticky */
+#globalTeamSelector {
+    font-size: 1.1rem;
+    padding: 12px;
+    border: 2px solid #1a73e8;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#globalTeamSelector:focus {
+    outline: none;
+    border-color: #4285f4;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+/* Amélioration des cards */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .analysis-tabs {
+        flex-direction: column;
+    }
+    
+    .analysis-tab {
+        width: 100%;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    #globalTeamSelector {
+        font-size: 1rem;
+    }
+}
+
+/* ========================================
+   SÉLECTEURS STICKY (NAGEUR & ÉQUIPE)
+======================================== */
+.sticky-selector {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: var(--card-bg);
+    border-radius: 12px;
+    transition: box-shadow 0.3s ease;
+}
+
+.sticky-selector.scrolled {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+/* Infos rapides */
+#quickSwimmerInfo, #quickTeamInfo {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        max-height: 100px;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   GRAPHIQUES RESPONSIVES
+======================================== */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-container {
+        height: 200px;
+    }
+}
+
+/* ========================================
+   CARTES STATISTIQUES
+======================================== */
+.stats-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.stats-card .card-body {
+    padding: 25px;
+    text-align: center;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-color);
+    margin: 10px 0;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ========================================
+   RESPONSIVE MOBILE COMPLET
+======================================== */
+
+/* Tablets et petits écrans */
+@media (max-width: 992px) {
+    .container {
+        padding: 0 10px;
+    }
+    
+    .cards-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .dashboard-header > div {
+        width: 100%;
+        margin-top: 15px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+    
+    /* Header mobile */
+    header {
+        padding: 10px 0;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .logo h1 {
+        font-size: 1.3rem;
+    }
+    
+    /* Navigation mobile */
+    nav {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 280px;
+        height: 100vh;
+        background: var(--card-bg);
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        transition: left 0.3s ease;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+    
+    nav.active {
+        left: 0;
+    }
+    
+    nav ul {
+        flex-direction: column;
+        padding: 20px;
+    }
+    
+    nav ul li {
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    nav ul li a {
+        display: block;
+        padding: 15px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-toggle {
+        display: block !important;
+        font-size: 1.5rem;
+        background: none;
+        border: none;
+        color: var(--text-color);
+        cursor: pointer;
+        padding: 10px;
+    }
+    
+    /* Sélecteur sticky mobile */
+    .sticky-selector {
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+    
+    .sticky-selector .card-body {
+        padding: 15px !important;
+    }
+    
+    .sticky-selector select {
+        font-size: 1rem !important;
+    }
+    
+    #quickSwimmerInfo, #quickTeamInfo {
+        font-size: 0.85rem !important;
+        flex-direction: column;
+        gap: 10px !important;
+    }
+    
+    /* Boutons d'action mobile */
+    .sticky-selector button, .sticky-selector label {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .sticky-selector button i {
+        font-size: 1rem;
+    }
+    
+    /* Cartes mobile */
+    .card {
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+    
+    .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .stats-card .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .stats-card .stat-icon {
+        font-size: 2rem;
+    }
+    
+    /* Sections */
+    .section {
+        padding: 15px 0;
+    }
+    
+    .dashboard-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .dashboard-header p {
+        font-size: 0.9rem;
+    }
+    
+    /* Tableaux mobiles */
+    .data-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .data-table thead {
+        display: none;
+    }
+    
+    .data-table tbody tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 10px;
+    }
+    
+    .data-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .data-table tbody td:last-child {
+        border-bottom: none;
+    }
+    
+    .data-table tbody td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+    
+    /* Formulaires mobiles */
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    /* Modaux mobiles */
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        margin: 20px auto;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        padding: 15px;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 15px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-footer button {
+        width: 100%;
+    }
+}
+
+/* Très petits mobiles */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 8px;
+    }
+    
+    .sticky-selector {
+        top: 0;
+        margin-bottom: 15px;
+    }
+    
+    .sticky-selector .card-body {
+        padding: 12px !important;
+    }
+    
+    .sticky-selector label {
+        font-size: 0.9rem !important;
+    }
+    
+    .sticky-selector select {
+        font-size: 0.9rem !important;
+        padding: 8px;
+    }
+    
+    .sticky-selector button,  .sticky-selector label.btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    #quickSwimmerInfo span, #quickTeamInfo span {
+        font-size: 0.8rem !important;
+    }
+    
+    .logo h1 {
+        font-size: 1.1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.3rem !important;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem !important;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+    
+    .card-header h3 {
+        font-size: 1rem;
+    }
+    
+    .dashboard-header h2 {
+        font-size: 1.3rem;
+    }
+}
+

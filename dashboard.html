@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Système de Suivi des Nageurs</title>
+    <title>Dashboard Individuel - Suivi des Nageurs</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
@@ -18,7 +18,7 @@
                     <i class="fas fa-arrow-left"></i> Retour
                 </a>
                 <div class="logo">
-                    <h1>Système de Suivi des Nageurs</h1>
+                    <h1>Dashboard Individuel</h1>
                 </div>
                 <button class="nav-toggle">☰</button>
             </div>
@@ -26,10 +26,10 @@
             <!-- Navigation -->
             <nav>
                 <ul>
-                    <li><a href="#dashboard" class="active">Tableau de Bord</a></li>
-                    <li><a href="#saisie">Saisie des Données</a></li>
-                    <li><a href="#analyse">Analyse</a></li>
-                    <li><a href="#retours">Retours Personnalisés</a></li>
+                    <li><a href="#dashboard" class="active">🏠 Aperçu</a></li>
+                    <li><a href="#saisie">📝 Saisie de Données</a></li>
+                    <li><a href="#analyse">📊 Analyse</a></li>
+                    <li><a href="#retours">💬 Retours Personnalisés</a></li>
                 </ul>
             </nav>
         </div>
@@ -37,30 +37,127 @@
 
     <main class="dashboard">
         <div class="container">
-            <div class="dashboard-header">
-                <h2 class="dashboard-title">Tableau de Bord - Suivi des Nageurs</h2>
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <!-- Boutons d'actions compacts -->
-                    <button class="btn-compact btn-compact-primary" id="addSwimmerBtn" title="Nouveau Nageur">➕ Nouveau</button>
-                    <button class="btn-compact btn-compact-info" id="createTestSwimmerBtn" title="Nageur Test">🧪 Test</button>
-                    <button class="btn-compact btn-compact-secondary" id="exportPdfBtn" style="display: none;" title="Export PDF">📄 PDF</button>
-                    <button class="btn-compact btn-compact-secondary" id="compareSwimmersBtn" style="display: none;" title="Comparer">📊 Comparer</button>
-                    <button class="btn-compact btn-compact-secondary" id="exportDataBtn" title="Exporter JSON">💾 Export</button>
-                    <label for="importDataFile" class="btn-compact btn-compact-secondary" style="margin: 0; cursor: pointer;" title="Importer">📂 Import</label>
-                    <input type="file" id="importDataFile" accept=".json" style="display: none;">
-                    <button class="btn-compact btn-compact-dark" id="themeToggleBtn" title="Mode Sombre">🌙</button>
-                    <button class="btn-compact btn-compact-danger" id="resetDataBtn" title="Réinitialiser">🔄 Reset</button>
-                    
-                    <button class="btn btn-secondary" id="viewHistoryBtn" style="display: none;">📋 Historique</button>
-                    <select class="athlete-selector" id="athleteSelector">
-                        <option value="all">Tous les nageurs</option>
-                    </select>
+            
+            <!-- Sélecteur de nageur global (sticky) -->
+            <div class="card sticky-selector">
+                <div class="card-body" style="padding: 20px;">
+                    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 300px;">
+                            <label for="athleteSelector" style="font-weight: bold; display: block; margin-bottom: 8px;">
+                                <i class="fas fa-user"></i> Nageur Actif :
+                            </label>
+                            <select class="form-control" id="athleteSelector" style="font-size: 1.1rem;">
+                                <option value="all">-- Sélectionner un nageur --</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                            <button class="btn btn-primary" id="addSwimmerBtn">
+                                <i class="fas fa-plus"></i> Nouveau Nageur
+                            </button>
+                            <button class="btn btn-info" id="createTestSwimmerBtn" title="Créer nageur test">
+                                <i class="fas fa-flask"></i>
+                            </button>
+                            <button class="btn btn-secondary" id="exportDataBtn" title="Exporter données">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <label for="importDataFile" class="btn btn-secondary" style="margin: 0; cursor: pointer;" title="Importer">
+                                <i class="fas fa-upload"></i>
+                            </label>
+                            <input type="file" id="importDataFile" accept=".json" style="display: none;">
+                            <button class="btn btn-dark" id="themeToggleBtn" title="Mode Sombre">
+                                <i class="fas fa-moon"></i>
+                            </button>
+                            <button class="btn btn-danger" id="resetDataBtn" title="Réinitialiser">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="quickSwimmerInfo" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; display: none;">
+                        <div style="display: flex; gap: 30px; flex-wrap: wrap; font-size: 0.95rem;">
+                            <span><strong>🎂 Âge:</strong> <span id="quickAge">-</span> ans</span>
+                            <span><strong>🏊 Spécialité:</strong> <span id="quickSpecialty">-</span></span>
+                            <span><strong>📊 Données:</strong> <span id="quickDataCount">0</span> entrées</span>
+                            <span><strong>🏆 Dernière perf:</strong> <span id="quickLastPerf">-</span></span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div id="dashboardContent">
-                <!-- Le contenu sera généré dynamiquement -->
-            </div>
+            <!-- SECTION 1: APERÇU -->
+            <section id="dashboard" class="section active">
+                <div class="dashboard-header">
+                    <h2>🏠 Aperçu du Nageur</h2>
+                    <p style="color: #666; margin-top: 5px;">Vue d'ensemble des statistiques clés et progression</p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" id="refreshDashboardBtn">
+                            <i class="fas fa-sync"></i> Actualiser
+                        </button>
+                        <button class="btn btn-danger" id="exportPdfBtn" style="display: none;">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                        <button class="btn btn-info" id="viewHistoryBtn" style="display: none;">
+                            <i class="fas fa-history"></i> Historique
+                        </button>
+                        <button class="btn btn-warning" id="compareSwimmersBtn" style="display: none;">
+                            <i class="fas fa-chart-bar"></i> Comparer
+                        </button>
+                    </div>
+                </div>
+
+                <div id="dashboardContent">
+                    <div class="card" style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                        <i class="fas fa-swimmer" style="font-size: 4rem; color: #1a73e8; margin-bottom: 20px;"></i>
+                        <h3 style="color: #333; margin-bottom: 10px;">Sélectionnez un nageur pour commencer</h3>
+                        <p style="color: #666; font-size: 1.1rem;">Utilisez le sélecteur ci-dessus ou créez un nouveau nageur</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: SAISIE DE DONNÉES -->
+            <section id="saisie" class="section">
+                <div class="dashboard-header">
+                    <h2>📝 Saisie de Données</h2>
+                    <p style="color: #666; margin-top: 10px;">Enregistrer les données de bien-être, entraînement, performance et plus</p>
+                </div>
+
+                <div id="dataEntryContent">
+                    <div class="card" style="text-align: center; padding: 40px 20px;">
+                        <i class="fas fa-edit" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
+                        <p style="color: #999; font-size: 1.1rem;">Sélectionnez un nageur pour saisir des données</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: ANALYSE -->
+            <section id="analyse" class="section">
+                <div class="dashboard-header">
+                    <h2>📊 Analyse des Données</h2>
+                    <p style="color: #666; margin-top: 10px;">Visualisations et statistiques détaillées</p>
+                </div>
+
+                <div id="analysisContent">
+                    <div class="card" style="text-align: center; padding: 40px 20px;">
+                        <i class="fas fa-chart-line" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
+                        <p style="color: #999; font-size: 1.1rem;">Sélectionnez un nageur pour voir les analyses</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: RETOURS PERSONNALISÉS -->
+            <section id="retours" class="section">
+                <div class="dashboard-header">
+                    <h2>💬 Retours Personnalisés</h2>
+                    <p style="color: #666; margin-top: 10px;">Recommandations et alertes personnalisées</p>
+                </div>
+
+                <div id="feedbackContent">
+                    <div class="card" style="text-align: center; padding: 40px 20px;">
+                        <i class="fas fa-comments" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
+                        <p style="color: #999; font-size: 1.1rem;">Sélectionnez un nageur pour voir les retours</p>
+                    </div>
+                </div>
+            </section>
+
         </div>
     </main>
 
@@ -267,6 +364,6 @@
         </div>
     </footer>
 
-    <script src="assets/js/app.js"></script>
+    <script src="assets/js/app.js?v=20251119"></script>
 </body>
 </html>
