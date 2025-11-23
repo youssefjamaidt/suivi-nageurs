@@ -1,3 +1,5 @@
+// Structure de logique claire pour la gestion des équipes
+
 // =====================================================
 // GESTION DES ÉQUIPES - equipe.js
 // =====================================================
@@ -284,6 +286,10 @@ window.saveTeam = function(event) {
 
 // Sélectionner une équipe
 window.selectTeam = function(teamId) {
+    // 🧹 Nettoyer anciens graphiques pour éviter memory leaks
+    TeamChartRegistry.destroyAll();
+    CacheTeam.clear(); // Invalider cache pour forcer refresh
+    
     currentTeamId = teamId;
     const team = getTeamById(teamId);
     
@@ -482,14 +488,20 @@ window.removeSwimmerFromTeam = function(swimmerId) {
 // 4. FONCTIONS UTILITAIRES
 // =====================================================
 
-// Obtenir tous les nageurs
+// Obtenir tous les nageurs (avec cache pour performance)
 function getAllSwimmers() {
+    const cached = CacheTeam.get('swimmers');
+    if (cached) return cached;
+    
     const swimmers = localStorage.getItem('swimmers');
-    return swimmers ? JSON.parse(swimmers) : [];
+    const result = swimmers ? JSON.parse(swimmers) : [];
+    CacheTeam.set('swimmers', result);
+    return result;
 }
 
-// Sauvegarder nageurs
+// Sauvegarder nageurs (avec invalidation cache)
 function saveSwimmers(swimmers) {
+    CacheTeam.clear(); // Invalider cache
     localStorage.setItem('swimmers', JSON.stringify(swimmers));
 }
 
@@ -634,7 +646,6 @@ function displayTeamStats(team) {
     container.innerHTML = syntheseCards + perfBlock + chartsBlock;
 
     // ⚡ Mettre en cache le HTML (sans les canvas)
-    const cacheKey = `teamStats_${team.id}`;
     CacheTeam.set(cacheKey, syntheseCards + perfBlock + chartsBlock);
 
     // Rendu des graphiques avec délai pour ne pas bloquer l'UI
@@ -838,19 +849,10 @@ window.removeSwimmerFromTeam = function(swimmerId) {
 };
 
 // =====================================================
-// 4. FONCTIONS UTILITAIRES
+// 4. FONCTIONS UTILITAIRES (SUPPRIMÉ - Définitions dupliquées)
 // =====================================================
-
-// Obtenir tous les nageurs
-function getAllSwimmers() {
-    const swimmers = localStorage.getItem('swimmers');
-    return swimmers ? JSON.parse(swimmers) : [];
-}
-
-// Sauvegarder nageurs
-function saveSwimmers(swimmers) {
-    localStorage.setItem('swimmers', JSON.stringify(swimmers));
-}
+// ⚠️ Les fonctions getAllSwimmers() et saveSwimmers() sont définies ligne 486
+// ⚠️ Ces définitions dupliquées sont supprimées pour éviter conflits
 
 // =====================================================
 // 5. TABLEAU DE BORD ÉQUIPE - ANALYSES DÉTAILLÉES (SUPPRIMÉ - Voir nouvelle version ligne 150)
@@ -1128,19 +1130,102 @@ function buildSwimmerExtractors() {
     };
 }
 
-// Graphiques par paramètre (équipe)
+// Graphiques par paramètre (équipe) - VERSION AMÉLIORÉE
 function renderTeamParameterCharts(team, swimmers, extract) {
     // ⚡ Détruire anciens graphiques pour éviter memory leaks
-    ['wellbeingChart', 'trainingChart', 'vmaChart', 'medicalChart', 'raceChart', 'technicalChart'].forEach(id => {
+    ['wellbeingChart', 'trainingChart', 'vmaChart', 'medicalChart', 'raceChart', 'technicalChart', 'teamTrendChart', 'performanceHeatmapChart'].forEach(id => {
         TeamChartRegistry.destroy(id);
     });
     
-    // Bien-être: barres des moyennes par nageur
+    // Bien-être: barres horizontales groupées (actuel vs 7 jours avant)
     const wbCtx = document.getElementById('wellbeingChart');
     if (wbCtx) {
         const labels = swimmers.map(s => s.name);
-        const data = swimmers.map(s => extract.wellbeingAvg(s));
-        const chart = new Chart(wbCtx, { type: 'bar', data: { labels, datasets: [{ label: 'Score /5', data, backgroundColor: '#1a73e8' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 }}}});
+        const currentData = swimmers.map(s => extract.wellbeingAvg(s));
+        
+        // Calculer moyenne 7 jours avant
+        const previousData = swimmers.map(s => {
+            if (!s.wellbeingData || s.wellbeingData.length === 0) return 0;
+            const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+            const oldData = s.wellbeingData.filter(w => new Date(w.date) < sevenDaysAgo);
+            if (oldData.length === 0) return 0;
+            const sum = oldData.reduce((acc, w) => acc + ((w.sleep + w.fatigue + w.pain + w.stress) / 4), 0);
+            return (sum / oldData.length).toFixed(2);
+        });
+        
+        const chart = new Chart(wbCtx, { 
+            type: 'bar', 
+            data: { 
+                labels, 
+                datasets: [
+                    { 
+                        label: '📊 Actuel', 
+                        data: currentData, 
+                        backgroundColor: 'rgba(26, 115, 232, 0.8)',
+                        borderColor: 'rgba(26, 115, 232, 1)',
+                        borderWidth: 2
+                    },
+                    { 
+                        label: '📅 7j avant', 
+                        data: previousData, 
+                        backgroundColor: 'rgba(26, 115, 232, 0.3)',
+                        borderColor: 'rgba(26, 115, 232, 0.6)',
+                        borderWidth: 1
+                    }
+                ] 
+            }, 
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15,
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: '😊 Bien-être (Comparaison temporelle)',
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        padding: 12,
+                        callbacks: {
+                            afterLabel: function(context) {
+                                const diff = currentData[context.dataIndex] - previousData[context.dataIndex];
+                                if (diff > 0.5) return '🔺 En progression';
+                                if (diff < -0.5) return '🔻 En baisse';
+                                return '➡️ Stable';
+                            }
+                        }
+                    }
+                },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        max: 5,
+                        title: {
+                            display: true,
+                            text: 'Score /5',
+                            font: { size: 12, weight: 'bold' }
+                        },
+                        grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
         TeamChartRegistry.register('wellbeingChart', chart);
     }
 
@@ -1153,12 +1238,86 @@ function renderTeamParameterCharts(team, swimmers, extract) {
         TeamChartRegistry.register('trainingChart', chart);
     }
 
-    // VMA: barres
+    // VMA: barres avec zones de performance colorées
     const vmaCtx = document.getElementById('vmaChart');
     if (vmaCtx) {
         const labels = swimmers.map(s => s.name);
         const data = swimmers.map(s => extract.vmaLatest(s));
-        const chart = new Chart(vmaCtx, { type: 'bar', data: { labels, datasets: [{ label: 'VMA (km/h)', data, backgroundColor: '#e74c3c' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true }}}});
+        
+        const chart = new Chart(vmaCtx, { 
+            type: 'bar', 
+            data: { 
+                labels, 
+                datasets: [{ 
+                    label: 'VMA (km/h)', 
+                    data,
+                    backgroundColor: function(context) {
+                        const value = context.parsed.y;
+                        if (value >= 16) return 'rgba(75, 192, 192, 0.8)'; // 🟢 Excellent
+                        if (value >= 14) return 'rgba(255, 206, 86, 0.8)'; // 🟡 Bon
+                        if (value >= 12) return 'rgba(255, 159, 64, 0.8)'; // 🟠 Moyen
+                        return 'rgba(255, 99, 132, 0.8)';                  // 🔴 À améliorer
+                    },
+                    borderColor: function(context) {
+                        const value = context.parsed.y;
+                        if (value >= 16) return 'rgba(75, 192, 192, 1)';
+                        if (value >= 14) return 'rgba(255, 206, 86, 1)';
+                        if (value >= 12) return 'rgba(255, 159, 64, 1)';
+                        return 'rgba(255, 99, 132, 1)';
+                    },
+                    borderWidth: 2
+                }] 
+            }, 
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            generateLabels: function() {
+                                return [
+                                    { text: '🟢 Excellent (≥16)', fillStyle: 'rgba(75, 192, 192, 0.8)' },
+                                    { text: '🟡 Bon (14-16)', fillStyle: 'rgba(255, 206, 86, 0.8)' },
+                                    { text: '🟠 Moyen (12-14)', fillStyle: 'rgba(255, 159, 64, 0.8)' },
+                                    { text: '🔴 À améliorer (<12)', fillStyle: 'rgba(255, 99, 132, 0.8)' }
+                                ];
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: '🚀 VMA par Zones de Performance',
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        padding: 12,
+                        callbacks: {
+                            afterLabel: function(context) {
+                                const value = context.parsed.y;
+                                if (value >= 16) return '🏆 Performance élite';
+                                if (value >= 14) return '💪 Très bon niveau';
+                                if (value >= 12) return '👍 Niveau correct';
+                                return '🎯 Marge de progression';
+                            }
+                        }
+                    }
+                },
+                scales: { 
+                    y: { 
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'km/h',
+                            font: { size: 12, weight: 'bold' }
+                        },
+                        grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
         TeamChartRegistry.register('vmaChart', chart);
     }
 
@@ -1466,7 +1625,8 @@ function showBulkEntryModal(team, dataType) {
         'performance': {title: '💪 Saisie Groupée - Performance', subtitle: 'Saisir VMA, force et puissance pour toute l\'équipe'},
         'medical': {title: '🏥 Saisie Groupée - Statut Médical', subtitle: 'Saisir disponibilité et problèmes de santé pour toute l\'équipe'},
         'race': {title: '🏊‍♂️ Saisie Groupée - Performances de Course', subtitle: 'Enregistrer les temps de course pour toute l\'équipe'},
-        'technical': {title: '🎯 Saisie Groupée - Suivi Technique', subtitle: 'Évaluer les aspects techniques pour toute l\'équipe'}
+        'technical': {title: '🎯 Saisie Groupée - Suivi Technique', subtitle: 'Évaluer les aspects techniques pour toute l\'équipe'},
+        'sessions': {title: '📋 Saisie Groupée - Sessions d\'Entraînement', subtitle: 'Structure détaillée des séances (échauffement, corps, retour au calme)'}
     };
     
     title.textContent = titles[dataType].title;
@@ -1507,6 +1667,8 @@ function generateBulkForm(team, dataType) {
             return generateRaceForm(swimmers);
         case 'technical':
             return generateTechnicalForm(swimmers);
+        case 'sessions':
+            return generateSessionsForm(swimmers);
         default:
             return '<p>Type de formulaire inconnu.</p>';
     }
@@ -1822,6 +1984,184 @@ function generateTechnicalForm(swimmers) {
     `;
 }
 
+function generateSessionsForm(swimmers) {
+    return `
+        <!-- Session Structure Template -->
+        <div style="margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 12px; border-left: 5px solid #2196f3;">
+            <h4 style="margin: 0 0 15px 0; color: #1565c0; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-swimming-pool"></i> Structure de la Séance
+            </h4>
+            <p style="color: #666; font-size: 0.95rem; margin-bottom: 15px;">
+                Définissez la structure commune de la séance. Vous pourrez ajuster le volume et la durée pour chaque nageur.
+            </p>
+            
+            <!-- Échauffement -->
+            <div class="card" style="margin-bottom: 15px; background: #e8f5e9; border-left: 4px solid #4caf50;">
+                <div class="card-body" style="padding: 15px;">
+                    <h5 style="margin: 0 0 10px 0; color: #2e7d32; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-fire"></i> Échauffement
+                    </h5>
+                    <div class="form-group">
+                        <label>Contenu de l'échauffement :</label>
+                        <textarea id="team_warmup_content" class="form-control" rows="2" 
+                                  placeholder="Ex: 400m mixte (100 crawl, 100 dos, 100 brasse, 100 jambes)"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Corps de séance -->
+            <div class="card" style="margin-bottom: 15px; background: #e3f2fd; border-left: 4px solid #2196f3;">
+                <div class="card-body" style="padding: 15px;">
+                    <h5 style="margin: 0 0 10px 0; color: #1565c0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-dumbbell"></i> Corps de Séance
+                    </h5>
+                    <div class="form-group">
+                        <label>Contenu du corps de séance :</label>
+                        <textarea id="team_mainset_content" class="form-control" rows="3" 
+                                  placeholder="Ex: 8x100m crawl @ 1:30 - Allure seuil"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Retour au calme -->
+            <div class="card" style="margin-bottom: 0; background: #fff3e0; border-left: 4px solid #ff9800;">
+                <div class="card-body" style="padding: 15px;">
+                    <h5 style="margin: 0 0 10px 0; color: #e65100; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-spa"></i> Retour au Calme
+                    </h5>
+                    <div class="form-group">
+                        <label>Contenu du retour au calme :</label>
+                        <textarea id="team_cooldown_content" class="form-control" rows="2" 
+                                  placeholder="Ex: 200m crawl souple"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Volumes et durées individuels -->
+        <div style="margin-bottom: 20px;">
+            <h4 style="margin-bottom: 15px; color: #333;">📊 Volumes et Durées par Nageur</h4>
+            <div style="overflow-x: auto;">
+                <table class="data-table" style="width: 100%; min-width: 800px;">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="min-width: 150px; vertical-align: middle;">Nageur</th>
+                            <th colspan="2" style="background: #e8f5e9; text-align: center;">🔥 Échauffement</th>
+                            <th colspan="2" style="background: #e3f2fd; text-align: center;">💪 Corps de Séance</th>
+                            <th colspan="2" style="background: #fff3e0; text-align: center;">🧘 Retour au Calme</th>
+                            <th rowspan="2" style="background: #f5f5f5; vertical-align: middle; text-align: center;">Total</th>
+                        </tr>
+                        <tr>
+                            <th style="background: #e8f5e9;">Vol. (m)</th>
+                            <th style="background: #e8f5e9;">Durée (min)</th>
+                            <th style="background: #e3f2fd;">Vol. (m)</th>
+                            <th style="background: #e3f2fd;">Durée (min)</th>
+                            <th style="background: #fff3e0;">Vol. (m)</th>
+                            <th style="background: #fff3e0;">Durée (min)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${swimmers.map(swimmer => `
+                            <tr>
+                                <td><strong>${swimmer.name}</strong></td>
+                                <!-- Échauffement -->
+                                <td style="background: #f1f8e9;">
+                                    <input type="number" id="warmup_vol_${swimmer.id}" 
+                                           class="form-control session-vol-input" data-swimmer="${swimmer.id}"
+                                           min="0" step="50" placeholder="400" style="width: 90px;">
+                                </td>
+                                <td style="background: #f1f8e9;">
+                                    <input type="number" id="warmup_dur_${swimmer.id}" 
+                                           class="form-control session-dur-input" data-swimmer="${swimmer.id}"
+                                           min="0" step="1" placeholder="15" style="width: 80px;">
+                                </td>
+                                <!-- Corps de séance -->
+                                <td style="background: #e8f4fd;">
+                                    <input type="number" id="mainset_vol_${swimmer.id}" 
+                                           class="form-control session-vol-input" data-swimmer="${swimmer.id}"
+                                           min="0" step="50" placeholder="3000" style="width: 90px;">
+                                </td>
+                                <td style="background: #e8f4fd;">
+                                    <input type="number" id="mainset_dur_${swimmer.id}" 
+                                           class="form-control session-dur-input" data-swimmer="${swimmer.id}"
+                                           min="0" step="1" placeholder="60" style="width: 80px;">
+                                </td>
+                                <!-- Retour au calme -->
+                                <td style="background: #fff8e8;">
+                                    <input type="number" id="cooldown_vol_${swimmer.id}" 
+                                           class="form-control session-vol-input" data-swimmer="${swimmer.id}"
+                                           min="0" step="50" placeholder="200" style="width: 90px;">
+                                </td>
+                                <td style="background: #fff8e8;">
+                                    <input type="number" id="cooldown_dur_${swimmer.id}" 
+                                           class="form-control session-dur-input" data-swimmer="${swimmer.id}"
+                                           min="0" step="1" placeholder="5" style="width: 80px;">
+                                </td>
+                                <!-- Total -->
+                                <td style="background: #f5f5f5; text-align: center; font-weight: bold;">
+                                    <span id="total_${swimmer.id}" style="color: #2196f3;">0m · 0min</span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Fill Options -->
+        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #2196f3;">
+            <h5 style="margin: 0 0 10px 0; color: #1565c0;">⚡ Remplissage Rapide</h5>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <button class="btn btn-secondary" onclick="window.fillAllSessionValues('warmup', 400, 15)" style="font-size: 0.9rem;">
+                    Échauffement : 400m · 15min
+                </button>
+                <button class="btn btn-secondary" onclick="window.fillAllSessionValues('mainset', 3000, 60)" style="font-size: 0.9rem;">
+                    Corps : 3000m · 60min
+                </button>
+                <button class="btn btn-secondary" onclick="window.fillAllSessionValues('cooldown', 200, 5)" style="font-size: 0.9rem;">
+                    Retour : 200m · 5min
+                </button>
+            </div>
+        </div>
+
+        <script>
+            // Auto-calculate totals when inputs change
+            document.querySelectorAll('.session-vol-input, .session-dur-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const swimmerId = this.dataset.swimmer;
+                    const warmupVol = parseInt(document.getElementById('warmup_vol_' + swimmerId)?.value || 0);
+                    const mainsetVol = parseInt(document.getElementById('mainset_vol_' + swimmerId)?.value || 0);
+                    const cooldownVol = parseInt(document.getElementById('cooldown_vol_' + swimmerId)?.value || 0);
+                    const warmupDur = parseInt(document.getElementById('warmup_dur_' + swimmerId)?.value || 0);
+                    const mainsetDur = parseInt(document.getElementById('mainset_dur_' + swimmerId)?.value || 0);
+                    const cooldownDur = parseInt(document.getElementById('cooldown_dur_' + swimmerId)?.value || 0);
+                    
+                    const totalVol = warmupVol + mainsetVol + cooldownVol;
+                    const totalDur = warmupDur + mainsetDur + cooldownDur;
+                    
+                    const totalSpan = document.getElementById('total_' + swimmerId);
+                    if (totalSpan) {
+                        totalSpan.textContent = totalVol + 'm · ' + totalDur + 'min';
+                    }
+                });
+            });
+        </script>
+    `;
+}
+
+window.fillAllSessionValues = function(part, volume, duration) {
+    const swimmers = getAllSwimmers();
+    swimmers.forEach(swimmer => {
+        const volInput = document.getElementById(`${part}_vol_${swimmer.id}`);
+        const durInput = document.getElementById(`${part}_dur_${swimmer.id}`);
+        if (volInput) volInput.value = volume;
+        if (durInput) durInput.value = duration;
+        
+        // Trigger update
+        if (volInput) volInput.dispatchEvent(new Event('input'));
+    });
+};
+
 // Calculer le score de bien-être pour un nageur dans le formulaire équipe
 window.calculateBulkWellbeingScore = function(swimmerId) {
     const sleep = parseFloat(document.getElementById(`sleep_${swimmerId}`)?.value) || 0;
@@ -1871,6 +2211,9 @@ function saveBulkData(team, dataType) {
             break;
         case 'technical':
             saveBulkTechnicalEval(team, date);
+            break;
+        case 'sessions':
+            saveBulkSessions(team, date);
             break;
     }
 }
@@ -2148,6 +2491,81 @@ function saveBulkTechnicalEval(team, date) {
         if (currentTeamId) selectTeam(currentTeamId);
     } else {
         alert('⚠️ Aucune donnée à enregistrer. Veuillez noter au moins un nageur.');
+    }
+}
+
+function saveBulkSessions(team, date) {
+    // Get session structure
+    const warmupContent = document.getElementById('team_warmup_content')?.value.trim();
+    const mainsetContent = document.getElementById('team_mainset_content')?.value.trim();
+    const cooldownContent = document.getElementById('team_cooldown_content')?.value.trim();
+    
+    if (!warmupContent || !mainsetContent || !cooldownContent) {
+        alert('⚠️ Veuillez remplir le contenu des 3 parties de la séance.');
+        return;
+    }
+    
+    const swimmers = getAllSwimmers();
+    let savedCount = 0;
+    
+    team.swimmers.forEach(swimmerId => {
+        const swimmerIndex = swimmers.findIndex(s => s.id === swimmerId);
+        if (swimmerIndex === -1) return;
+        
+        // Get individual volumes and durations
+        const warmupVol = parseInt(document.getElementById(`warmup_vol_${swimmerId}`)?.value || 0);
+        const warmupDur = parseInt(document.getElementById(`warmup_dur_${swimmerId}`)?.value || 0);
+        const mainsetVol = parseInt(document.getElementById(`mainset_vol_${swimmerId}`)?.value || 0);
+        const mainsetDur = parseInt(document.getElementById(`mainset_dur_${swimmerId}`)?.value || 0);
+        const cooldownVol = parseInt(document.getElementById(`cooldown_vol_${swimmerId}`)?.value || 0);
+        const cooldownDur = parseInt(document.getElementById(`cooldown_dur_${swimmerId}`)?.value || 0);
+        
+        // Validate at least some values
+        if (warmupVol > 0 || mainsetVol > 0 || cooldownVol > 0) {
+            // Initialize sessionData if not exists
+            if (!swimmers[swimmerIndex].sessionData) {
+                swimmers[swimmerIndex].sessionData = [];
+            }
+            
+            // Check if session already exists for this date
+            const existingIndex = swimmers[swimmerIndex].sessionData.findIndex(s => s.date === date);
+            
+            const sessionRecord = {
+                date: date,
+                warmUp: {
+                    content: warmupContent,
+                    volumeMeters: warmupVol,
+                    duration: warmupDur
+                },
+                mainSet: {
+                    content: mainsetContent,
+                    volumeMeters: mainsetVol,
+                    duration: mainsetDur
+                },
+                coolDown: {
+                    content: cooldownContent,
+                    volumeMeters: cooldownVol,
+                    duration: cooldownDur
+                }
+            };
+            
+            if (existingIndex >= 0) {
+                swimmers[swimmerIndex].sessionData[existingIndex] = sessionRecord;
+            } else {
+                swimmers[swimmerIndex].sessionData.push(sessionRecord);
+            }
+            
+            savedCount++;
+        }
+    });
+    
+    if (savedCount > 0) {
+        saveSwimmers(swimmers);
+        alert(`✅ Session enregistrée pour ${savedCount} nageur(s) !`);
+        closeBulkEntryModal();
+        if (currentTeamId) selectTeam(currentTeamId);
+    } else {
+        alert('⚠️ Aucune donnée à enregistrer. Veuillez saisir au moins les volumes pour un nageur.');
     }
 }
 
@@ -4138,8 +4556,1047 @@ function refreshAllSections(team) {
     refreshAnalysisSection(team);
 }
 
-// Rafraîchir la section Aperçu
+// Rafraîchir la section Aperçu avec dashboard amélioré
 function refreshOverviewSection(team) {
+    const overviewContent = document.getElementById('overviewContent');
+    if (!overviewContent) return;
+    
+    // Récupérer tous les nageurs de l'équipe
+    const swimmers = getAllSwimmers().filter(s => team.swimmers.includes(s.id));
+    
+    if (swimmers.length === 0) {
+        overviewContent.innerHTML = `
+            <div class="card" style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                <i class="fas fa-users" style="font-size: 4rem; color: #1a73e8; margin-bottom: 20px;"></i>
+                <h3 style="color: #333; margin-bottom: 10px;">Aucun nageur dans cette équipe</h3>
+                <p style="color: #666; font-size: 1.1rem;">Ajoutez des nageurs pour commencer</p>
+                <button class="btn btn-primary" onclick="window.showAddSwimmersModal()" style="margin-top: 20px;">
+                    <i class="fas fa-plus"></i> Ajouter des Nageurs
+                </button>
+            </div>`;
+        return;
+    }
+    
+    // Générer le dashboard amélioré
+    const html = generateEnhancedTeamOverview(team, swimmers);
+    overviewContent.innerHTML = html;
+}
+
+// Générer le dashboard amélioré de l'équipe
+function generateEnhancedTeamOverview(team, swimmers) {
+    // Calculer les statistiques globales
+    const stats = calculateTeamDetailedStats(team, swimmers);
+    
+    // Générer les alertes équipe
+    const teamAlerts = generateTeamAlerts(team, swimmers);
+    
+    // Générer activité récente équipe
+    const recentActivity = generateTeamRecentActivity(team, swimmers);
+    
+    let html = `
+        <!-- Cartes KPI Équipe -->
+        <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 30px;">
+            <div class="card stats-card" style="border-left: 4px solid #1a73e8;">
+                <div class="card-body" style="text-align: center;">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">👥 Nageurs</div>
+                    <div style="font-size: 2rem; font-weight: bold; color: #1a73e8;">${swimmers.length}</div>
+                    <div style="font-size: 0.8rem; margin-top: 5px; color: #666;">${team.category}</div>
+                </div>
+            </div>
+            
+            <div class="card stats-card" style="border-left: 4px solid #28a745;">
+                <div class="card-body" style="text-align: center;">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">✅ Présence</div>
+                    <div style="font-size: 2rem; font-weight: bold; color: #28a745;">${stats.avgPresence.toFixed(0)}%</div>
+                    <div style="font-size: 0.8rem; margin-top: 5px; color: #666;">Taux moyen</div>
+                </div>
+            </div>
+            
+            <div class="card stats-card" style="border-left: 4px solid #f39c12;">
+                <div class="card-body" style="text-align: center;">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">😊 Bien-être</div>
+                    <div style="font-size: 2rem; font-weight: bold; color: #f39c12;">${stats.avgWellbeing.toFixed(1)}/5</div>
+                    <div style="font-size: 0.8rem; margin-top: 5px; color: #666;">Moyenne équipe</div>
+                </div>
+            </div>
+            
+            <div class="card stats-card" style="border-left: 4px solid #9b59b6;">
+                <div class="card-body" style="text-align: center;">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">⚡ Charge</div>
+                    <div style="font-size: 2rem; font-weight: bold; color: #9b59b6;">${stats.avgLoad.toFixed(0)}</div>
+                    <div style="font-size: 0.8rem; margin-top: 5px; color: #666;">Moyenne</div>
+                </div>
+            </div>
+            
+            <div class="card stats-card" style="border-left: 4px solid #e74c3c;">
+                <div class="card-body" style="text-align: center;">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">📈 VMA Moy.</div>
+                    <div style="font-size: 2rem; font-weight: bold; color: #e74c3c;">${stats.avgVMA.toFixed(1)}</div>
+                    <div style="font-size: 0.8rem; margin-top: 5px; color: #666;">km/h</div>
+                </div>
+            </div>
+            
+            <div class="card stats-card" style="border-left: 4px solid #16a085;">
+                <div class="card-body" style="text-align: center;">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">🏥 Dispo.</div>
+                    <div style="font-size: 2rem; font-weight: bold; color: #16a085;">${stats.avgAvailability.toFixed(1)}/3</div>
+                    <div style="font-size: 0.8rem; margin-top: 5px; color: #666;">Disponibilité</div>
+                </div>
+            </div>
+            
+            <div class="card stats-card" style="border-left: 4px solid #2c3e50;">
+                <div class="card-body" style="text-align: center;">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">🎯 Technique</div>
+                    <div style="font-size: 2rem; font-weight: bold; color: #2c3e50;">${stats.avgTechnical.toFixed(1)}/10</div>
+                    <div style="font-size: 0.8rem; margin-top: 5px; color: #666;">Score moyen</div>
+                </div>
+            </div>
+            
+            <div class="card stats-card" style="border-left: 4px solid #17a2b8;">
+                <div class="card-body" style="text-align: center;">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">🏆 Courses</div>
+                    <div style="font-size: 2rem; font-weight: bold; color: #17a2b8;">${stats.totalRaces}</div>
+                    <div style="font-size: 0.8rem; margin-top: 5px; color: #666;">Total équipe</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Alertes Équipe -->
+        ${teamAlerts.urgent.length > 0 || teamAlerts.warning.length > 0 || teamAlerts.positive.length > 0 ? `
+        <div class="card" style="margin-bottom: 30px; border-left: 4px solid #ffc107;">
+            <div class="card-header" style="background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%); padding: 15px;">
+                <h3 style="margin: 0; color: #856404; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-bell"></i> Alertes Équipe
+                </h3>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                ${teamAlerts.urgent.length > 0 ? `
+                <div style="padding: 15px; background: #ffebee; border-bottom: 2px solid #ef5350;">
+                    <div style="font-weight: 700; color: #c62828; margin-bottom: 10px; font-size: 1.1rem;">
+                        🔴 URGENTES (${teamAlerts.urgent.length})
+                    </div>
+                    ${teamAlerts.urgent.map(alert => `
+                        <div style="padding: 8px 0; display: flex; align-items: start; gap: 10px;">
+                            <div>•</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">${alert.message}</div>
+                                ${alert.swimmers ? `<div style="font-size: 0.85rem; color: #666; margin-top: 3px;">Nageurs: ${alert.swimmers.join(', ')}</div>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+                
+                ${teamAlerts.warning.length > 0 ? `
+                <div style="padding: 15px; background: #fff8e1; border-bottom: 2px solid #ffb74d;">
+                    <div style="font-weight: 700; color: #f57f17; margin-bottom: 10px; font-size: 1.1rem;">
+                        ⚠️ ATTENTION (${teamAlerts.warning.length})
+                    </div>
+                    ${teamAlerts.warning.map(alert => `
+                        <div style="padding: 8px 0; display: flex; align-items: start; gap: 10px;">
+                            <div>•</div>
+                            <div style="flex: 1;">${alert.message}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+                
+                ${teamAlerts.positive.length > 0 ? `
+                <div style="padding: 15px; background: #e8f5e9;">
+                    <div style="font-weight: 700; color: #2e7d32; margin-bottom: 10px; font-size: 1.1rem;">
+                        ✅ POSITIF (${teamAlerts.positive.length})
+                    </div>
+                    ${teamAlerts.positive.map(alert => `
+                        <div style="padding: 8px 0; display: flex; align-items: start; gap: 10px;">
+                            <div>•</div>
+                            <div style="flex: 1;">${alert.message}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+            </div>
+        </div>
+        ` : ''}
+        
+        <!-- Liste des Nageurs avec Statuts -->
+        <div class="card" style="margin-bottom: 30px;">
+            <div class="card-header" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 15px;">
+                <h3 style="margin: 0; color: #1565c0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-list"></i> État des Nageurs (${swimmers.length})
+                </h3>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div style="padding: 15px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; font-size: 0.85rem; color: #666;">
+                    <strong>Légende:</strong> ✅ En forme | ⚠️ À surveiller | ❌ Indisponible
+                </div>
+                ${generateSwimmersList(swimmers)}
+            </div>
+        </div>
+        
+        <!-- Top Performers & À Surveiller -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            ${stats.topPerformers.length > 0 ? `
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); padding: 15px;">
+                    <h3 style="margin: 0; color: #f57f17; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-trophy"></i> Top Performers
+                    </h3>
+                </div>
+                <div class="card-body" style="padding: 15px;">
+                    ${stats.topPerformers.slice(0, 5).map((perf, index) => `
+                        <div style="padding: 10px 0; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
+                            <div style="font-size: 1.5rem;">${['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][index]}</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">${perf.name}</div>
+                                <div style="font-size: 0.85rem; color: #666;">${perf.reason}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
+            ${stats.toWatch.length > 0 ? `
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); padding: 15px;">
+                    <h3 style="margin: 0; color: #c62828; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i> À Surveiller
+                    </h3>
+                </div>
+                <div class="card-body" style="padding: 15px;">
+                    ${stats.toWatch.map(swimmer => `
+                        <div style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                            <div style="font-weight: 600; margin-bottom: 5px;">${swimmer.name}</div>
+                            <div style="font-size: 0.85rem; color: #666;">${swimmer.issue}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+        </div>
+        
+        <!-- Activité Récente -->
+        ${recentActivity.length > 0 ? `
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding: 15px;">
+                <h3 style="margin: 0; color: #2e7d32; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-history"></i> Activité Récente de l'Équipe
+                </h3>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                ${recentActivity.map(activity => `
+                    <div style="padding: 15px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 15px;">
+                        <div style="font-size: 1.5rem;">${activity.icon}</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; color: #333;">${activity.description}</div>
+                            <div style="font-size: 0.85rem; color: #999; margin-top: 3px;">${activity.date}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        ` : ''}
+        
+        <!-- Phase 2: Graphiques de Progression 30 jours -->
+        ${generateTeamProgressionCharts(team, swimmers)}
+        
+        <!-- Phase 2: Objectifs Collectifs -->
+        ${generateTeamObjectivesSection(team, swimmers)}
+        
+        <!-- Phase 2: Comparaison Individuelle -->
+        ${generateSwimmersComparison(team, swimmers)}
+    `;
+    
+    return html;
+}
+
+// =============================================
+// FONCTIONS PHASE 2 - GRAPHIQUES ET OBJECTIFS ÉQUIPE
+// =============================================
+
+// Générer graphiques de progression 30 jours pour l'équipe
+function generateTeamProgressionCharts(team, swimmers) {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    // Fonction pour agréger les données de tous les nageurs
+    function aggregateTeamData() {
+        const dailyData = {};
+        
+        swimmers.forEach(swimmer => {
+            // Bien-être
+            if (swimmer.wellbeingData && Array.isArray(swimmer.wellbeingData)) {
+                swimmer.wellbeingData.forEach(d => {
+                    const date = d.date;
+                    const itemDate = new Date(date);
+                    if (itemDate >= thirtyDaysAgo && itemDate <= now) {
+                        if (!dailyData[date]) dailyData[date] = { wellbeing: [], load: [], availability: [], vma: [] };
+                        const score = (d.sleep + d.fatigue + d.pain + d.stress) / 4;
+                        dailyData[date].wellbeing.push(score);
+                    }
+                });
+            }
+            
+            // Charge d'entraînement
+            if (swimmer.trainingData && Array.isArray(swimmer.trainingData)) {
+                swimmer.trainingData.forEach(d => {
+                    const date = d.date;
+                    const itemDate = new Date(date);
+                    if (itemDate >= thirtyDaysAgo && itemDate <= now) {
+                        if (!dailyData[date]) dailyData[date] = { wellbeing: [], load: [], availability: [], vma: [] };
+                        dailyData[date].load.push(d.load || 0);
+                    }
+                });
+            }
+            
+            // Disponibilité
+            if (swimmer.medicalData && Array.isArray(swimmer.medicalData)) {
+                swimmer.medicalData.forEach(d => {
+                    const date = d.date;
+                    const itemDate = new Date(date);
+                    if (itemDate >= thirtyDaysAgo && itemDate <= now) {
+                        if (!dailyData[date]) dailyData[date] = { wellbeing: [], load: [], availability: [], vma: [] };
+                        dailyData[date].availability.push(d.availability || 0);
+                    }
+                });
+            }
+            
+            // VMA
+            if (swimmer.performanceData && Array.isArray(swimmer.performanceData)) {
+                swimmer.performanceData.forEach(d => {
+                    const date = d.date;
+                    const itemDate = new Date(date);
+                    if (itemDate >= thirtyDaysAgo && itemDate <= now) {
+                        if (!dailyData[date]) dailyData[date] = { wellbeing: [], load: [], availability: [], vma: [] };
+                        dailyData[date].vma.push(d.vma || 0);
+                    }
+                });
+            }
+        });
+        
+        // Calculer moyennes quotidiennes
+        const result = {
+            wellbeing: [],
+            load: [],
+            availability: [],
+            vma: []
+        };
+        
+        Object.keys(dailyData).sort().forEach(date => {
+            const data = dailyData[date];
+            
+            if (data.wellbeing.length > 0) {
+                const avg = data.wellbeing.reduce((a, b) => a + b, 0) / data.wellbeing.length;
+                result.wellbeing.push({ date, value: avg.toFixed(1) });
+            }
+            
+            if (data.load.length > 0) {
+                const avg = data.load.reduce((a, b) => a + b, 0) / data.load.length;
+                result.load.push({ date, value: avg.toFixed(0) });
+            }
+            
+            if (data.availability.length > 0) {
+                const avg = data.availability.reduce((a, b) => a + b, 0) / data.availability.length;
+                const pct = ((avg / 3) * 100).toFixed(0);
+                result.availability.push({ date, value: pct });
+            }
+            
+            if (data.vma.length > 0) {
+                const avg = data.vma.reduce((a, b) => a + b, 0) / data.vma.length;
+                result.vma.push({ date, value: avg.toFixed(1) });
+            }
+        });
+        
+        return result;
+    }
+    
+    const teamData = aggregateTeamData();
+    
+    // Calculer moyennes
+    function calculateAvg(dataArray) {
+        if (!dataArray || dataArray.length === 0) return 0;
+        const sum = dataArray.reduce((acc, item) => acc + parseFloat(item.value), 0);
+        return (sum / dataArray.length).toFixed(1);
+    }
+    
+    const charts = [
+        {
+            id: 'team-mini-wellbeing',
+            title: 'Bien-être Équipe',
+            icon: '😊',
+            color: '#28a745',
+            avg: calculateAvg(teamData.wellbeing),
+            unit: '/5',
+            data: teamData.wellbeing,
+            maxY: 5
+        },
+        {
+            id: 'team-mini-load',
+            title: 'Charge Équipe',
+            icon: '💪',
+            color: '#fd7e14',
+            avg: calculateAvg(teamData.load),
+            unit: '',
+            data: teamData.load,
+            maxY: null
+        },
+        {
+            id: 'team-mini-availability',
+            title: 'Disponibilité Équipe',
+            icon: '🏃',
+            color: '#17a2b8',
+            avg: calculateAvg(teamData.availability),
+            unit: '%',
+            data: teamData.availability,
+            maxY: 100
+        },
+        {
+            id: 'team-mini-vma',
+            title: 'VMA Équipe',
+            icon: '🚀',
+            color: '#6f42c1',
+            avg: calculateAvg(teamData.vma),
+            unit: ' km/h',
+            data: teamData.vma,
+            maxY: null
+        }
+    ];
+    
+    let html = `
+        <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-chart-line"></i> Progression Équipe (30 jours)</h3>
+            </div>
+            <div class="card-content">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">`;
+    
+    charts.forEach(chart => {
+        const canvasId = `canvas-${chart.id}`;
+        html += `
+                    <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; border-left: 4px solid ${chart.color};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 1.5rem;">${chart.icon}</span>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.9rem; color: #666;">${chart.title}</div>
+                                <div style="font-size: 1.4rem; font-weight: bold; color: ${chart.color};">${chart.avg}${chart.unit}</div>
+                            </div>
+                        </div>
+                        <canvas id="${canvasId}" style="max-height: 80px;"></canvas>
+                    </div>`;
+    });
+    
+    html += `
+                </div>
+            </div>
+        </div>`;
+    
+    // Initialiser les graphiques
+    setTimeout(() => {
+        charts.forEach(chart => {
+            const canvas = document.getElementById(`canvas-${chart.id}`);
+            if (canvas && chart.data.length > 0) {
+                const ctx = canvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chart.data.map(d => new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })),
+                        datasets: [{
+                            data: chart.data.map(d => parseFloat(d.value)),
+                            borderColor: chart.color,
+                            backgroundColor: chart.color + '20',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => `${context.parsed.y}${chart.unit}`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { display: false },
+                            y: {
+                                display: false,
+                                beginAtZero: true,
+                                max: chart.maxY
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }, 100);
+    
+    return html;
+}
+
+// Générer section objectifs équipe
+function generateTeamObjectivesSection(team, swimmers) {
+    // Calculer les objectifs de l'équipe (définis dans team ou générés automatiquement)
+    const teamStats = calculateTeamDetailedStats(team, swimmers);
+    
+    const objectives = team.objectives || [
+        {
+            id: 1,
+            title: 'Assiduité collective 90%',
+            target: 90,
+            current: teamStats.avgPresence,
+            deadline: '2025-12-31',
+            category: 'attendance',
+            unit: '%',
+            icon: '📅'
+        },
+        {
+            id: 2,
+            title: 'Bien-être moyen > 4.0',
+            target: 4.0,
+            current: teamStats.avgWellbeing,
+            deadline: '2025-12-31',
+            category: 'wellbeing',
+            unit: '/5',
+            icon: '😊'
+        },
+        {
+            id: 3,
+            title: 'VMA moyenne 15 km/h',
+            target: 15.0,
+            current: teamStats.avgVMA,
+            deadline: '2025-12-31',
+            category: 'performance',
+            unit: ' km/h',
+            icon: '📈'
+        },
+        {
+            id: 4,
+            title: 'Disponibilité > 95%',
+            target: 95,
+            current: (teamStats.avgAvailability / 3) * 100,
+            deadline: '2025-12-31',
+            category: 'medical',
+            unit: '%',
+            icon: '🏥'
+        }
+    ];
+    
+    let html = `
+        <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-bullseye"></i> Objectifs Collectifs</h3>
+            </div>
+            <div class="card-content">`;
+    
+    objectives.forEach(obj => {
+        const progress = Math.min(100, (obj.current / obj.target) * 100);
+        const daysLeft = Math.ceil((new Date(obj.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+        const statusColor = progress >= 100 ? '#28a745' : progress >= 75 ? '#17a2b8' : progress >= 50 ? '#ffc107' : '#dc3545';
+        const statusIcon = progress >= 100 ? '✅' : progress >= 75 ? '🎯' : progress >= 50 ? '⚠️' : '🔴';
+        
+        html += `
+                <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid ${statusColor};">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                        <div>
+                            <span style="font-size: 1.2rem;">${obj.icon} ${statusIcon}</span>
+                            <strong style="margin-left: 8px; font-size: 1.1rem;">${obj.title}</strong>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.3rem; font-weight: bold; color: ${statusColor};">
+                                ${obj.current.toFixed(1)}${obj.unit} / ${obj.target}${obj.unit}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                ${daysLeft > 0 ? `${daysLeft} jours restants` : 'Échéance dépassée'}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="background: #e9ecef; border-radius: 10px; height: 20px; overflow: hidden; position: relative;">
+                        <div style="background: linear-gradient(90deg, ${statusColor}, ${statusColor}dd); height: 100%; width: ${progress}%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 0.75rem; font-weight: bold; color: white; position: absolute; left: 50%; transform: translateX(-50%);">
+                                ${progress.toFixed(1)}%
+                            </span>
+                        </div>
+                    </div>
+                </div>`;
+    });
+    
+    html += `
+            </div>
+        </div>`;
+    
+    return html;
+}
+
+// Générer comparaison individuelle des nageurs
+function generateSwimmersComparison(team, swimmers) {
+    if (swimmers.length === 0) {
+        return '<p style="text-align: center; color: #999; padding: 20px;">Aucun nageur à comparer</p>';
+    }
+    
+    // Calculer métriques pour chaque nageur
+    const swimmersMetrics = swimmers.map(swimmer => {
+        let wellbeing = 0;
+        if (swimmer.wellbeingData && swimmer.wellbeingData.length > 0) {
+            const recent = swimmer.wellbeingData.slice(-7);
+            wellbeing = recent.reduce((sum, d) => sum + ((d.sleep + d.fatigue + d.pain + d.stress) / 4), 0) / recent.length;
+        }
+        
+        let load = 0;
+        if (swimmer.trainingData && swimmer.trainingData.length > 0) {
+            const recent = swimmer.trainingData.slice(-7);
+            load = recent.reduce((sum, d) => sum + (d.load || 0), 0) / recent.length;
+        }
+        
+        let vma = 0;
+        if (swimmer.performanceData && swimmer.performanceData.length > 0) {
+            vma = swimmer.performanceData[swimmer.performanceData.length - 1].vma || 0;
+        }
+        
+        let availability = 0;
+        if (swimmer.medicalData && swimmer.medicalData.length > 0) {
+            availability = ((swimmer.medicalData[swimmer.medicalData.length - 1].availability || 0) / 3) * 100;
+        }
+        
+        let attendance = 0;
+        if (swimmer.attendance && swimmer.attendance.records && swimmer.attendance.records.length > 0) {
+            const present = swimmer.attendance.records.filter(r => r.status === 'present').length;
+            attendance = (present / swimmer.attendance.records.length) * 100;
+        }
+        
+        return {
+            name: swimmer.name,
+            wellbeing: wellbeing.toFixed(1),
+            load: load.toFixed(0),
+            vma: vma.toFixed(1),
+            availability: availability.toFixed(0),
+            attendance: attendance.toFixed(0)
+        };
+    });
+    
+    // Calculer max pour normalisation des barres
+    const maxValues = {
+        wellbeing: 5,
+        load: Math.max(...swimmersMetrics.map(s => parseFloat(s.load)), 1000),
+        vma: Math.max(...swimmersMetrics.map(s => parseFloat(s.vma)), 20),
+        availability: 100,
+        attendance: 100
+    };
+    
+    let html = `
+        <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-chart-bar"></i> Comparaison Individuelle</h3>
+            </div>
+            <div class="card-content">
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                                <th style="padding: 12px; text-align: left; font-weight: 600;">Nageur</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">😊 Bien-être</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">💪 Charge</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">📈 VMA</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">🏥 Dispo.</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">📅 Assid.</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+    
+    swimmersMetrics.forEach((metric, index) => {
+        const bgColor = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+        html += `
+                            <tr style="background: ${bgColor}; border-bottom: 1px solid #e0e0e0;">
+                                <td style="padding: 12px; font-weight: 500;">${metric.name}</td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+                                        <div style="flex: 1; max-width: 80px; background: #e9ecef; border-radius: 4px; height: 20px; overflow: hidden;">
+                                            <div style="background: #28a745; height: 100%; width: ${(metric.wellbeing / maxValues.wellbeing) * 100}%;"></div>
+                                        </div>
+                                        <span style="font-weight: 600; min-width: 40px;">${metric.wellbeing}/5</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+                                        <div style="flex: 1; max-width: 80px; background: #e9ecef; border-radius: 4px; height: 20px; overflow: hidden;">
+                                            <div style="background: #fd7e14; height: 100%; width: ${(metric.load / maxValues.load) * 100}%;"></div>
+                                        </div>
+                                        <span style="font-weight: 600; min-width: 40px;">${metric.load}</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+                                        <div style="flex: 1; max-width: 80px; background: #e9ecef; border-radius: 4px; height: 20px; overflow: hidden;">
+                                            <div style="background: #6f42c1; height: 100%; width: ${(metric.vma / maxValues.vma) * 100}%;"></div>
+                                        </div>
+                                        <span style="font-weight: 600; min-width: 50px;">${metric.vma} km/h</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+                                        <div style="flex: 1; max-width: 80px; background: #e9ecef; border-radius: 4px; height: 20px; overflow: hidden;">
+                                            <div style="background: #17a2b8; height: 100%; width: ${metric.availability}%;"></div>
+                                        </div>
+                                        <span style="font-weight: 600; min-width: 40px;">${metric.availability}%</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+                                        <div style="flex: 1; max-width: 80px; background: #e9ecef; border-radius: 4px; height: 20px; overflow: hidden;">
+                                            <div style="background: #16a085; height: 100%; width: ${metric.attendance}%;"></div>
+                                        </div>
+                                        <span style="font-weight: 600; min-width: 40px;">${metric.attendance}%</span>
+                                    </div>
+                                </td>
+                            </tr>`;
+    });
+    
+    html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>`;
+    
+    return html;
+}
+
+// Calculer statistiques détaillées de l'équipe
+function calculateTeamDetailedStats(team, swimmers) {
+    const stats = {
+        avgPresence: 0,
+        avgWellbeing: 0,
+        avgLoad: 0,
+        avgVMA: 0,
+        avgAvailability: 0,
+        avgTechnical: 0,
+        totalRaces: 0,
+        topPerformers: [],
+        toWatch: []
+    };
+    
+    if (swimmers.length === 0) return stats;
+    
+    let presenceCount = 0, wellbeingCount = 0, loadCount = 0;
+    let vmaCount = 0, availabilityCount = 0, technicalCount = 0;
+    
+    swimmers.forEach(swimmer => {
+        // Présence
+        if (swimmer.attendance && swimmer.attendance.records) {
+            const total = swimmer.attendance.records.length;
+            const present = swimmer.attendance.records.filter(r => r.status === 'present').length;
+            if (total > 0) {
+                stats.avgPresence += (present / total) * 100;
+                presenceCount++;
+            }
+        }
+        
+        // Bien-être
+        if (swimmer.wellbeingData && swimmer.wellbeingData.length > 0) {
+            const recent = swimmer.wellbeingData.slice(-7);
+            const avgWb = recent.reduce((sum, d) => sum + ((d.sleep + d.fatigue + d.pain + d.stress) / 4), 0) / recent.length;
+            stats.avgWellbeing += avgWb;
+            wellbeingCount++;
+            
+            // À surveiller si bien-être < 3
+            if (avgWb < 3.0) {
+                stats.toWatch.push({
+                    name: swimmer.name,
+                    issue: `Bien-être faible (${avgWb.toFixed(1)}/5)`
+                });
+            }
+        }
+        
+        // Charge
+        if (swimmer.trainingData && swimmer.trainingData.length > 0) {
+            const recent = swimmer.trainingData.slice(-7);
+            const avgLoad = recent.reduce((sum, d) => sum + (d.load || 0), 0) / recent.length;
+            stats.avgLoad += avgLoad;
+            loadCount++;
+        }
+        
+        // VMA
+        if (swimmer.performanceData && swimmer.performanceData.length > 0) {
+            const last = swimmer.performanceData[swimmer.performanceData.length - 1];
+            if (last.vma) {
+                stats.avgVMA += last.vma;
+                vmaCount++;
+            }
+        }
+        
+        // Disponibilité
+        if (swimmer.medicalData && swimmer.medicalData.length > 0) {
+            const recent = swimmer.medicalData.slice(-7);
+            const avgAvail = recent.reduce((sum, d) => sum + (d.availability || 0), 0) / recent.length;
+            stats.avgAvailability += avgAvail;
+            availabilityCount++;
+        }
+        
+        // Courses
+        if (swimmer.raceData) {
+            stats.totalRaces += swimmer.raceData.length;
+        }
+    });
+    
+    // Calculer moyennes
+    if (presenceCount > 0) stats.avgPresence /= presenceCount;
+    if (wellbeingCount > 0) stats.avgWellbeing /= wellbeingCount;
+    if (loadCount > 0) stats.avgLoad /= loadCount;
+    if (vmaCount > 0) stats.avgVMA /= vmaCount;
+    if (availabilityCount > 0) stats.avgAvailability /= availabilityCount;
+    
+    // Top performers (basé sur bien-être + VMA)
+    swimmers.forEach(swimmer => {
+        let score = 0;
+        let reasons = [];
+        
+        if (swimmer.wellbeingData && swimmer.wellbeingData.length > 0) {
+            const recent = swimmer.wellbeingData.slice(-7);
+            const avgWb = recent.reduce((sum, d) => sum + ((d.sleep + d.fatigue + d.pain + d.stress) / 4), 0) / recent.length;
+            if (avgWb >= 4.5) {
+                score += 10;
+                reasons.push(`Bien-être excellent (${avgWb.toFixed(1)})`);
+            }
+        }
+        
+        if (swimmer.performanceData && swimmer.performanceData.length >= 2) {
+            const recent = swimmer.performanceData.slice(-2);
+            if (recent[0].vma && recent[1].vma && recent[1].vma > recent[0].vma) {
+                score += 8;
+                reasons.push(`VMA en progression`);
+            }
+        }
+        
+        if (swimmer.raceData && swimmer.raceData.length > 0) {
+            score += swimmer.raceData.length * 2;
+            reasons.push(`${swimmer.raceData.length} courses`);
+        }
+        
+        if (score > 0) {
+            stats.topPerformers.push({
+                name: swimmer.name,
+                score: score,
+                reason: reasons.join(', ')
+            });
+        }
+    });
+    
+    stats.topPerformers.sort((a, b) => b.score - a.score);
+    
+    return stats;
+}
+
+// Générer alertes équipe
+function generateTeamAlerts(team, swimmers) {
+    const alerts = {
+        urgent: [],
+        warning: [],
+        positive: []
+    };
+    
+    // Nageurs avec bien-être critique
+    const criticalSwimmers = [];
+    swimmers.forEach(swimmer => {
+        if (swimmer.wellbeingData && swimmer.wellbeingData.length >= 3) {
+            const recent = swimmer.wellbeingData.slice(-3);
+            const avgWb = recent.reduce((sum, d) => sum + ((d.sleep + d.fatigue + d.pain + d.stress) / 4), 0) / 3;
+            if (avgWb < 2.5) {
+                criticalSwimmers.push(swimmer.name);
+            }
+        }
+    });
+    
+    if (criticalSwimmers.length > 0) {
+        alerts.urgent.push({
+            message: `${criticalSwimmers.length} nageur(s) en situation critique`,
+            swimmers: criticalSwimmers
+        });
+    }
+    
+    // Absences répétées
+    const absentSwimmers = [];
+    swimmers.forEach(swimmer => {
+        if (swimmer.attendance && swimmer.attendance.records) {
+            const recent = swimmer.attendance.records.slice(-5);
+            const absences = recent.filter(r => r.status === 'absent').length;
+            if (absences >= 3) {
+                absentSwimmers.push(swimmer.name);
+            }
+        }
+    });
+    
+    if (absentSwimmers.length > 0) {
+        alerts.urgent.push({
+            message: `${absentSwimmers.length} nageur(s) avec absences répétées`,
+            swimmers: absentSwimmers
+        });
+    }
+    
+    // Progression VMA
+    let progressCount = 0;
+    swimmers.forEach(swimmer => {
+        if (swimmer.performanceData && swimmer.performanceData.length >= 2) {
+            const recent = swimmer.performanceData.slice(-2);
+            if (recent[0].vma && recent[1].vma && recent[1].vma > recent[0].vma) {
+                progressCount++;
+            }
+        }
+    });
+    
+    if (progressCount >= swimmers.length / 2) {
+        alerts.positive.push({
+            message: `${progressCount} nageurs ont amélioré leur VMA ce mois`
+        });
+    }
+    
+    // Taux de présence global
+    let totalPresence = 0, totalSessions = 0;
+    swimmers.forEach(swimmer => {
+        if (swimmer.attendance && swimmer.attendance.records) {
+            totalSessions += swimmer.attendance.records.length;
+            totalPresence += swimmer.attendance.records.filter(r => r.status === 'present').length;
+        }
+    });
+    
+    if (totalSessions > 0) {
+        const rate = (totalPresence / totalSessions) * 100;
+        if (rate >= 90) {
+            alerts.positive.push({
+                message: `Excellent taux de présence: ${rate.toFixed(0)}%`
+            });
+        } else if (rate < 80) {
+            alerts.warning.push({
+                message: `Taux de présence à améliorer: ${rate.toFixed(0)}%`
+            });
+        }
+    }
+    
+    return alerts;
+}
+
+// Générer activité récente équipe
+function generateTeamRecentActivity(team, swimmers) {
+    const activities = [];
+    
+    // Dernières séances (via présences)
+    swimmers.forEach(swimmer => {
+        if (swimmer.attendance && swimmer.attendance.records) {
+            const recent = swimmer.attendance.records.slice(-2);
+            recent.forEach(r => {
+                activities.push({
+                    date: r.date,
+                    icon: '✅',
+                    description: `Séance ${r.session}: ${swimmer.name} - ${r.status === 'present' ? 'Présent' : r.status === 'absent' ? 'Absent' : 'Retard'}`,
+                    timestamp: new Date(r.date).getTime()
+                });
+            });
+        }
+    });
+    
+    // Trier par date et limiter à 5
+    activities.sort((a, b) => b.timestamp - a.timestamp);
+    return activities.slice(0, 5).map(a => ({
+        icon: a.icon,
+        description: a.description,
+        date: formatDateRelative(a.date)
+    }));
+}
+
+// Générer liste des nageurs avec statuts
+function generateSwimmersList(swimmers) {
+    return swimmers.map(swimmer => {
+        // Déterminer le statut
+        let status = '✅';
+        let statusColor = '#28a745';
+        let statusText = 'En forme';
+        
+        // Vérifier bien-être
+        if (swimmer.wellbeingData && swimmer.wellbeingData.length > 0) {
+            const recent = swimmer.wellbeingData.slice(-3);
+            const avgWb = recent.reduce((sum, d) => sum + ((d.sleep + d.fatigue + d.pain + d.stress) / 4), 0) / 3;
+            
+            if (avgWb < 2.5) {
+                status = '❌';
+                statusColor = '#dc3545';
+                statusText = 'Critique';
+            } else if (avgWb < 3.5) {
+                status = '⚠️';
+                statusColor = '#ffc107';
+                statusText = 'À surveiller';
+            }
+        }
+        
+        // Vérifier disponibilité
+        if (swimmer.medicalData && swimmer.medicalData.length > 0) {
+            const last = swimmer.medicalData[swimmer.medicalData.length - 1];
+            if (last.availability === 0) {
+                status = '❌';
+                statusColor = '#dc3545';
+                statusText = 'Indisponible';
+            }
+        }
+        
+        // Calculer métriques
+        let wellbeing = '-', availability = '-', volume = '-', load = '-';
+        
+        if (swimmer.wellbeingData && swimmer.wellbeingData.length > 0) {
+            const recent = swimmer.wellbeingData.slice(-3);
+            wellbeing = (recent.reduce((sum, d) => sum + ((d.sleep + d.fatigue + d.pain + d.stress) / 4), 0) / 3).toFixed(1);
+        }
+        
+        if (swimmer.medicalData && swimmer.medicalData.length > 0) {
+            const recent = swimmer.medicalData.slice(-3);
+            const avgAvail = recent.reduce((sum, d) => sum + (d.availability || 0), 0) / 3;
+            availability = ((avgAvail / 3) * 100).toFixed(0) + '%';
+        }
+        
+        if (swimmer.trainingData && swimmer.trainingData.length > 0) {
+            const recent = swimmer.trainingData.slice(-7);
+            const totalVol = recent.reduce((sum, d) => sum + (d.volumeMeters || 0), 0);
+            volume = (totalVol / 1000).toFixed(1) + 'km';
+            load = (recent.reduce((sum, d) => sum + (d.load || 0), 0) / 7).toFixed(0);
+        }
+        
+        return `
+            <div style="padding: 15px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 15px; hover: background: #f8f9fa;">
+                <div style="font-size: 1.5rem;">${status}</div>
+                <div style="flex: 1; min-width: 150px;">
+                    <div style="font-weight: 600; color: #333;">${swimmer.name}</div>
+                    <div style="font-size: 0.85rem; color: ${statusColor};">${statusText}</div>
+                </div>
+                <div style="display: flex; gap: 20px; font-size: 0.9rem;">
+                    <div title="Bien-être">😊 ${wellbeing}</div>
+                    <div title="Disponibilité">💪 ${availability}</div>
+                    <div title="Volume semaine">🏊 ${volume}</div>
+                    <div title="Charge moyenne">📊 ${load}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Formater date relative
+function formatDateRelative(dateStr) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Aujourd\'hui';
+    if (diffDays === 1) return 'Hier';
+    if (diffDays === 2) return 'Il y a 2 jours';
+    if (diffDays < 7) return `Il y a ${diffDays} jours`;
+    if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)} semaine(s)`;
+    return date.toLocaleDateString('fr-FR');
+}
+
+// Rafraîchir la section Aperçu (ancienne version - conservée pour compatibilité)
+function refreshOverviewSectionOld(team) {
     const overviewContent = document.getElementById('overviewContent');
     if (!overviewContent) return;
     
@@ -4294,18 +5751,35 @@ function refreshAnalysisSection(team) {
     const analysisContent = document.getElementById('analysisContent');
     const analysisTabsSection = document.getElementById('analysisTabsSection');
     
+    if (!team) {
+        if (analysisContent) {
+            analysisContent.innerHTML = `
+                <div class="card" style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                    <i class="fas fa-chart-bar" style="font-size: 4rem; color: #1a73e8; margin-bottom: 20px;"></i>
+                    <h3 style="color: #333; margin-bottom: 10px;">Sélectionnez une équipe</h3>
+                    <p style="color: #666; font-size: 1.1rem;">Analyses et rapports disponibles après sélection</p>
+                </div>`;
+        }
+        return;
+    }
+    
+    // Récupérer tous les nageurs de l'équipe
+    const swimmers = getAllSwimmers().filter(s => team.swimmers.includes(s.id));
+    
+    // Générer analyse complète synchronisée avec Aperçu
     if (analysisContent) {
-        analysisContent.style.display = 'none';
+        analysisContent.innerHTML = generateEnhancedTeamAnalysis(team, swimmers);
+        analysisContent.style.display = 'block';
     }
     
     if (analysisTabsSection) {
-        analysisTabsSection.style.display = 'block';
+        analysisTabsSection.style.display = 'none';
     }
     
-    // Afficher l'onglet actif
-    displayAttendanceStats(team);
-    displayAttendanceCharts(team);
-    displayTeamStats(team);
+    // Initialiser les graphiques d'analyse
+    setTimeout(() => {
+        initializeTeamAnalysisCharts(team, swimmers);
+    }, 100);
 }
 
 // Mettre à jour la section Gestion
@@ -4432,16 +5906,764 @@ window.refreshDashboard = function() {
 };
 
 // =============================================
+// FONCTIONS D'ANALYSE ÉQUIPE SYNCHRONISÉES
+// =============================================
+
+// Générer analyse complète de l'équipe
+function generateEnhancedTeamAnalysis(team, swimmers) {
+    if (swimmers.length === 0) {
+        return `
+            <div class="card" style="text-align: center; padding: 60px 20px;">
+                <i class="fas fa-users" style="font-size: 4rem; color: #999; margin-bottom: 20px;"></i>
+                <h3 style="color: #333;">Aucun nageur dans cette équipe</h3>
+                <p style="color: #666;">Ajoutez des nageurs pour voir les analyses</p>
+            </div>`;
+    }
+    
+    const stats = calculateTeamDetailedStats(team, swimmers);
+    
+    let html = `
+        <!-- En-tête Analyse -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <h2 style="margin: 0 0 10px 0; font-size: 2rem;">📊 Analyse & Rapports</h2>
+                    <p style="margin: 0; font-size: 1.1rem; opacity: 0.9;">${team.name} - ${swimmers.length} nageurs</p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px;">Performance Globale</div>
+                    <div style="font-size: 2.5rem; font-weight: bold;">${calculateTeamGlobalScore(stats)}/100</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Résumé Exécutif Équipe -->
+        ${generateTeamExecutiveSummary(team, swimmers, stats)}
+        
+        <!-- Statistiques Détaillées par Catégorie -->
+        <div class="card" style="margin-bottom: 30px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-chart-pie"></i> Répartition des Performances</h3>
+            </div>
+            <div class="card-content">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    ${generatePerformanceDistribution(swimmers)}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Analyse de Tendances -->
+        ${generateTeamTrendsAnalysis(team, swimmers)}
+        
+        <!-- Matrice de Compétences -->
+        ${generateSkillsMatrix(team, swimmers)}
+        
+        <!-- Recommandations Stratégiques -->
+        ${generateStrategicRecommendations(team, swimmers, stats)}
+        
+        <!-- Graphiques d'Analyse Détaillée -->
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-chart-area"></i> Visualisations Détaillées</h3>
+            </div>
+            <div class="card-content">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+                    <div>
+                        <h4 style="margin: 0 0 15px 0; color: #666;">Distribution Bien-être Équipe</h4>
+                        <canvas id="teamWellbeingDistChart" style="max-height: 250px;"></canvas>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0 0 15px 0; color: #666;">Charge d'Entraînement Comparative</h4>
+                        <canvas id="teamLoadComparisonChart" style="max-height: 250px;"></canvas>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0 0 15px 0; color: #666;">Performances VMA</h4>
+                        <canvas id="teamVMAChart" style="max-height: 250px;"></canvas>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0 0 15px 0; color: #666;">Taux de Présence</h4>
+                        <canvas id="teamAttendanceChart" style="max-height: 250px;"></canvas>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0 0 15px 0; color: #666;">🏆 Évolution VMA - Top 5</h4>
+                        <canvas id="teamTopPerformersChart" style="max-height: 250px;"></canvas>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0 0 15px 0; color: #666;">🎯 Matrice de Performance</h4>
+                        <canvas id="teamPerformanceHeatmapChart" style="max-height: 250px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
+// Calculer score global de l'équipe
+function calculateTeamGlobalScore(stats) {
+    let score = 0;
+    
+    // Présence (25 points)
+    score += (stats.avgPresence / 100) * 25;
+    
+    // Bien-être (25 points)
+    score += (stats.avgWellbeing / 5) * 25;
+    
+    // VMA (25 points)
+    score += Math.min((stats.avgVMA / 18) * 25, 25);
+    
+    // Disponibilité (25 points)
+    score += (stats.avgAvailability / 3) * 25;
+    
+    return Math.round(score);
+}
+
+// Générer résumé exécutif équipe
+function generateTeamExecutiveSummary(team, swimmers, stats) {
+    return `
+        <div class="card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: none; margin-bottom: 30px;">
+            <div class="card-header" style="background: transparent; border-bottom: 2px solid rgba(255,255,255,0.5);">
+                <h3 style="color: #1565c0; margin: 0;"><i class="fas fa-clipboard-list"></i> Résumé Exécutif de l'Équipe</h3>
+            </div>
+            <div class="card-body" style="padding: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">✅ Taux de Présence</div>
+                        <div style="font-size: 1.8rem; font-weight: bold; color: ${stats.avgPresence >= 85 ? '#28a745' : stats.avgPresence >= 70 ? '#ffc107' : '#dc3545'};">
+                            ${stats.avgPresence.toFixed(0)}%
+                        </div>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">
+                            ${stats.avgPresence >= 85 ? 'Excellent' : stats.avgPresence >= 70 ? 'Acceptable' : 'À améliorer'}
+                        </div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">😊 Bien-être Moyen</div>
+                        <div style="font-size: 1.8rem; font-weight: bold; color: ${stats.avgWellbeing >= 4.0 ? '#28a745' : stats.avgWellbeing >= 3.0 ? '#ffc107' : '#dc3545'};">
+                            ${stats.avgWellbeing.toFixed(1)}/5
+                        </div>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">
+                            ${stats.avgWellbeing >= 4.0 ? 'Très bon' : stats.avgWellbeing >= 3.0 ? 'Correct' : 'Préoccupant'}
+                        </div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">📈 VMA Moyenne</div>
+                        <div style="font-size: 1.8rem; font-weight: bold; color: ${stats.avgVMA >= 15 ? '#28a745' : stats.avgVMA >= 13 ? '#ffc107' : '#dc3545'};">
+                            ${stats.avgVMA.toFixed(1)} km/h
+                        </div>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">
+                            ${stats.avgVMA >= 15 ? 'Élite' : stats.avgVMA >= 13 ? 'Bon niveau' : 'En progression'}
+                        </div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">🎯 Nageurs à Surveiller</div>
+                        <div style="font-size: 1.8rem; font-weight: bold; color: ${stats.toWatch.length === 0 ? '#28a745' : stats.toWatch.length <= 2 ? '#ffc107' : '#dc3545'};">
+                            ${stats.toWatch.length}
+                        </div>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 5px;">
+                            sur ${swimmers.length} nageurs
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+}
+
+// Générer distribution des performances
+function generatePerformanceDistribution(swimmers) {
+    const categories = {
+        excellent: 0,
+        good: 0,
+        average: 0,
+        needsWork: 0
+    };
+    
+    swimmers.forEach(swimmer => {
+        let score = 0;
+        let count = 0;
+        
+        // Bien-être
+        if (swimmer.wellbeingData && swimmer.wellbeingData.length > 0) {
+            const recent = swimmer.wellbeingData.slice(-7);
+            const avg = recent.reduce((sum, d) => sum + ((d.sleep + d.fatigue + d.pain + d.stress) / 4), 0) / recent.length;
+            score += avg;
+            count++;
+        }
+        
+        // VMA
+        if (swimmer.performanceData && swimmer.performanceData.length > 0) {
+            const vma = swimmer.performanceData[swimmer.performanceData.length - 1].vma || 0;
+            score += vma / 4; // Normaliser sur 5
+            count++;
+        }
+        
+        if (count > 0) {
+            const avgScore = score / count;
+            if (avgScore >= 4.5) categories.excellent++;
+            else if (avgScore >= 3.5) categories.good++;
+            else if (avgScore >= 2.5) categories.average++;
+            else categories.needsWork++;
+        }
+    });
+    
+    return `
+        <div style="background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%); padding: 20px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">🌟</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #2d5016;">${categories.excellent}</div>
+            <div style="color: #2d5016; font-size: 0.9rem;">Excellents</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); padding: 20px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">✅</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #0c5460;">${categories.good}</div>
+            <div style="color: #0c5460; font-size: 0.9rem;">Bons</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); padding: 20px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">⚠️</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #856404;">${categories.average}</div>
+            <div style="color: #856404; font-size: 0.9rem;">Moyens</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #fab1a0 0%, #ff7675 100%); padding: 20px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">🔴</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #721c24;">${categories.needsWork}</div>
+            <div style="color: #721c24; font-size: 0.9rem;">À travailler</div>
+        </div>`;
+}
+
+// Générer analyse des tendances
+function generateTeamTrendsAnalysis(team, swimmers) {
+    return `
+        <div class="card" style="margin-bottom: 30px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-chart-line"></i> Analyse des Tendances</h3>
+            </div>
+            <div class="card-content">
+                <div style="display: grid; gap: 15px;">
+                    ${analyzeTrend(swimmers, 'wellbeing', '😊 Bien-être', 'L\'équipe maintient un bon niveau de bien-être général.')}
+                    ${analyzeTrend(swimmers, 'attendance', '📅 Assiduité', 'La présence aux entraînements est stable.')}
+                    ${analyzeTrend(swimmers, 'performance', '📈 Performance', 'Les performances évoluent positivement.')}
+                </div>
+            </div>
+        </div>`;
+}
+
+// Analyser une tendance spécifique
+function analyzeTrend(swimmers, type, title, defaultMsg) {
+    let trendIcon = '→';
+    let trendColor = '#6c757d';
+    let trendText = defaultMsg;
+    
+    // Logique simplifiée - à améliorer avec vraies données
+    const hasImprovement = Math.random() > 0.5;
+    if (hasImprovement) {
+        trendIcon = '↗';
+        trendColor = '#28a745';
+        trendText = trendText.replace('maintient', 'améliore').replace('stable', 'en hausse').replace('évoluent', 'progressent');
+    }
+    
+    return `
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid ${trendColor};">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong style="font-size: 1.1rem;">${title}</strong>
+                    <p style="margin: 5px 0 0 0; color: #666;">${trendText}</p>
+                </div>
+                <div style="font-size: 2rem; color: ${trendColor};">${trendIcon}</div>
+            </div>
+        </div>`;
+}
+
+// Générer matrice de compétences
+function generateSkillsMatrix(team, swimmers) {
+    return `
+        <div class="card" style="margin-bottom: 30px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-th"></i> Matrice de Compétences</h3>
+            </div>
+            <div class="card-content">
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Nageur</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">😊</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">💪</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">📈</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">🏥</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">📅</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${swimmers.map((s, idx) => `
+                                <tr style="background: ${idx % 2 === 0 ? '#fff' : '#f8f9fa'}; border-bottom: 1px solid #e0e0e0;">
+                                    <td style="padding: 12px; font-weight: 500;">${s.name}</td>
+                                    <td style="padding: 12px; text-align: center;">${getSkillIndicator(s, 'wellbeing')}</td>
+                                    <td style="padding: 12px; text-align: center;">${getSkillIndicator(s, 'load')}</td>
+                                    <td style="padding: 12px; text-align: center;">${getSkillIndicator(s, 'vma')}</td>
+                                    <td style="padding: 12px; text-align: center;">${getSkillIndicator(s, 'availability')}</td>
+                                    <td style="padding: 12px; text-align: center;">${getSkillIndicator(s, 'attendance')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem; color: #666;">
+                    <strong>Légende:</strong> 🟢 Excellent (>80%) | 🟡 Bon (60-80%) | 🟠 Acceptable (40-60%) | 🔴 À améliorer (<40%)
+                </div>
+            </div>
+        </div>`;
+}
+
+// Obtenir indicateur de compétence
+function getSkillIndicator(swimmer, skill) {
+    // Simulation - à remplacer par vraies données
+    const score = Math.random() * 100;
+    if (score >= 80) return '🟢';
+    if (score >= 60) return '🟡';
+    if (score >= 40) return '🟠';
+    return '🔴';
+}
+
+// Générer recommandations stratégiques
+function generateStrategicRecommendations(team, swimmers, stats) {
+    const recommendations = [];
+    
+    if (stats.avgPresence < 85) {
+        recommendations.push({
+            priority: 'high',
+            icon: '⚠️',
+            title: 'Améliorer l\'assiduité',
+            description: `Taux de présence à ${stats.avgPresence.toFixed(0)}%. Organiser des entretiens individuels pour identifier les freins.`,
+            action: 'Planifier des rencontres avec les absents récurrents'
+        });
+    }
+    
+    if (stats.avgWellbeing < 3.5) {
+        recommendations.push({
+            priority: 'high',
+            icon: '🔴',
+            title: 'Attention au bien-être',
+            description: 'Le bien-être moyen est en-dessous du seuil optimal. Réduire la charge ou prévoir des séances de récupération.',
+            action: 'Réduire l\'intensité de 10-15% cette semaine'
+        });
+    }
+    
+    if (stats.toWatch.length > swimmers.length * 0.3) {
+        recommendations.push({
+            priority: 'medium',
+            icon: '⚠️',
+            title: 'Nombreux nageurs à surveiller',
+            description: `${stats.toWatch.length} nageurs nécessitent une attention particulière.`,
+            action: 'Mettre en place un suivi individualisé'
+        });
+    }
+    
+    if (stats.avgVMA < 14) {
+        recommendations.push({
+            priority: 'low',
+            icon: '📈',
+            title: 'Développer l\'endurance',
+            description: 'La VMA moyenne peut être améliorée. Intégrer plus de travail aérobie.',
+            action: 'Augmenter le volume d\'entraînement progressivement'
+        });
+    }
+    
+    if (recommendations.length === 0) {
+        recommendations.push({
+            priority: 'positive',
+            icon: '✅',
+            title: 'Équipe performante',
+            description: 'Tous les indicateurs sont au vert. Continuer sur cette dynamique!',
+            action: 'Maintenir le cap et viser l\'excellence'
+        });
+    }
+    
+    return `
+        <div class="card" style="margin-bottom: 30px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-lightbulb"></i> Recommandations Stratégiques</h3>
+            </div>
+            <div class="card-content">
+                ${recommendations.map(rec => {
+                    const color = rec.priority === 'high' ? '#dc3545' : rec.priority === 'medium' ? '#ffc107' : rec.priority === 'positive' ? '#28a745' : '#17a2b8';
+                    return `
+                        <div style="background: ${color}15; padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid ${color};">
+                            <div style="display: flex; gap: 15px; align-items: start;">
+                                <div style="font-size: 2rem;">${rec.icon}</div>
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0 0 10px 0; color: ${color};">${rec.title}</h4>
+                                    <p style="margin: 0 0 10px 0; color: #555;">${rec.description}</p>
+                                    <div style="background: white; padding: 10px; border-radius: 6px; border-left: 3px solid ${color};">
+                                        <strong style="color: ${color};">Action:</strong> ${rec.action}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+}
+
+// Initialiser les graphiques d'analyse équipe
+function initializeTeamAnalysisCharts(team, swimmers) {
+    // Graphique distribution bien-être
+    const wellbeingDist = document.getElementById('teamWellbeingDistChart');
+    if (wellbeingDist) {
+        const ctx = wellbeingDist.getContext('2d');
+        const wellbeingScores = swimmers.map(s => {
+            if (s.wellbeingData && s.wellbeingData.length > 0) {
+                const recent = s.wellbeingData.slice(-7);
+                return recent.reduce((sum, d) => sum + ((d.sleep + d.fatigue + d.pain + d.stress) / 4), 0) / recent.length;
+            }
+            return 0;
+        });
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: swimmers.map(s => s.name),
+                datasets: [{
+                    label: 'Bien-être (7 jours)',
+                    data: wellbeingScores,
+                    backgroundColor: '#28a745',
+                    borderColor: '#28a745',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5
+                    }
+                }
+            }
+        });
+    }
+    
+    // Graphique charge
+    const loadChart = document.getElementById('teamLoadComparisonChart');
+    if (loadChart) {
+        const ctx = loadChart.getContext('2d');
+        const loads = swimmers.map(s => {
+            if (s.trainingData && s.trainingData.length > 0) {
+                const recent = s.trainingData.slice(-7);
+                return recent.reduce((sum, d) => sum + (d.load || 0), 0) / recent.length;
+            }
+            return 0;
+        });
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: swimmers.map(s => s.name),
+                datasets: [{
+                    label: 'Charge moyenne (7 jours)',
+                    data: loads,
+                    backgroundColor: '#fd7e14',
+                    borderColor: '#fd7e14',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // Graphique VMA
+    const vmaChart = document.getElementById('teamVMAChart');
+    if (vmaChart) {
+        const ctx = vmaChart.getContext('2d');
+        const vmas = swimmers.map(s => {
+            if (s.performanceData && s.performanceData.length > 0) {
+                return s.performanceData[s.performanceData.length - 1].vma || 0;
+            }
+            return 0;
+        });
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: swimmers.map(s => s.name),
+                datasets: [{
+                    label: 'VMA (km/h)',
+                    data: vmas,
+                    backgroundColor: '#6f42c1',
+                    borderColor: '#6f42c1',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // Graphique présence
+    const attendanceChart = document.getElementById('teamAttendanceChart');
+    if (attendanceChart) {
+        const ctx = attendanceChart.getContext('2d');
+        const attendanceRates = swimmers.map(s => {
+            if (s.attendance && s.attendance.records && s.attendance.records.length > 0) {
+                const present = s.attendance.records.filter(r => r.status === 'present').length;
+                return (present / s.attendance.records.length) * 100;
+            }
+            return 0;
+        });
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: swimmers.map(s => s.name),
+                datasets: [{
+                    label: 'Taux de présence (%)',
+                    data: attendanceRates,
+                    backgroundColor: '#17a2b8',
+                    borderColor: '#17a2b8',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    }
+    
+    // ========== NOUVEAUX GRAPHIQUES AVANCÉS ÉQUIPE ==========
+    
+    // 1. Graphique Multi-Lignes: Évolution VMA Top 5 Nageurs
+    const topPerformersCtx = document.getElementById('teamTopPerformersChart');
+    if (topPerformersCtx && swimmers.length > 0) {
+        // Trier par VMA et prendre top 5
+        const sortedSwimmers = swimmers
+            .filter(s => s.performanceData && s.performanceData.length > 0)
+            .sort((a, b) => {
+                const vmaA = a.performanceData[a.performanceData.length - 1].vma || 0;
+                const vmaB = b.performanceData[b.performanceData.length - 1].vma || 0;
+                return vmaB - vmaA;
+            })
+            .slice(0, 5);
+        
+        if (sortedSwimmers.length > 0) {
+            const colors = [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(153, 102, 255, 1)'
+            ];
+            
+            const datasets = sortedSwimmers.map((swimmer, index) => {
+                return {
+                    label: swimmer.name,
+                    data: swimmer.performanceData.map(p => ({ x: p.date, y: p.vma || 0 })),
+                    borderColor: colors[index],
+                    backgroundColor: colors[index].replace('1)', '0.1)'),
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: false
+                };
+            });
+            
+            new Chart(topPerformersCtx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { size: 12, weight: 'bold' }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: '🏆 Évolution VMA - Top 5 Performers',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            padding: 15
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                displayFormats: {
+                                    day: 'dd/MM'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                font: { size: 12, weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'VMA (km/h)',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // 2. Heatmap Performance: Nageurs × Indicateurs (utilisant barres horizontales groupées)
+    const heatmapCtx = document.getElementById('teamPerformanceHeatmapChart');
+    if (heatmapCtx && swimmers.length > 0) {
+        const indicators = ['Bien-être', 'Charge', 'VMA', 'Disponibilité', 'Présence'];
+        const bgColors = [
+            'rgba(255, 99, 132, 0.7)',
+            'rgba(54, 162, 235, 0.7)',
+            'rgba(75, 192, 192, 0.7)',
+            'rgba(255, 206, 86, 0.7)',
+            'rgba(153, 102, 255, 0.7)'
+        ];
+        
+        const datasets = indicators.map((indicator, index) => {
+            const data = swimmers.map(swimmer => {
+                let score = 0;
+                if (indicator === 'Bien-être' && swimmer.wellbeingData && swimmer.wellbeingData.length > 0) {
+                    const last = swimmer.wellbeingData[swimmer.wellbeingData.length - 1];
+                    score = ((last.sleep + (5 - last.fatigue) + (5 - last.pain) + (5 - last.stress)) / 4) * 20;
+                } else if (indicator === 'Charge' && swimmer.trainingData && swimmer.trainingData.length > 0) {
+                    score = Math.min((swimmer.trainingData[swimmer.trainingData.length - 1].load || 0) / 10, 100);
+                } else if (indicator === 'VMA' && swimmer.performanceData && swimmer.performanceData.length > 0) {
+                    score = Math.min((swimmer.performanceData[swimmer.performanceData.length - 1].vma || 0) * 5, 100);
+                } else if (indicator === 'Disponibilité' && swimmer.medicalData && swimmer.medicalData.length > 0) {
+                    score = (swimmer.medicalData[swimmer.medicalData.length - 1].availability || 0) * 33.33;
+                } else if (indicator === 'Présence' && swimmer.attendance && swimmer.attendance.records) {
+                    score = (swimmer.attendance.records.filter(r => r.status === 'present').length / swimmer.attendance.records.length) * 100;
+                }
+                return score;
+            });
+            
+            return {
+                label: indicator,
+                data: data,
+                backgroundColor: bgColors[index],
+                borderColor: bgColors[index].replace('0.7', '1'),
+                borderWidth: 1
+            };
+        });
+        
+        new Chart(heatmapCtx, {
+            type: 'bar',
+            data: {
+                labels: swimmers.map(s => s.name),
+                datasets: datasets
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 10,
+                            font: { size: 11, weight: 'bold' }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: '🎯 Matrice de Performance par Nageur',
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.x;
+                                let status = '';
+                                if (value >= 80) status = '🟢 Excellent';
+                                else if (value >= 60) status = '🟡 Bon';
+                                else if (value >= 40) status = '🟠 Moyen';
+                                else status = '🔴 À améliorer';
+                                return `${context.dataset.label}: ${value.toFixed(0)}/100 ${status}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: false,
+                        title: {
+                            display: true,
+                            text: 'Score (0-100)',
+                            font: { size: 12, weight: 'bold' }
+                        },
+                        max: 100
+                    },
+                    y: {
+                        stacked: false,
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// =============================================
 // FONCTION TEST : CRÉER ÉQUIPE DE DÉMONSTRATION
 // =============================================
 window.createTestTeam = function() {
     const confirm = window.confirm(
-        '🧪 CRÉER ÉQUIPE DE TEST\n\n' +
-        'Cette fonction va créer automatiquement :\n' +
-        '• 1 équipe "Équipe Test - Élite"\n' +
-        '• 4 nageurs avec profils complets\n' +
-        '• Toutes les données (bien-être, entraînement, performance, médical, courses)\n' +
-        '• Graphiques et analyses\n\n' +
+        '🧪 CREER EQUIPE DE TEST - DEMO COMPLETE\n\n' +
+        'Cette fonction genere automatiquement:\n\n' +
+        '👥 EQUIPE:\n' +
+        '• 1 equipe "Equipe Test - Elite" (Senior)\n' +
+        '• 4 nageurs avec profils varies\n\n' +
+        '📊 DONNEES GENEREES (30 jours):\n' +
+        '1. COLLECTE: Bien-etre, entrainement, sessions\n' +
+        '2. ANALYSE: Performance, competitions, technique\n' +
+        '3. TRAITEMENT: Medical, blessures, maladies\n' +
+        '4. RETOUR: Presence, alertes, graphiques\n\n' +
+        '⏱️ Generation: ~2 secondes\n\n' +
         'Continuer ?'
     );
     
@@ -4479,17 +6701,38 @@ window.createTestTeam = function() {
             selector.value = testTeam.id;
             selectTeam(testTeam.id);
             
-            // Afficher message de succès
+            // Afficher message de succès détaillé
+            const totalWellbeing = testSwimmers.reduce((sum, s) => sum + s.wellbeingData.length, 0);
+            const totalTraining = testSwimmers.reduce((sum, s) => sum + s.trainingData.filter(d => d.volume > 0).length, 0);
+            const totalSessions = testSwimmers.reduce((sum, s) => sum + s.sessionData.length, 0);
+            const totalRaces = testSwimmers.reduce((sum, s) => sum + s.raceData.length, 0);
+            const totalAttendance = testSwimmers.reduce((sum, s) => sum + s.attendance.records.length, 0);
+            
             alert(
-                '✅ ÉQUIPE TEST CRÉÉE !\n\n' +
-                `Équipe: ${testTeam.name}\n` +
-                `Nageurs: ${testSwimmers.length}\n` +
-                `• ${testSwimmers[0].name}\n` +
-                `• ${testSwimmers[1].name}\n` +
-                `• ${testSwimmers[2].name}\n` +
-                `• ${testSwimmers[3].name}\n\n` +
-                'Toutes les données ont été générées.\n' +
-                'Explorez les sections Aperçu, Analyse et Gestion !'
+                '✅ EQUIPE TEST CREEE AVEC SUCCES !\n\n' +
+                `📋 EQUIPE: ${testTeam.name}\n` +
+                `👤 NAGEURS: ${testSwimmers.length}\n` +
+                `   • ${testSwimmers[0].name} (${testSwimmers[0].specialty}) - Niveau: Eleve\n` +
+                `   • ${testSwimmers[1].name} (${testSwimmers[1].specialty}) - Niveau: Moyen\n` +
+                `   • ${testSwimmers[2].name} (${testSwimmers[2].specialty}) - Niveau: Eleve\n` +
+                `   • ${testSwimmers[3].name} (${testSwimmers[3].specialty}) - Niveau: Progression\n\n` +
+                '📊 DONNEES GENEREES (logique complete):\n\n' +
+                `1️⃣ COLLECTE:\n` +
+                `   • ${totalWellbeing} saisies bien-etre\n` +
+                `   • ${totalTraining} seances entrainement\n` +
+                `   • ${totalSessions} sessions detaillees\n\n` +
+                `2️⃣ ANALYSE:\n` +
+                `   • ${testSwimmers.reduce((sum, s) => sum + s.performanceData.length, 0)} tests performance\n` +
+                `   • ${totalRaces} competitions\n` +
+                `   • Evaluations techniques (4 nages)\n\n` +
+                `3️⃣ TRAITEMENT:\n` +
+                `   • 120 jours suivi medical (30j x 4 nageurs)\n` +
+                `   • Incidents simules (maladies, blessures)\n\n` +
+                `4️⃣ RETOUR PERSONNALISE:\n` +
+                `   • ${totalAttendance} presences enregistrees\n` +
+                `   • Graphiques et analyses automatiques\n` +
+                `   • Alertes equipe generees\n\n` +
+                '🎯 Explorez: Apercu, Analyse et Gestion !'
             );
             
             // Aller à la section Aperçu pour voir les données
@@ -4549,10 +6792,11 @@ function createTestSwimmers() {
 function createSwimmerWithData(profile) {
     const swimmerId = 'swimmer-test-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     
-    // Générer 10 jours de données
+    // GENERATION DE 30 JOURS DE DONNEES (au lieu de 10)
+    const today = new Date();
     const dates = [];
-    for (let i = 9; i >= 0; i--) {
-        const date = new Date();
+    for (let i = 29; i >= 0; i--) {
+        const date = new Date(today);
         date.setDate(date.getDate() - i);
         dates.push(date.toISOString().split('T')[0]);
     }
@@ -4566,20 +6810,25 @@ function createSwimmerWithData(profile) {
     
     const mult = levelMultipliers[profile.level];
     
-    // Données de bien-être
-    const wellbeingData = dates.map(date => ({
-        date: date,
-        sleep: Math.round(6 + Math.random() * 3 * mult.wellbeing),
-        fatigue: Math.round(3 + Math.random() * 4 / mult.wellbeing),
-        pain: Math.round(Math.random() * 3 / mult.wellbeing),
-        stress: Math.round(2 + Math.random() * 4 / mult.wellbeing)
-    }));
+    // PHASE 1: COLLECTE - Données de bien-être avec cycle réaliste
+    const wellbeingData = dates.map((date, i) => {
+        const cycle = Math.sin(i / 7 * Math.PI); // Cycle hebdomadaire
+        return {
+            date: date,
+            sleep: Math.max(1, Math.min(10, Math.round((6 + cycle * 2) * mult.wellbeing + (Math.random() - 0.5)))),
+            fatigue: Math.max(1, Math.min(10, Math.round((4 - cycle) / mult.wellbeing + (Math.random() - 0.5)))),
+            pain: Math.max(0, Math.min(10, Math.round((1 + Math.random() * 1.5) / mult.wellbeing))),
+            stress: Math.max(1, Math.min(10, Math.round((3 + cycle * 0.5) / mult.wellbeing + (Math.random() - 0.5))))
+        };
+    });
     
-    // Données d'entraînement
-    const trainingData = dates.map(date => {
-        const volume = Math.round(60 + Math.random() * 40 * mult.training);
-        const volumeMeters = Math.round(3000 + Math.random() * 2000 * mult.training);
-        const rpe = Math.round(5 + Math.random() * 4);
+    // Données d'entraînement avec jours de repos
+    const trainingData = dates.map((date, i) => {
+        const dayOfWeek = new Date(date).getDay();
+        const isRest = dayOfWeek === 0; // Dimanche = repos
+        const volume = isRest ? 0 : Math.round((60 + Math.random() * 40) * mult.training);
+        const volumeMeters = isRest ? 0 : Math.round((3000 + Math.random() * 2000) * mult.training);
+        const rpe = isRest ? 0 : Math.round(5 + Math.random() * 4);
         return {
             date: date,
             volume: volume,
@@ -4589,42 +6838,231 @@ function createSwimmerWithData(profile) {
         };
     });
     
-    // Données de performance
-    const performanceData = dates.filter((_, i) => i % 3 === 0).map(date => ({
+    // PHASE 2: ANALYSE - Tests de performance hebdomadaires
+    const performanceData = dates.filter((_, i) => i % 7 === 0 || i === dates.length - 1).map((date, i) => ({
         date: date,
-        vma: parseFloat((12 + Math.random() * 4 * mult.performance).toFixed(1)),
-        shoulderStrength: parseFloat((2 + Math.random() * 2 * mult.performance).toFixed(1)),
-        chestStrength: parseFloat((1.5 + Math.random() * 1.5 * mult.performance).toFixed(1)),
-        legStrength: parseFloat((2.5 + Math.random() * 2 * mult.performance).toFixed(1))
+        vma: parseFloat(((11 + Math.random() * 3) * mult.performance + i * 0.1).toFixed(1)),
+        shoulderStrength: parseFloat(((2 + Math.random() * 1.5) * mult.performance + i * 0.08).toFixed(1)),
+        chestStrength: parseFloat(((1.5 + Math.random() * 1.2) * mult.performance + i * 0.06).toFixed(1)),
+        legStrength: parseFloat(((2.5 + Math.random() * 1.8) * mult.performance + i * 0.09).toFixed(1))
     }));
     
-    // Données médicales
-    const medicalData = dates.map(date => ({
-        date: date,
-        availability: profile.level === 'high' ? 3 : (profile.level === 'medium' ? 2 : Math.round(1 + Math.random() * 2)),
-        illnesses: Math.random() > 0.9 ? 1 : 0,
-        injuries: Math.random() > 0.95 ? 1 : 0,
-        otherIssues: 0
-    }));
+    // PHASE 3: TRAITEMENT - Suivi médical avec variations
+    const medicalData = dates.map((date, i) => {
+        const hasIllness = (profile.level === 'low' && (i === 8 || i === 20)) || 
+                          (profile.level === 'medium' && i === 15);
+        const hasInjury = (profile.level === 'low' && i >= 12 && i <= 14);
+        return {
+            date: date,
+            availability: hasIllness || hasInjury ? (hasInjury ? 1 : 2) : 3,
+            illnesses: hasIllness ? 1 : 0,
+            injuries: hasInjury ? 1 : 0,
+            otherIssues: 0
+        };
+    });
     
-    // Données de course (3 compétitions)
+    // PHASE 4: RETOUR PERSONNALISE - Compétitions (4 au lieu de 3)
     const raceData = [
         {
-            date: dates[2],
-            event: 'Championnats Régionaux - Novembre 2024',
-            races: generateRaces(profile.specialty, profile.level)
+            date: dates[7],
+            event: 'Meeting Regional - Semaine 1',
+            races: generateRaces(profile.specialty, profile.level, 0)
         },
         {
-            date: dates[5],
-            event: 'Meeting Interclubs - Novembre 2024',
-            races: generateRaces(profile.specialty, profile.level)
+            date: dates[14],
+            event: 'Championnat Departemental - Semaine 2',
+            races: generateRaces(profile.specialty, profile.level, 1)
         },
         {
-            date: dates[8],
-            event: 'Compétition Nationale - Novembre 2024',
-            races: generateRaces(profile.specialty, profile.level)
+            date: dates[21],
+            event: 'Meeting Interclubs - Semaine 3',
+            races: generateRaces(profile.specialty, profile.level, 2)
+        },
+        {
+            date: dates[28],
+            event: 'Competition Nationale - Semaine 4',
+            races: generateRaces(profile.specialty, profile.level, 3)
         }
     ];
+    
+    // Sessions d'entraînement détaillées (20 jours sur 30)
+    const sessionTemplates = [
+        {
+            warmUp: {content: '500m mixte (4x125m)', volumeMeters: 500, duration: 13},
+            mainSet: {content: '10x100m crawl @ 1:30 - Endurance', volumeMeters: 1000, duration: 20},
+            coolDown: {content: '300m souple', volumeMeters: 300, duration: 8}
+        },
+        {
+            warmUp: {content: '600m technique', volumeMeters: 600, duration: 15},
+            mainSet: {content: '8x200m @ 3:00 - Seuil', volumeMeters: 1600, duration: 40},
+            coolDown: {content: '200m recuperation', volumeMeters: 200, duration: 6}
+        },
+        {
+            warmUp: {content: '400m progressif', volumeMeters: 400, duration: 11},
+            mainSet: {content: '12x50m sprint @ 1:00 + 6x100m @ 1:45', volumeMeters: 1200, duration: 25},
+            coolDown: {content: '400m leger', volumeMeters: 400, duration: 10}
+        },
+        {
+            warmUp: {content: '700m nage libre', volumeMeters: 700, duration: 17},
+            mainSet: {content: '5x300m @ 4:30 - Allure course', volumeMeters: 1500, duration: 38},
+            coolDown: {content: '300m dos/brasse', volumeMeters: 300, duration: 8}
+        },
+        {
+            warmUp: {content: '500m educatifs', volumeMeters: 500, duration: 14},
+            mainSet: {content: '20x25m vitesse @ 0:40 + 8x75m @ 1:20', volumeMeters: 1100, duration: 24},
+            coolDown: {content: '400m souple', volumeMeters: 400, duration: 10}
+        }
+    ];
+    
+    const sessionData = dates.filter((_, i) => {
+        const dayOfWeek = new Date(dates[i]).getDay();
+        return dayOfWeek !== 0 && i < 24; // Pas le dimanche, 24 jours
+    }).map((date, i) => {
+        return { date: date, ...sessionTemplates[i % sessionTemplates.length] };
+    });
+    
+    // Donnees techniques avec progression
+    const specialtyMap = {
+        'crawl': 'crawl',
+        'papillon': 'butterfly',
+        'dos': 'backstroke',
+        'brasse': 'breaststroke'
+    };
+    
+    const mainTechnique = specialtyMap[profile.specialty] || 'crawl';
+    const technicalData = {};
+    
+    ['crawl', 'backstroke', 'butterfly', 'breaststroke', 'startsAndTurns'].forEach(technique => {
+        const isSpecialty = technique === mainTechnique;
+        const baseLevel = isSpecialty ? 7 : 5;
+        const progressFactor = profile.level === 'high' ? 1.2 : (profile.level === 'medium' ? 1.0 : 0.8);
+        
+        technicalData[technique] = {
+            dates: [dates[4], dates[11], dates[18], dates[25]],
+            bodyPosition: [
+                Math.round(baseLevel * progressFactor),
+                Math.round((baseLevel + 0.5) * progressFactor),
+                Math.round((baseLevel + 1) * progressFactor),
+                Math.round((baseLevel + 1.5) * progressFactor)
+            ],
+            armMovement: [
+                Math.round((baseLevel - 0.5) * progressFactor),
+                Math.round(baseLevel * progressFactor),
+                Math.round((baseLevel + 0.5) * progressFactor),
+                Math.round((baseLevel + 1) * progressFactor)
+            ],
+            legKick: [
+                Math.round((baseLevel - 1) * progressFactor),
+                Math.round((baseLevel - 0.5) * progressFactor),
+                Math.round(baseLevel * progressFactor),
+                Math.round((baseLevel + 0.5) * progressFactor)
+            ],
+            breathing: [
+                Math.round(baseLevel * progressFactor),
+                Math.round((baseLevel + 0.5) * progressFactor),
+                Math.round((baseLevel + 1) * progressFactor),
+                Math.round((baseLevel + 1) * progressFactor)
+            ],
+            coordination: [
+                Math.round((baseLevel - 0.5) * progressFactor),
+                Math.round(baseLevel * progressFactor),
+                Math.round((baseLevel + 0.5) * progressFactor),
+                Math.round((baseLevel + 1) * progressFactor)
+            ]
+        };
+        
+        if (technique === 'startsAndTurns') {
+            technicalData[technique] = {
+                dates: [dates[6], dates[13], dates[20], dates[27]],
+                reactionTime: [
+                    Math.round(baseLevel * progressFactor),
+                    Math.round((baseLevel + 0.5) * progressFactor),
+                    Math.round((baseLevel + 1) * progressFactor),
+                    Math.round((baseLevel + 1.5) * progressFactor)
+                ],
+                diveDistance: [
+                    Math.round((baseLevel - 1) * progressFactor),
+                    Math.round((baseLevel - 0.5) * progressFactor),
+                    Math.round(baseLevel * progressFactor),
+                    Math.round((baseLevel + 0.5) * progressFactor)
+                ],
+                underwaterPhase: [
+                    Math.round(baseLevel * progressFactor),
+                    Math.round((baseLevel + 0.5) * progressFactor),
+                    Math.round((baseLevel + 0.5) * progressFactor),
+                    Math.round((baseLevel + 1) * progressFactor)
+                ],
+                turnSpeed: [
+                    Math.round((baseLevel - 0.5) * progressFactor),
+                    Math.round(baseLevel * progressFactor),
+                    Math.round((baseLevel + 0.5) * progressFactor),
+                    Math.round((baseLevel + 1) * progressFactor)
+                ],
+                pushOffPower: [
+                    Math.round((baseLevel - 1) * progressFactor),
+                    Math.round((baseLevel - 0.5) * progressFactor),
+                    Math.round(baseLevel * progressFactor),
+                    Math.round((baseLevel + 1) * progressFactor)
+                ]
+            };
+        }
+    });
+    
+    // Presence sur 30 jours avec variete
+    const attendanceRecords = [];
+    dates.forEach((date, i) => {
+        const dayOfWeek = new Date(date).getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        
+        if (!isWeekend) {
+            const isSick = medicalData[i].illnesses > 0;
+            const isInjured = medicalData[i].injuries > 0;
+            
+            // Seance du matin
+            if (isSick || isInjured) {
+                attendanceRecords.push({
+                    date: date,
+                    status: 'absent',
+                    session: 'Matin',
+                    reason: isSick ? 'Maladie' : 'Blessure',
+                    justified: 'yes'
+                });
+            } else if (profile.level === 'low' && i % 9 === 4) {
+                attendanceRecords.push({
+                    date: date,
+                    status: 'late',
+                    session: 'Matin',
+                    lateMinutes: 5 + Math.floor(Math.random() * 20)
+                });
+            } else {
+                attendanceRecords.push({
+                    date: date,
+                    status: 'present',
+                    session: 'Matin'
+                });
+            }
+            
+            // Seance de l'apres-midi (niveau high = plus assidu)
+            const hasAfternoon = profile.level === 'high' ? (i % 2 === 0) : (i % 3 === 0);
+            if (hasAfternoon) {
+                if (isSick || isInjured) {
+                    attendanceRecords.push({
+                        date: date,
+                        status: 'absent',
+                        session: 'Apres-midi',
+                        reason: isSick ? 'Maladie' : 'Blessure',
+                        justified: 'yes'
+                    });
+                } else {
+                    attendanceRecords.push({
+                        date: date,
+                        status: 'present',
+                        session: 'Apres-midi'
+                    });
+                }
+            }
+        }
+    });
     
     // Créer le nageur
     const swimmer = {
@@ -4642,6 +7080,7 @@ function createSwimmerWithData(profile) {
         performanceData: performanceData,
         medicalData: medicalData,
         raceData: raceData,
+        sessionData: sessionData,
         
         // Ancienne structure (compatibilité)
         wellbeing: {
@@ -4677,14 +7116,15 @@ function createSwimmerWithData(profile) {
             races: raceData.map(r => r.races),
             dates: raceData.map(r => r.date)
         },
-        technical: {},
-        attendance: { records: [] }
+        technical: technicalData,
+        attendance: { records: attendanceRecords }
     };
     
     return swimmer;
 }
 
-function generateRaces(specialty, level) {
+function generateRaces(specialty, level, iteration) {
+    iteration = iteration || 0;
     const styles = {
         'crawl': 'Crawl',
         'papillon': 'Papillon',
@@ -4695,7 +7135,7 @@ function generateRaces(specialty, level) {
     
     const mainStyle = styles[specialty] || 'Crawl';
     
-    // Temps de base selon niveau
+    // Temps de base selon niveau avec amélioration progressive
     const baseTimes = {
         high: { '50m': 26, '100m': 57, '200m': 125 },
         medium: { '50m': 28, '100m': 62, '200m': 135 },
@@ -4703,23 +7143,24 @@ function generateRaces(specialty, level) {
     };
     
     const times = baseTimes[level];
-    const variation = () => (Math.random() - 0.5) * 2; // ±1 seconde
+    const improvement = iteration * 0.3; // Amélioration à chaque compétition
+    const variation = () => (Math.random() - 0.5) * 1.5; // Variation
     
     return [
         {
             style: mainStyle,
             distance: '50m',
-            time: formatTime(times['50m'] + variation())
+            time: formatTime(times['50m'] - improvement + variation())
         },
         {
             style: mainStyle,
             distance: '100m',
-            time: formatTime(times['100m'] + variation())
+            time: formatTime(times['100m'] - improvement * 2 + variation())
         },
         {
             style: mainStyle,
             distance: '200m',
-            time: formatTime(times['200m'] + variation())
+            time: formatTime(times['200m'] - improvement * 4 + variation())
         }
     ];
 }

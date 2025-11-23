@@ -23,13 +23,10 @@
                 <button class="nav-toggle">☰</button>
             </div>
             
-            <!-- Navigation -->
-            <nav>
+            <!-- Navigation masquée car page par défaut -->
+            <nav style="display: none;">
                 <ul>
-                    <li><a href="#dashboard" class="active">🏠 Aperçu</a></li>
-                    <li><a href="#saisie">📝 Saisie de Données</a></li>
-                    <li><a href="#analyse">📊 Analyse</a></li>
-                    <li><a href="#retours">💬 Retours Personnalisés</a></li>
+                    <li><a href="#dashboard" class="active">🏠 Aperçu Complet</a></li>
                 </ul>
             </nav>
         </div>
@@ -39,55 +36,69 @@
         <div class="container">
             
             <!-- Sélecteur de nageur global (sticky) -->
-            <div class="card sticky-selector">
-                <div class="card-body" style="padding: 20px;">
-                    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                        <div style="flex: 1; min-width: 300px;">
-                            <label for="athleteSelector" style="font-weight: bold; display: block; margin-bottom: 8px;">
-                                <i class="fas fa-user"></i> Nageur Actif :
-                            </label>
-                            <select class="form-control" id="athleteSelector" style="font-size: 1.1rem;">
-                                <option value="all">-- Sélectionner un nageur --</option>
-                            </select>
+            <div class="sticky-selector">
+                <!-- Overlay pour fermer le dropdown -->
+                <div class="selector-overlay" id="selectorOverlay"></div>
+                
+                <div class="selector-circle-container">
+                    <!-- Bouton principal circulaire -->
+                    <button class="selector-circle-btn" id="selectorCircleBtn" title="Rechercher un nageur">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    
+                    <!-- Menu déroulant compact -->
+                    <div class="selector-compact-dropdown" id="selectorDropdown">
+                        <div class="selector-header">
+                            <i class="fas fa-swimmer"></i>
+                            <span>Choisir un nageur</span>
                         </div>
-                        <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-                            <button class="btn btn-primary" id="addSwimmerBtn">
-                                <i class="fas fa-plus"></i> Nouveau Nageur
-                            </button>
-                            <button class="btn btn-info" id="createTestSwimmerBtn" title="Créer nageur test">
-                                <i class="fas fa-flask"></i>
-                            </button>
-                            <button class="btn btn-secondary" id="exportDataBtn" title="Exporter données">
-                                <i class="fas fa-download"></i>
-                            </button>
-                            <label for="importDataFile" class="btn btn-secondary" style="margin: 0; cursor: pointer;" title="Importer">
-                                <i class="fas fa-upload"></i>
-                            </label>
-                            <input type="file" id="importDataFile" accept=".json" style="display: none;">
-                            <button class="btn btn-dark" id="themeToggleBtn" title="Mode Sombre">
-                                <i class="fas fa-moon"></i>
-                            </button>
-                            <button class="btn btn-danger" id="resetDataBtn" title="Réinitialiser">
-                                <i class="fas fa-trash"></i>
+                        <div class="selector-search">
+                            <input type="text" id="swimmerSearchInput" placeholder="Rechercher...">
+                        </div>
+                        <div class="selector-list" id="selectorOptions">
+                            <div class="selector-item" data-value="all">
+                                <span>Tous les nageurs</span>
+                            </div>
+                        </div>
+                        <div class="selector-footer">
+                            <button class="selector-add-btn" id="addSwimmerBtn">
+                                <i class="fas fa-plus"></i> Nouveau
                             </button>
                         </div>
                     </div>
-                    <div id="quickSwimmerInfo" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; display: none;">
-                        <div style="display: flex; gap: 30px; flex-wrap: wrap; font-size: 0.95rem;">
-                            <span><strong>🎂 Âge:</strong> <span id="quickAge">-</span> ans</span>
-                            <span><strong>🏊 Spécialité:</strong> <span id="quickSpecialty">-</span></span>
-                            <span><strong>📊 Données:</strong> <span id="quickDataCount">0</span> entrées</span>
-                            <span><strong>🏆 Dernière perf:</strong> <span id="quickLastPerf">-</span></span>
+                </div>
+                
+                <!-- Boutons d'actions secondaires (masqués par défaut) -->
+                <div class="selector-secondary-actions" style="display: none;">
+                    <button class="selector-secondary-btn" id="createTestSwimmerBtn" title="Créer nageur test">
+                        <i class="fas fa-flask"></i>
+                    </button>
+                    <button class="selector-secondary-btn" id="exportDataBtn" title="Exporter">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <label for="importDataFile" class="selector-secondary-btn" title="Importer">
+                        <i class="fas fa-upload"></i>
+                    </label>
+                    <input type="file" id="importDataFile" accept=".json" style="display: none;">
+                    <button class="selector-secondary-btn" id="themeToggleBtn" title="Mode Sombre">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="selector-secondary-btn danger" id="resetDataBtn" title="Réinitialiser">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION 1: APERÇU -->
+            <!-- SECTION 1: APERÇU COMPLET -->
             <section id="dashboard" class="section active">
                 <div class="dashboard-header">
-                    <h2>🏠 Aperçu du Nageur</h2>
-                    <p style="color: #666; margin-top: 5px;">Vue d'ensemble des statistiques clés et progression</p>
+                    <h2>🏠 Aperçu Complet du Nageur</h2>
+                    <p style="color: #666; margin-top: 5px;">Vue d'ensemble complète : statistiques, analyse détaillée, graphiques et recommandations personnalisées</p>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button class="btn btn-secondary" id="refreshDashboardBtn">
                             <i class="fas fa-sync"></i> Actualiser
@@ -115,51 +126,35 @@
 
             <!-- SECTION 2: SAISIE DE DONNÉES -->
             <section id="saisie" class="section">
-                <div class="dashboard-header">
-                    <h2>📝 Saisie de Données</h2>
-                    <p style="color: #666; margin-top: 10px;">Enregistrer les données de bien-être, entraînement, performance et plus</p>
-                </div>
-
-                <div id="dataEntryContent">
-                    <div class="card" style="text-align: center; padding: 40px 20px;">
-                        <i class="fas fa-edit" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
-                        <p style="color: #999; font-size: 1.1rem;">Sélectionnez un nageur pour saisir des données</p>
-                    </div>
-                </div>
+                <!-- Contenu caché, géré par le bouton flottant -->
             </section>
 
-            <!-- SECTION 3: ANALYSE -->
-            <section id="analyse" class="section">
-                <div class="dashboard-header">
-                    <h2>📊 Analyse des Données</h2>
-                    <p style="color: #666; margin-top: 10px;">Visualisations et statistiques détaillées</p>
-                </div>
+            <!-- Bouton Flottant Saisie de Données -->
+            <div id="floatingDataBtn" class="floating-data-button" title="Saisie de données">
+                <i class="fas fa-swimmer"></i>
+            </div>
 
-                <div id="analysisContent">
-                    <div class="card" style="text-align: center; padding: 40px 20px;">
-                        <i class="fas fa-chart-line" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
-                        <p style="color: #999; font-size: 1.1rem;">Sélectionnez un nageur pour voir les analyses</p>
+            <!-- Panel Saisie de Données -->
+            <div id="dataEntryPanel" class="data-entry-panel">
+                <div class="data-entry-panel-header">
+                    <h3><i class="fas fa-swimmer"></i> Saisie de Données</h3>
+                    <button class="close-panel-btn" id="closeDataPanel">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="data-entry-panel-body" id="dataEntryContent">
+                    <div style="text-align: center; padding: 40px 20px; color: #999;">
+                        <i class="fas fa-edit" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <p style="font-size: 1.1rem;">Sélectionnez un nageur pour saisir des données</p>
                     </div>
                 </div>
-            </section>
-
-            <!-- SECTION 4: RETOURS PERSONNALISÉS -->
-            <section id="retours" class="section">
-                <div class="dashboard-header">
-                    <h2>💬 Retours Personnalisés</h2>
-                    <p style="color: #666; margin-top: 10px;">Recommandations et alertes personnalisées</p>
-                </div>
-
-                <div id="feedbackContent">
-                    <div class="card" style="text-align: center; padding: 40px 20px;">
-                        <i class="fas fa-comments" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
-                        <p style="color: #999; font-size: 1.1rem;">Sélectionnez un nageur pour voir les retours</p>
-                    </div>
-                </div>
-            </section>
+            </div>
 
         </div>
     </main>
+
+    <!-- Overlay pour fermer le panel -->
+    <div id="dataEntryOverlay" class="data-entry-overlay"></div>
 
     <!-- Modals -->
     <div class="modal" id="addSwimmerModal">
@@ -340,6 +335,140 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" id="closeCompareBtn">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="sessionEntryModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 class="modal-title">📋 Nouvelle Session d'Entraînement</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="sessionEntryForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label for="sessionDate">Date de la séance</label>
+                        <input type="date" id="sessionDate" class="form-control" required>
+                    </div>
+                    
+                    <!-- Échauffement -->
+                    <div class="card" style="margin-bottom: 20px; background: #e8f5e9;">
+                        <div class="card-header" style="background: #4caf50; color: white; padding: 12px; border-radius: 8px 8px 0 0;">
+                            <h4 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-fire"></i> Échauffement
+                            </h4>
+                        </div>
+                        <div class="card-body" style="padding: 20px;">
+                            <div class="form-group">
+                                <label for="warmUpContent">Contenu de l'échauffement</label>
+                                <textarea id="warmUpContent" class="form-control" rows="3" 
+                                          placeholder="Ex: 400m mixte (100 crawl, 100 dos, 100 brasse, 100 jambes)" required></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="warmUpVolume">Volume (mètres)</label>
+                                    <input type="number" id="warmUpVolume" class="form-control session-volume" 
+                                           min="0" step="50" placeholder="400" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="warmUpDuration">Durée (minutes)</label>
+                                    <input type="number" id="warmUpDuration" class="form-control session-duration" 
+                                           min="0" step="1" placeholder="15" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Corps de séance -->
+                    <div class="card" style="margin-bottom: 20px; background: #e3f2fd;">
+                        <div class="card-header" style="background: #2196f3; color: white; padding: 12px; border-radius: 8px 8px 0 0;">
+                            <h4 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-dumbbell"></i> Corps de Séance
+                            </h4>
+                        </div>
+                        <div class="card-body" style="padding: 20px;">
+                            <div class="form-group">
+                                <label for="mainSetContent">Contenu du corps de séance</label>
+                                <textarea id="mainSetContent" class="form-control" rows="4" 
+                                          placeholder="Ex: 8x100m crawl @ 1:30 - Allure seuil" required></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="mainSetVolume">Volume (mètres)</label>
+                                    <input type="number" id="mainSetVolume" class="form-control session-volume" 
+                                           min="0" step="50" placeholder="3000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="mainSetDuration">Durée (minutes)</label>
+                                    <input type="number" id="mainSetDuration" class="form-control session-duration" 
+                                           min="0" step="1" placeholder="60" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Retour au calme -->
+                    <div class="card" style="margin-bottom: 20px; background: #fff3e0;">
+                        <div class="card-header" style="background: #ff9800; color: white; padding: 12px; border-radius: 8px 8px 0 0;">
+                            <h4 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-spa"></i> Retour au Calme
+                            </h4>
+                        </div>
+                        <div class="card-body" style="padding: 20px;">
+                            <div class="form-group">
+                                <label for="coolDownContent">Contenu du retour au calme</label>
+                                <textarea id="coolDownContent" class="form-control" rows="3" 
+                                          placeholder="Ex: 200m crawl souple" required></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="coolDownVolume">Volume (mètres)</label>
+                                    <input type="number" id="coolDownVolume" class="form-control session-volume" 
+                                           min="0" step="50" placeholder="200" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="coolDownDuration">Durée (minutes)</label>
+                                    <input type="number" id="coolDownDuration" class="form-control session-duration" 
+                                           min="0" step="1" placeholder="5" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Totaux -->
+                    <div class="card" style="background: #f5f5f5; border: 2px solid #2196f3;">
+                        <div class="card-body" style="padding: 20px;">
+                            <h4 style="margin: 0 0 15px 0; color: #2196f3;">📊 Totaux de la Séance</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Volume Total</div>
+                                    <div style="font-size: 2rem; font-weight: bold; color: #2196f3;">
+                                        <span id="totalVolume">0</span> m
+                                    </div>
+                                </div>
+                                <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Durée Totale</div>
+                                    <div style="font-size: 2rem; font-weight: bold; color: #4caf50;">
+                                        <span id="totalDuration">0</span> min
+                                    </div>
+                                </div>
+                                <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Intensité Moyenne</div>
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #ff9800;">
+                                        <span id="avgIntensity">0</span> m/min
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelSessionBtn">Annuler</button>
+                <button class="btn btn-primary" id="saveSessionBtn">
+                    <i class="fas fa-save"></i> Enregistrer la Session
+                </button>
             </div>
         </div>
     </div>

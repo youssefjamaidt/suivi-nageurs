@@ -1750,21 +1750,279 @@ table tbody tr:hover {
 }
 
 /* ========================================
-   SÉLECTEURS STICKY (NAGEUR & ÉQUIPE)
+   SÉLECTEUR CIRCULAIRE COMPACT
 ======================================== */
 .sticky-selector {
-    position: sticky;
+    position: fixed;
+    bottom: 110px; /* Au-dessus du bouton de saisie (70px + 40px de marge) */
+    right: 20px;
+    z-index: 999; /* Juste en dessous du bouton de saisie */
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    transition: all 0.3s ease;
+}
+
+/* Draggable sur mobile */
+@media (max-width: 768px) {
+    .sticky-selector {
+        touch-action: none;
+        user-select: none;
+    }
+    
+    .sticky-selector.dragging {
+        opacity: 0.8;
+        transform: scale(1.1);
+        transition: none;
+    }
+}
+
+/* Overlay pour fermer le dropdown */
+.selector-overlay {
+    position: fixed;
     top: 0;
-    z-index: 100;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    background: var(--card-bg);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.selector-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.selector-circle-container {
+    position: relative;
+}
+
+/* Bouton circulaire principal */
+.selector-circle-btn {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #1a73e8, #4285f4);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+    position: relative;
+}
+
+.selector-circle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+}
+
+.selector-circle-btn:active {
+    transform: scale(0.95);
+}
+
+.selector-circle-btn i {
+    font-size: 1.5rem;
+}
+
+.selector-circle-btn.active {
+    background: linear-gradient(135deg, #1557b0, #1a73e8);
+}
+
+/* Badge indicateur nageur sélectionné */
+.selector-circle-btn::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 18px;
+    height: 18px;
+    background: #4caf50;
+    border-radius: 50%;
+    border: 2px solid white;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.selector-circle-btn.has-selection::after {
+    opacity: 1;
+}
+
+/* Menu déroulant compact */
+.selector-compact-dropdown {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    width: 90vw;
+    max-width: 400px;
+    background: white;
     border-radius: 12px;
-    transition: box-shadow 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1002;
+    max-height: 70vh;
+    overflow: hidden;
+}
+
+.selector-compact-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* En-tête */
+.selector-header {
+    padding: 15px;
+    background: linear-gradient(135deg, #1a73e8, #4285f4);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.selector-header i {
+    font-size: 1.2rem;
+}
+
+/* Recherche */
+.selector-search {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.selector-search input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.selector-search input:focus {
+    border-color: #1a73e8;
+}
+
+/* Liste des nageurs */
+.selector-list {
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.selector-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #f5f5f5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.selector-item:last-child {
+    border-bottom: none;
+}
+
+.selector-item:hover {
+    background-color: #f8f9fa;
+}
+
+.selector-item.selected {
+    background-color: #e3f2fd;
+    color: #1a73e8;
+    font-weight: 600;
+}
+
+/* Pied de page */
+.selector-footer {
+    padding: 15px;
+    border-top: 1px solid #eee;
+}
+
+.selector-add-btn {
+    width: 100%;
+    padding: 10px;
+    background: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.selector-add-btn:hover {
+    background: #1557b0;
+}
+
+/* Actions secondaires */
+.selector-secondary-actions {
+    position: absolute;
+    top: 70px;
+    right: 70px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.selector-secondary-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: #6c757d;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.selector-secondary-btn:hover {
+    transform: scale(1.1);
+}
+
+.selector-secondary-btn.danger {
+    background: #dc3545;
+}
+
+.selector-secondary-btn.danger:hover {
+    background: #c82333;
 }
 
 .sticky-selector.scrolled {
     box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+/* Contenu principal avec espacement pour le sélecteur fixe */
+#dashboardContent {
+    margin-top: 120px; /* Espace pour le sélecteur fixe */
+    padding: 0 20px;
+}
+
+@media (max-width: 768px) {
+    #dashboardContent {
+        margin-top: 140px; /* Plus d'espace sur mobile */
+        padding: 0 15px;
+    }
 }
 
 /* Infos rapides */
@@ -1939,11 +2197,80 @@ table tbody tr:hover {
         padding: 10px;
     }
     
-    /* Sélecteur sticky mobile */
+/* Responsive pour le bouton circulaire */
+@media (max-width: 768px) {
     .sticky-selector {
-        margin-bottom: 20px;
-        border-radius: 8px;
+        bottom: 100px; /* Ajusté pour mobile */
+        right: 15px;
     }
+    
+    .selector-circle-btn {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .selector-circle-btn i {
+        font-size: 1.3rem;
+    }
+    
+    .selector-compact-dropdown {
+        width: 95vw;
+        max-width: 350px;
+        top: 15px;
+        max-height: 60vh;
+    }
+    
+    .selector-secondary-actions {
+        bottom: 60px;
+        top: auto;
+        right: 60px;
+    }
+    
+    .selector-secondary-btn {
+        width: 35px;
+        height: 35px;
+    }
+    
+    #dashboardContent {
+        margin-top: 20px !important;
+        padding: 0 15px;
+        padding-bottom: 180px; /* Espace pour les boutons flottants */
+    }
+}
+
+@media (max-width: 480px) {
+    .sticky-selector {
+        bottom: 90px;
+        right: 10px;
+    }
+    
+    .selector-circle-btn {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .selector-circle-btn i {
+        font-size: 1.2rem;
+    }
+    
+    .selector-compact-dropdown {
+        width: 98vw;
+        max-width: 320px;
+        top: 10px;
+        max-height: 50vh;
+    }
+    
+    .selector-secondary-btn {
+        width: 30px;
+        height: 30px;
+    }
+    
+    #dashboardContent {
+        margin-top: 15px !important;
+        padding: 0 10px;
+        padding-bottom: 170px;
+    }
+}
     
     .sticky-selector .card-body {
         padding: 15px !important;
@@ -2081,8 +2408,41 @@ table tbody tr:hover {
     }
     
     .sticky-selector {
+        position: fixed;
         top: 0;
-        margin-bottom: 15px;
+        left: 0;
+        right: 0;
+        margin: 0;
+        border-radius: 0;
+        padding: 5px 8px;
+        z-index: 1000;
+    }
+    
+    .selector-main-btn {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .selected-swimmer-name {
+        font-size: 0.9rem;
+    }
+    
+    .selector-search-box {
+        padding: 10px;
+    }
+    
+    .selector-actions {
+        padding: 8px;
+        gap: 4px;
+    }
+    
+    .selector-action-btn {
+        padding: 5px 8px;
+        font-size: 0.75rem;
+    }
+    
+    #dashboardContent {
+        margin-top: 160px !important;
     }
     
     .sticky-selector .card-body {
@@ -2098,7 +2458,668 @@ table tbody tr:hover {
         padding: 8px;
     }
     
-    .sticky-selector button,  .sticky-selector label.btn {
+}
+
+/* =====================================================
+   NOUVELLES BARRES DE PROGRESSION PROFESSIONNELLES
+   ===================================================== */
+
+.progress-section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--primary-color);
+}
+
+.progress-section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* =====================================================
+   SYSTÈME D'ACCORDÉON POUR LES SECTIONS
+   ===================================================== */
+
+/* ========================================
+   SECTIONS MODALES (Nouveau système)
+   ======================================== */
+
+.analysis-section {
+    margin-bottom: 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.analysis-section:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.section-header {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.section-header:hover {
+    filter: brightness(1.05);
+    transform: translateY(-2px);
+}
+
+.section-header h2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Section modale plein écran */
+.section-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-color);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    overflow-y: auto;
+}
+
+.section-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.section-modal-content {
+    min-height: 100vh;
+    padding: 20px;
+    transform: translateY(50px);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.section-modal.active .section-modal-content {
+    transform: translateY(0);
+}
+
+/* Header de la section modale */
+.section-modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+    padding: 20px 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.section-modal-header h2 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 2rem;
+}
+
+/* Bouton fermer */
+.section-close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.section-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: rotate(90deg) scale(1.1);
+}
+
+/* Contenu de la section modale */
+.section-modal-body {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Animation d'apparition du contenu */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section-modal.active .section-modal-body {
+    animation: modalFadeIn 0.6s ease 0.2s both;
+}
+
+/* Header de section avec nouvelle apparence */
+.section-header {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Effet hover amélioré pour les icônes */
+.section-header:hover span:last-child {
+    transform: scale(1.2) rotate(10deg);
+}
+
+/* Masquer le contenu des sections normales */
+.section-content {
+    display: none;
+}
+
+/* Responsive pour modales */
+@media (max-width: 768px) {
+    .section-modal-content {
+        padding: 10px;
+    }
+    
+    .section-modal-header {
+        padding: 15px 20px;
+        margin-bottom: 20px;
+    }
+    
+    .section-modal-header h2 {
+        font-size: 1.5rem;
+        gap: 10px;
+    }
+    
+    .section-modal-body {
+        padding: 20px;
+    }
+    
+    .section-close-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-modal-header h2 span:first-child {
+        font-size: 1.8rem !important;
+    }
+    
+    .section-modal-header h2 span:last-child {
+        font-size: 1.2rem;
+    }
+    
+    /* Adaptation mobile pour les headers */
+    .section-header h2 span:first-child {
+        font-size: 1.4rem !important;
+    }
+    
+    .section-header h2 span:last-child {
+        font-size: 1.8rem !important;
+    }
+    
+    .section-header {
+        padding: 20px !important;
+    }
+}
+
+/* Animation pour les cartes dans les modales */
+.section-modal.active .card {
+    animation: modalCardSlideIn 0.5s ease 0.3s both;
+}
+
+@keyframes modalCardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Effet de pulsation subtile sur les sections */
+.section-header {
+    animation: subtlePulse 3s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+    0%, 100% {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+    50% {
+        box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+    }
+}
+
+/* Effet brillant au hover */
+.section-header:hover {
+    position: relative;
+    transform: translateY(-3px);
+}
+
+.section-header:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shine 0.8s ease-in-out;
+}
+
+@keyframes shine {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* ========================================
+   BOUTON FLOTTANT SAISIE DE DONNÉES
+   ======================================== */
+
+.floating-data-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #1a73e8, #4285f4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+    transition: all 0.3s ease;
+    z-index: 999;
+    user-select: none;
+}
+
+.floating-data-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(26, 115, 232, 0.5);
+}
+
+.floating-data-button:active {
+    transform: scale(0.95);
+}
+
+.floating-data-button i {
+    font-size: 2rem;
+    color: white;
+    animation: swimFloat 2s ease-in-out infinite;
+}
+
+@keyframes swimFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* Draggable sur mobile */
+@media (max-width: 768px) {
+    .floating-data-button {
+        cursor: move;
+        touch-action: none;
+    }
+    
+    .floating-data-button.dragging {
+        opacity: 0.8;
+        transform: scale(1.1);
+    }
+}
+
+/* Panel Saisie de Données */
+.data-entry-panel {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 100%;
+    max-width: 500px;
+    height: 100vh;
+    background: var(--card-bg);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.data-entry-panel.open {
+    right: 0;
+}
+
+.data-entry-panel-header {
+    background: linear-gradient(135deg, #1a73e8, #4285f4);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.data-entry-panel-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.close-panel-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.close-panel-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.data-entry-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+/* Liste des formulaires */
+.data-entry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.data-entry-list-item {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.data-entry-list-item:hover {
+    border-color: var(--primary-color);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15);
+}
+
+.data-entry-list-item-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.data-entry-list-item-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.data-entry-list-item-text h4 {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.data-entry-list-item-text p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.data-entry-list-item-arrow {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    transition: transform 0.3s ease;
+}
+
+.data-entry-list-item:hover .data-entry-list-item-arrow {
+    transform: translateX(5px);
+}
+
+/* Couleurs des icônes */
+.icon-wellbeing { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; }
+.icon-performance { background: linear-gradient(135deg, #9c27b0, #7b1fa2); color: white; }
+.icon-medical { background: linear-gradient(135deg, #e91e63, #c2185b); color: white; }
+.icon-race { background: linear-gradient(135deg, #2196f3, #1976d2); color: white; }
+.icon-technical { background: linear-gradient(135deg, #00bcd4, #0097a7); color: white; }
+.icon-attendance { background: linear-gradient(135deg, #4caf50, #388e3c); color: white; }
+.icon-session { background: linear-gradient(135deg, #673ab7, #512da8); color: white; }
+
+/* Overlay pour fermer le panel */
+.data-entry-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.data-entry-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.progress-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.progress-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.progress-title h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.progress-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.progress-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    min-width: 70px;
+    text-align: right;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 30px;
+    background: linear-gradient(to right, #f0f0f0, #e0e0e0);
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+}
+
+[data-theme="dark"] .progress-bar-container {
+    background: linear-gradient(to right, #3c4043, #2d2f31);
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 15px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.progress-bar-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: shine 2s infinite;
+}
+
+@keyframes shine {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 200%;
+    }
+}
+
+.progress-details {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.progress-details p {
+    margin: 8px 0;
+    color: var(--text-color);
+}
+
+/* Responsive pour les barres de progression */
+@media (max-width: 768px) {
+    .progress-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .progress-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .progress-title h3 {
+        font-size: 1.1rem;
+    }
+    
+    .progress-icon {
+        font-size: 1.5rem;
+    }
+    
+    .progress-value {
+        font-size: 1.5rem;
+    }
+    
+    .progress-bar-container {
+        height: 25px;
+    }
+    
+    .progress-details {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-section {
+        padding: 15px;
+        border-left-width: 3px;
+    }
+    
+    .progress-title {
+        gap: 8px;
+    }
+    
+    .progress-icon {
+        font-size: 1.3rem;
+    }
+    
+    .progress-title h3 {
+        font-size: 1rem;
+    }
+    
+    .progress-value {
+        font-size: 1.3rem;
+    }
+    
+    .progress-bar-container {
+        height: 20px;
+    }
+    
+    .progress-details {
+        font-size: 0.85rem;
+    }
+}    .sticky-selector button,  .sticky-selector label.btn {
         padding: 6px 10px;
         font-size: 0.8rem;
     }
@@ -2110,6 +3131,7 @@ table tbody tr:hover {
     .logo h1 {
         font-size: 1.1rem;
     }
+    
     
     .stat-value {
         font-size: 1.3rem !important;
@@ -2132,4 +3154,173 @@ table tbody tr:hover {
         font-size: 1.3rem;
     }
 }
+
+/* ===============================================
+   MULTI-PAGE WELLBEING FORM STYLES
+   =============================================== */
+
+/* Progress indicators */
+.page-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.page-indicator.active {
+    background: white;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    transform: scale(1.3);
+}
+
+.page-indicator.completed {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+/* Wellbeing slider styles */
+.wellbeing-slider {
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(to right, #ff6b6b 0%, #ffd93d 50%, #6bcf7f 100%);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.wellbeing-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    border: 3px solid var(--primary-color);
+    transition: all 0.2s ease;
+}
+
+.wellbeing-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.wellbeing-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    border: 3px solid var(--primary-color);
+    transition: all 0.2s ease;
+}
+
+.wellbeing-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.slider-value {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Radio button styles */
+.radio-option {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    margin: 4px;
+}
+
+.radio-option:hover {
+    border-color: var(--primary-color);
+    background: #f8f9ff;
+    transform: translateY(-1px);
+}
+
+.radio-option input[type="radio"] {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.radio-option input[type="radio"]:checked + span {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.radio-option:has(input[type="radio"]:checked) {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+/* Wellbeing page container */
+.wellbeing-page {
+    animation: fadeSlideIn 0.3s ease-out;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Button styles for pagination */
+.btn-success {
+    background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+    color: white;
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #37b24d 0%, #2b8a3e 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(55, 178, 77, 0.3);
+}
+
+/* Mobile responsiveness for wellbeing form */
+@media (max-width: 768px) {
+    .radio-option {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .slider-value {
+        min-width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .wellbeing-slider::-webkit-slider-thumb {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .wellbeing-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+    }
+}
+
 

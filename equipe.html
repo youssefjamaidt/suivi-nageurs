@@ -3,11 +3,364 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Équipes - Suivi des Nageurs</title>
+    <title>Dashboard Équipe - Suivi des Nageurs</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .team-selector-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+        }
+        
+        .team-selector-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .team-select-group {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .team-select-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .team-select-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.95);
+            font-size: 1rem;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .team-select-group select:hover {
+            border-color: rgba(255,255,255,0.6);
+            background: white;
+        }
+        
+        .team-action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .action-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 0.75rem;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .action-btn i {
+            font-size: 1.8rem;
+        }
+        
+        .action-btn .btn-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.1;
+            max-width: 60px;
+        }
+        
+        .btn-collective {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .btn-collective:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(79,172,254,0.5);
+        }
+        
+        .btn-team-overview {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+        
+        .btn-team-overview:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(250,112,154,0.5);
+        }
+        
+        .btn-team-manage {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+        
+        .btn-team-manage:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(168,237,234,0.5);
+        }
+        
+        .team-select-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .team-select-button {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 25px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.95);
+            font-size: 1rem;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: space-between;
+        }
+        
+        .team-select-button:hover {
+            border-color: rgba(255,255,255,0.6);
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .team-select-button .team-icon {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .team-select-button .team-name {
+            flex: 1;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .team-select-button .dropdown-icon {
+            font-size: 1.2rem;
+            color: #667eea;
+            transition: transform 0.3s;
+        }
+        
+        .team-select-button.open .dropdown-icon {
+            transform: rotate(180deg);
+        }
+        
+        .team-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .team-dropdown-menu.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .team-dropdown-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .team-dropdown-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .team-dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .team-dropdown-item .team-item-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .team-dropdown-item .team-item-info {
+            flex: 1;
+        }
+        
+        .team-dropdown-item .team-item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .team-dropdown-item .team-item-count {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .team-quick-stats {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255,255,255,0.2);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .quick-stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .quick-stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .quick-stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .section-header-team {
+            padding: 18px 22px;
+            border-radius: 10px;
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+        }
+        
+        .section-header-team:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        
+        .section-header-team h2 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .section-header-team .title {
+            font-size: 1.5rem;
+            letter-spacing: 0.3px;
+        }
+        
+        .section-header-team .icon {
+            font-size: 1.8rem;
+            opacity: 0.9;
+            transition: transform 0.3s ease;
+        }
+        
+        .section-header-team:hover .icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .section-header-team p {
+            margin: 6px 0 0 0;
+            opacity: 0.9;
+            font-size: 0.95rem;
+            font-weight: 300;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+        }
+        
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .empty-state p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        /* Fermer dropdown au scroll */
+        body.dropdown-open {
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -17,461 +370,339 @@
                     <i class="fas fa-arrow-left"></i> Retour
                 </a>
                 <div class="logo">
-                    <h1>Gestion des Équipes</h1>
+                    <h1>Dashboard Équipe</h1>
                 </div>
-                <button class="nav-toggle">☰</button>
             </div>
-            
-            <!-- Navigation -->
-            <nav>
-                <ul>
-                    <li><a href="#apercu" class="active">🏠 Aperçu</a></li>
-                    <li><a href="#saisie">📝 Saisie de Données</a></li>
-                    <li><a href="#analyse">📊 Analyse & Rapports</a></li>
-                    <li><a href="#gestion">⚙️ Gestion Équipes</a></li>
-                </ul>
-            </nav>
         </div>
     </header>
 
     <main class="dashboard">
         <div class="container">
             
-            <!-- Sélecteur d'équipe global (sticky) -->
-            <div class="card sticky-selector">
-                <div class="card-body" style="padding: 20px;">
-                    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                        <div style="flex: 1; min-width: 300px;">
-                            <label for="globalTeamSelector" style="font-weight: bold; display: block; margin-bottom: 8px;">
-                                <i class="fas fa-users"></i> Équipe Active :
-                            </label>
-                            <select id="globalTeamSelector" class="form-control" style="font-size: 1.1rem;" onchange="window.onGlobalTeamSelect()">
-                                <option value="">-- Aucune équipe sélectionnée --</option>
-                            </select>
-                        </div>
-                        <div style="display: flex; gap: 10px; align-items: flex-end;">
-                            <button class="btn btn-primary" onclick="window.showCreateTeamModal()">
-                                <i class="fas fa-plus"></i> Nouvelle Équipe
-                            </button>
-                            <button class="btn btn-info" onclick="window.goToManagement()" title="Gérer les équipes">
-                                <i class="fas fa-cog"></i>
-                            </button>
+            <!-- Sélecteur d'équipe moderne -->
+            <div class="team-selector-header">
+                <div class="team-selector-content">
+                    <div class="team-select-wrapper">
+                        <label style="display: block; margin-bottom: 10px; font-weight: 600; font-size: 1.1rem;">
+                            <i class="fas fa-users"></i> Sélectionner une Équipe
+                        </label>
+                        <button class="team-select-button" id="teamSelectButton" onclick="toggleTeamDropdown()">
+                            <div class="team-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <span class="team-name" id="selectedTeamName">Choisir une équipe</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </button>
+                        <div class="team-dropdown-menu" id="teamDropdownMenu">
+                            <!-- Contenu généré dynamiquement -->
                         </div>
                     </div>
-                    <div id="quickTeamInfo" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; display: none;">
-                        <div style="display: flex; gap: 30px; flex-wrap: wrap; font-size: 0.95rem;">
-                            <span><strong>👥 Nageurs:</strong> <span id="quickSwimmerCount">0</span></span>
-                            <span><strong>📋 Catégorie:</strong> <span id="quickTeamCategory">-</span></span>
-                            <span><strong>📊 Séances:</strong> <span id="quickSessionCount">0</span></span>
-                            <span><strong>✅ Taux présence:</strong> <span id="quickAttendanceRate">-</span></span>
-                        </div>
+                    
+                    <div class="team-action-buttons">
+                        <button class="action-btn btn-collective" onclick="showCollectiveDataEntry()" title="Saisie groupée pour tous les nageurs">
+                            <i class="fas fa-edit"></i>
+                            <span class="btn-label">Saisie</span>
+                        </button>
+                        <button class="action-btn btn-team-overview" onclick="showTeamGeneralOverview()" title="Vue d'ensemble détaillée">
+                            <i class="fas fa-chart-pie"></i>
+                            <span class="btn-label">Aperçu</span>
+                        </button>
+                        <button class="action-btn btn-team-manage" onclick="showTeamManagement()" title="Gérer les équipes">
+                            <i class="fas fa-cog"></i>
+                            <span class="btn-label">Gestion</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Stats rapides (cachées par défaut) -->
+                <div id="teamQuickStats" class="team-quick-stats" style="display: none;">
+                    <div class="quick-stat-item">
+                        <div class="quick-stat-value" id="quickNageurs">0</div>
+                        <div class="quick-stat-label">👥 Nageurs</div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <div class="quick-stat-value" id="quickPresence">0%</div>
+                        <div class="quick-stat-label">✅ Présence</div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <div class="quick-stat-value" id="quickSessions">0</div>
+                        <div class="quick-stat-label">🏊 Sessions</div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <div class="quick-stat-value" id="quickBienEtre">0/10</div>
+                        <div class="quick-stat-label">😊 Bien-être</div>
                     </div>
                 </div>
             </div>
             
-            <!-- SECTION 1: APERÇU GÉNÉRAL -->
-            <section id="apercu" class="section active">
-                <div class="dashboard-header">
-                    <h2>🏠 Aperçu de l'Équipe</h2>
-                    <p style="color: #666; margin-top: 5px;">Vue d'ensemble des statistiques clés et activité récente</p>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn btn-secondary" onclick="window.refreshDashboard()">
-                            <i class="fas fa-sync"></i> Actualiser
-                        </button>
-                        <button class="btn btn-danger" onclick="window.exportTeamPDF()">
-                            <i class="fas fa-file-pdf"></i> Export PDF
-                        </button>
-                        <button class="btn btn-success" onclick="window.exportTeamExcel()">
-                            <i class="fas fa-file-excel"></i> Export Excel
-                        </button>
-                        <button class="btn btn-warning" onclick="window.createTestTeam()" style="background: #ff9800; border-color: #ff9800;">
-                            <i class="fas fa-vial"></i> Test Équipe (Démo)
-                        </button>
+            <!-- Zone de contenu principale -->
+            <div id="teamContent">
+                <!-- État vide par défaut -->
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-users"></i>
                     </div>
+                    <h3>Bienvenue sur le Dashboard Équipe</h3>
+                    <p>Sélectionnez une équipe pour commencer l'analyse</p>
                 </div>
-
-                <div id="overviewContent">
-                    <div class="card" style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
-                        <i class="fas fa-users" style="font-size: 4rem; color: #1a73e8; margin-bottom: 20px;"></i>
-                        <h3 style="color: #333; margin-bottom: 10px;">Sélectionnez une équipe pour commencer</h3>
-                        <p style="color: #666; font-size: 1.1rem;">Utilisez le sélecteur ci-dessus ou créez une nouvelle équipe</p>
-                    </div>
+            </div>
+            
+            <!-- Les 7 sections d'analyse (générées dynamiquement) -->
+            <div id="teamAnalysisSections" style="display: none;">
+                
+                <!-- Section 1: Vue d'Ensemble Globale -->
+                <div class="section-header-team" style="background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);" onclick="toggleTeamSection('global')">
+                    <h2>
+                        <span class="title">Vue d'Ensemble Globale</span>
+                        <span class="icon">📊</span>
+                    </h2>
+                    <p>Synthèse complète de toutes les données de l'équipe</p>
                 </div>
-
-                <!-- Stats rapides -->
-                <div id="quickStatsSection" style="display: none; margin-top: 30px;">
-                    <h3 style="margin-bottom: 20px;"><i class="fas fa-chart-line"></i> Statistiques Clés</h3>
-                    <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-                        <!-- Stats cards -->
-                    </div>
-                </div>
-
-                <!-- Présences récentes -->
-                <div id="recentAttendanceSection" style="display: none; margin-top: 30px;">
-                    <!-- Contenu -->
-                </div>
-
-                <!-- Alertes -->
-                <div id="alertsSection" style="display: none; margin-top: 30px;">
-                    <!-- Contenu -->
-                </div>
-            </section>
-
-            <!-- SECTION 2: SAISIE DE DONNÉES -->
-            <section id="saisie" class="section">
-                <div class="dashboard-header">
-                    <h2>📝 Saisie de Données</h2>
-                    <p style="color: #666; margin-top: 10px;">Enregistrer les présences et saisir les données pour toute l'équipe rapidement</p>
-                </div>
-
-                <div id="dataEntryContent">
-                    <div class="card" style="text-align: center; padding: 40px 20px;">
-                        <i class="fas fa-edit" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
-                        <p style="color: #999; font-size: 1.1rem;">Sélectionnez une équipe pour saisir des données</p>
-                    </div>
-                </div>
-
-                <!-- Présences -->
-                <div id="attendanceEntrySection" style="display: none; margin-bottom: 30px;">
+                <div id="globalSection" class="section-content" style="display: none;">
                     <div class="card">
-                        <div class="card-header" style="background: linear-gradient(135deg, #28a745 0%, #34ce57 100%); color: white;">
-                            <h3 style="color: white; margin: 0;"><i class="fas fa-clipboard-check"></i> Feuille de Présence</h3>
-                        </div>
-                        <div class="card-body" style="padding: 20px;">
-                            <button class="btn btn-primary" onclick="window.showAttendanceModal()" style="width: 100%;">
-                                <i class="fas fa-list"></i> Saisie Rapide des Présences
-                            </button>
+                        <div class="card-body" id="globalContent">
+                            <!-- Contenu généré dynamiquement -->
                         </div>
                     </div>
                 </div>
-
-                <!-- Types de saisie groupée -->
-                <div id="bulkEntrySection" style="display: none;">
-                    <h3 style="margin-bottom: 20px;"><i class="fas fa-database"></i> Saisie Groupée de Données</h3>
-                    <div class="cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                        
-                        <div class="card" style="border-left: 4px solid #1a73e8; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
-                            <div class="card-header" style="padding: 15px;">
-                                <h3 class="card-title" style="font-size: 1.1rem; margin: 0;">😊 Bien-être</h3>
-                            </div>
-                            <div class="card-body" style="padding: 15px;">
-                                <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Sommeil, fatigue, douleur et stress</p>
-                                <button class="btn btn-primary bulk-entry-btn" data-type="wellbeing" style="width: 100%;">
-                                    <i class="fas fa-edit"></i> Ouvrir
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="card" style="border-left: 4px solid #28a745; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
-                            <div class="card-header" style="padding: 15px;">
-                                <h3 class="card-title" style="font-size: 1.1rem; margin: 0;">🏊 Entraînement</h3>
-                            </div>
-                            <div class="card-body" style="padding: 15px;">
-                                <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Volume, RPE et charge</p>
-                                <button class="btn btn-primary bulk-entry-btn" data-type="training" style="width: 100%;">
-                                    <i class="fas fa-edit"></i> Ouvrir
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="card" style="border-left: 4px solid #ffc107; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
-                            <div class="card-header" style="padding: 15px;">
-                                <h3 class="card-title" style="font-size: 1.1rem; margin: 0;">💪 Performance</h3>
-                            </div>
-                            <div class="card-body" style="padding: 15px;">
-                                <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Tests VMA, force et puissance</p>
-                                <button class="btn btn-primary bulk-entry-btn" data-type="performance" style="width: 100%;">
-                                    <i class="fas fa-edit"></i> Ouvrir
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="card" style="border-left: 4px solid #dc3545; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
-                            <div class="card-header" style="padding: 15px;">
-                                <h3 class="card-title" style="font-size: 1.1rem; margin: 0;">🏥 Médical</h3>
-                            </div>
-                            <div class="card-body" style="padding: 15px;">
-                                <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Disponibilité et santé</p>
-                                <button class="btn btn-primary bulk-entry-btn" data-type="medical" style="width: 100%;">
-                                    <i class="fas fa-edit"></i> Ouvrir
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="card" style="border-left: 4px solid #17a2b8; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
-                            <div class="card-header" style="padding: 15px;">
-                                <h3 class="card-title" style="font-size: 1.1rem; margin: 0;">🏆 Courses</h3>
-                            </div>
-                            <div class="card-body" style="padding: 15px;">
-                                <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Temps de course</p>
-                                <button class="btn btn-primary bulk-entry-btn" data-type="race" style="width: 100%;">
-                                    <i class="fas fa-edit"></i> Ouvrir
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="card" style="border-left: 4px solid #6f42c1; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';">
-                            <div class="card-header" style="padding: 15px;">
-                                <h3 class="card-title" style="font-size: 1.1rem; margin: 0;">🎯 Technique</h3>
-                            </div>
-                            <div class="card-body" style="padding: 15px;">
-                                <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Évaluations techniques</p>
-                                <button class="btn btn-primary bulk-entry-btn" data-type="technical" style="width: 100%;">
-                                    <i class="fas fa-edit"></i> Ouvrir
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                
+                <!-- Section 2: Bien-être & Condition -->
+                <div class="section-header-team" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);" onclick="toggleTeamSection('wellbeing')">
+                    <h2>
+                        <span class="title">Bien-être & Condition</span>
+                        <span class="icon">😊</span>
+                    </h2>
+                    <p>Analyse du sommeil, fatigue et stress de l'équipe</p>
                 </div>
-            </section>
-
-            <!-- SECTION 3: ANALYSE & RAPPORTS -->
-            <section id="analyse" class="section">
-                <div class="dashboard-header">
-                    <h2>📊 Analyse & Rapports</h2>
-                    <p style="color: #666; margin-top: 5px;">Statistiques détaillées, graphiques d'évolution, comparaisons et recommandations</p>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn btn-secondary" onclick="window.refreshAnalysis()">
-                            <i class="fas fa-sync"></i> Actualiser
-                        </button>
-                        <button class="btn btn-danger" onclick="window.exportAttendancePDF()">
-                            <i class="fas fa-file-pdf"></i> Rapport Présences
-                        </button>
-                    </div>
-                </div>
-
-                <div id="analysisContent">
-                    <div class="card" style="text-align: center; padding: 40px 20px;">
-                        <i class="fas fa-chart-bar" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
-                        <p style="color: #999; font-size: 1.1rem;">Sélectionnez une équipe pour voir les analyses</p>
-                    </div>
-                </div>
-
-                <!-- Onglets d'analyse -->
-                <div id="analysisTabsSection" style="display: none;">
-                    <div class="analysis-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; flex-wrap: wrap;">
-                        <button class="analysis-tab active" data-tab="attendance" onclick="window.switchAnalysisTab('attendance')">
-                            <i class="fas fa-calendar-check"></i> Présences
-                        </button>
-                        <button class="analysis-tab" data-tab="performance" onclick="window.switchAnalysisTab('performance')">
-                            <i class="fas fa-chart-line"></i> Performances
-                        </button>
-                        <button class="analysis-tab" data-tab="comparisons" onclick="window.switchAnalysisTab('comparisons')">
-                            <i class="fas fa-users"></i> Comparaisons
-                        </button>
-                        <button class="analysis-tab" data-tab="recommendations" onclick="window.switchAnalysisTab('recommendations')">
-                            <i class="fas fa-lightbulb"></i> Recommandations
-                        </button>
-                        <button class="analysis-tab" data-tab="calendar" onclick="window.switchAnalysisTab('calendar')">
-                            <i class="fas fa-calendar"></i> Calendrier
-                        </button>
-                    </div>
-
-                    <!-- Contenu Présences -->
-                    <div id="attendanceAnalysis" class="analysis-content active">
-                        <div id="attendanceStatsSection"></div>
-                        <div id="attendanceChartsSection" style="margin-top: 30px;"></div>
-                    </div>
-
-                    <!-- Contenu Performances -->
-                    <div id="performanceAnalysis" class="analysis-content" style="display: none;">
-                        <div id="teamStatsSection"></div>
-                    </div>
-
-                    <!-- Contenu Comparaisons -->
-                    <div id="comparisonsAnalysis" class="analysis-content" style="display: none;">
-                        <div id="comparisonsSection"></div>
-                    </div>
-
-                    <!-- Contenu Recommandations -->
-                    <div id="recommendationsAnalysis" class="analysis-content" style="display: none;">
-                        <div id="recommendationsSection"></div>
-                    </div>
-
-                    <!-- Contenu Calendrier -->
-                    <div id="calendarAnalysis" class="analysis-content" style="display: none;">
-                        <div id="calendarSection"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SECTION 4: GESTION ÉQUIPES -->
-            <!-- SECTION 4: GESTION ÉQUIPES -->
-            <section id="gestion" class="section">
-                <div class="dashboard-header">
-                    <h2>⚙️ Gestion des Équipes</h2>
-                    <p style="color: #666; margin-top: 5px;">Créer, modifier et organiser vos équipes et leurs membres</p>
-                    <button class="btn btn-primary" onclick="window.showCreateTeamModal()">
-                        <i class="fas fa-plus"></i> Créer une Équipe
-                    </button>
-                </div>
-
-                <!-- Liste des équipes -->
-                <div class="cards-grid" id="teamsList">
+                <div id="wellbeingSection" class="section-content" style="display: none;">
                     <div class="card">
-                        <p style="text-align: center; color: #999; padding: 40px;">
-                            <i class="fas fa-users" style="font-size: 3rem; display: block; margin-bottom: 15px; color: #ccc;"></i>
-                            Aucune équipe créée.<br>Cliquez sur "Créer une Équipe" pour commencer.
-                        </p>
+                        <div class="card-body" id="wellbeingContent">
+                            <!-- Contenu généré dynamiquement -->
+                        </div>
                     </div>
                 </div>
-
-                <!-- Détails de l'équipe sélectionnée -->
-                <div id="teamDetailsSection" style="display: none; margin-top: 30px;">
+                
+                <!-- Section 3: Performance Physique -->
+                <div class="section-header-team" style="background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);" onclick="toggleTeamSection('performance')">
+                    <h2>
+                        <span class="title">Performance Physique</span>
+                        <span class="icon">💪</span>
+                    </h2>
+                    <p>Résultats des tests physiques et progression de l'équipe</p>
+                </div>
+                <div id="performanceSection" class="section-content" style="display: none;">
                     <div class="card">
-                        <div class="card-header" style="background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%); color: white;">
-                            <h3 id="selectedTeamName" style="color: white; margin: 0;">Nom de l'équipe</h3>
-                            <div style="display: flex; gap: 10px;">
-                                <button class="btn btn-light btn-sm" onclick="window.editTeam()">
-                                    <i class="fas fa-edit"></i> Modifier
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="window.deleteTeam()">
-                                    <i class="fas fa-trash"></i> Supprimer
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                                <div>
-                                    <strong style="color: #666;">Description:</strong>
-                                    <p id="selectedTeamDescription" style="margin: 5px 0 0 0;"></p>
-                                </div>
-                                <div>
-                                    <strong style="color: #666;">Catégorie:</strong>
-                                    <p id="selectedTeamCategory" style="margin: 5px 0 0 0;"></p>
-                                </div>
-                                <div>
-                                    <strong style="color: #666;">Nombre de nageurs:</strong>
-                                    <p id="selectedTeamCount" style="margin: 5px 0 0 0; font-size: 1.5rem; font-weight: bold; color: #1a73e8;">0</p>
-                                </div>
-                            </div>
-                            
-                            <div style="border-top: 2px solid #e0e0e0; padding-top: 20px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                                    <h4><i class="fas fa-swimmer"></i> Membres de l'Équipe</h4>
-                                    <button class="btn btn-info" onclick="window.showAddSwimmersModal()">
-                                        <i class="fas fa-user-plus"></i> Ajouter des Nageurs
-                                    </button>
-                                </div>
-                                <div id="teamSwimmersList" class="swimmer-list" style="max-height: 400px; overflow-y: auto;">
-                                    <!-- Liste des nageurs -->
-                                </div>
-                            </div>
+                        <div class="card-body" id="performanceContent">
+                            <!-- Contenu généré dynamiquement -->
                         </div>
                     </div>
                 </div>
-            </section>
-
+                
+                <!-- Section 4: Suivi Médical -->
+                <div class="section-header-team" style="background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);" onclick="toggleTeamSection('medical')">
+                    <h2>
+                        <span class="title">Suivi Médical</span>
+                        <span class="icon">🏥</span>
+                    </h2>
+                    <p>Disponibilité et santé des nageurs</p>
+                </div>
+                <div id="medicalSection" class="section-content" style="display: none;">
+                    <div class="card">
+                        <div class="card-body" id="medicalContent">
+                            <!-- Contenu généré dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section 5: Performances de Course -->
+                <div class="section-header-team" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);" onclick="toggleTeamSection('race')">
+                    <h2>
+                        <span class="title">Performances de Course</span>
+                        <span class="icon">🏆</span>
+                    </h2>
+                    <p>Résultats de compétition de l'équipe</p>
+                </div>
+                <div id="raceSection" class="section-content" style="display: none;">
+                    <div class="card">
+                        <div class="card-body" id="raceContent">
+                            <!-- Contenu généré dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section 6: Suivi Technique -->
+                <div class="section-header-team" style="background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);" onclick="toggleTeamSection('technical')">
+                    <h2>
+                        <span class="title">Suivi Technique</span>
+                        <span class="icon">🎯</span>
+                    </h2>
+                    <p>Évaluation technique de l'équipe par nage</p>
+                </div>
+                <div id="technicalSection" class="section-content" style="display: none;">
+                    <div class="card">
+                        <div class="card-body" id="technicalContent">
+                            <!-- Contenu généré dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section 7: Assiduité -->
+                <div class="section-header-team" style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%);" onclick="toggleTeamSection('attendance')">
+                    <h2>
+                        <span class="title">Assiduité & Présence</span>
+                        <span class="icon">✅</span>
+                    </h2>
+                    <p>Suivi de présence et ponctualité de l'équipe</p>
+                </div>
+                <div id="attendanceSection" class="section-content" style="display: none;">
+                    <div class="card">
+                        <div class="card-body" id="attendanceContent">
+                            <!-- Contenu généré dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
         </div>
     </main>
 
-    <!-- Modal Création/Édition Équipe -->
-    <div id="teamModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="window.closeTeamModal()">&times;</span>
-            <h2 id="teamModalTitle">Nouvelle Équipe</h2>
-            <form id="teamForm" onsubmit="window.saveTeam(event)">
-                <div class="form-group">
-                    <label for="teamName">Nom de l'équipe *</label>
-                    <input type="text" id="teamName" required>
-                </div>
-                <div class="form-group">
-                    <label for="teamDescription">Description</label>
-                    <textarea id="teamDescription" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="teamCategory">Catégorie</label>
-                    <select id="teamCategory">
-                        <option value="Jeunes">Jeunes</option>
-                        <option value="Espoirs">Espoirs</option>
-                        <option value="Seniors">Seniors</option>
-                        <option value="Élite">Élite</option>
-                        <option value="Masters">Masters</option>
-                        <option value="Mixte">Mixte</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="window.closeTeamModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary">Enregistrer</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Ajout Nageurs -->
-    <div id="swimmersModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="window.closeSwimmersModal()">&times;</span>
-            <h2>Ajouter des nageurs à l'équipe</h2>
-            <div id="availableSwimmersList" class="checkbox-list">
-                <!-- Liste des nageurs disponibles -->
+    <!-- Modal: Saisie Collective de Données -->
+    <div id="collectiveDataModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <h3 style="margin: 0; color: white;">
+                    <i class="fas fa-edit"></i> Saisie Collective de Données
+                </h3>
+                <button class="close-modal" onclick="closeCollectiveDataModal()">&times;</button>
             </div>
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="window.closeSwimmersModal()">Annuler</button>
-                <button type="button" class="btn btn-primary" onclick="window.addSwimmersToTeam()">Ajouter</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Saisie Facilitée -->
-    <div id="bulkEntryModal" class="modal">
-        <div class="modal-content" style="max-width: 95%; width: 1400px; max-height: 90vh; display: flex; flex-direction: column;">
-            <div class="modal-header" style="flex-shrink: 0; border-bottom: 2px solid #ddd; padding: 20px;">
-                <span class="close" onclick="window.closeBulkEntryModal()" style="font-size: 2rem; cursor: pointer;">&times;</span>
-                <h2 id="bulkEntryModalTitle" style="margin: 0; color: #333;">Saisie Groupée</h2>
-                <p id="bulkEntryModalSubtitle" style="color: #666; margin: 5px 0 0 0;"></p>
-            </div>
-            
-            <div style="flex: 1; overflow-y: auto; padding: 20px;">
-                <div class="form-group" style="max-width: 300px; margin-bottom: 20px;">
-                    <label for="bulkEntryDate"><strong>📅 Date :</strong></label>
-                    <input type="date" id="bulkEntryDate" class="form-control">
-                </div>
-                
-                <div id="bulkEntryForm">
-                    <!-- Formulaire dynamique -->
-                </div>
-            </div>
-            
-            <div class="modal-footer" style="flex-shrink: 0; background: #f8f9fa; padding: 15px 20px; border-top: 2px solid #ddd; display: flex; gap: 10px; justify-content: flex-end;">
-                <button type="button" class="btn btn-secondary" onclick="window.closeBulkEntryModal()">
-                    <i class="fas fa-times"></i> Annuler
-                </button>
-                <button type="button" class="btn btn-primary" id="saveBulkEntryBtn" style="min-width: 150px;">
-                    <i class="fas fa-save"></i> Enregistrer tout
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Feuille de Présence -->
-    <div id="attendanceModal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
-            <div class="modal-header">
-                <span class="close" onclick="window.closeAttendanceModal()">&times;</span>
-                <h2>📋 Feuille de Présence</h2>
-            </div>
-            
-            <div style="padding: 20px;">
-                <div class="form-group" style="max-width: 300px; margin-bottom: 30px;">
-                    <label for="attendanceModalDate"><strong>📅 Date de la séance :</strong></label>
-                    <input type="date" id="attendanceModalDate" class="form-control">
-                </div>
-                
-                <div id="attendanceModalList">
-                    <!-- Liste des nageurs avec boutons A/P/E -->
-                </div>
-                
-                <div class="form-actions" style="margin-top: 30px; display: flex; gap: 10px; justify-content: flex-end;">
-                    <button type="button" class="btn btn-secondary" onclick="window.closeAttendanceModal()">Annuler</button>
-                    <button type="button" class="btn btn-primary" onclick="window.saveAttendanceFromModal()">
-                        <i class="fas fa-save"></i> Enregistrer
-                    </button>
+            <div class="modal-body" style="padding: 30px;">
+                <div id="collectiveDataContent">
+                    <!-- Contenu généré dynamiquement -->
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="assets/js/equipe.js?v=20251119-03"></script>
+    <!-- Modal: Aperçu Général Équipe -->
+    <div id="teamOverviewModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 1200px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <h3 style="margin: 0; color: white;">
+                    <i class="fas fa-chart-pie"></i> Aperçu Général de l'Équipe
+                </h3>
+                <button class="close-modal" onclick="closeTeamOverviewModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <div id="teamOverviewContent">
+                    <!-- Contenu généré dynamiquement -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Créer/Modifier une Équipe -->
+    <div id="createTeamModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h3 style="margin: 0; color: white;">
+                    <i class="fas fa-users"></i> <span id="teamModalTitle">Créer une Équipe</span>
+                </h3>
+                <button class="close-modal" onclick="closeCreateTeamModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <form id="createTeamForm" onsubmit="saveNewTeam(event)">
+                    
+                    <!-- Nom de l'équipe -->
+                    <div style="margin-bottom: 25px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">
+                            <i class="fas fa-tag"></i> Nom de l'équipe *
+                        </label>
+                        <input 
+                            type="text" 
+                            id="teamName" 
+                            required 
+                            placeholder="Ex: Équipe Nationale Junior"
+                            style="width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; transition: border 0.3s;"
+                            onfocus="this.style.borderColor='#667eea'"
+                            onblur="this.style.borderColor='#e0e0e0'"
+                        >
+                    </div>
+                    
+                    <!-- Catégorie -->
+                    <div style="margin-bottom: 25px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">
+                            <i class="fas fa-list"></i> Catégorie
+                        </label>
+                        <select 
+                            id="teamCategory"
+                            style="width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; cursor: pointer;"
+                        >
+                            <option value="">-- Choisir une catégorie --</option>
+                            <option value="Poussins">Poussins (8-9 ans)</option>
+                            <option value="Benjamins">Benjamins (10-11 ans)</option>
+                            <option value="Minimes">Minimes (12-13 ans)</option>
+                            <option value="Cadets">Cadets (14-15 ans)</option>
+                            <option value="Juniors">Juniors (16-17 ans)</option>
+                            <option value="Seniors">Seniors (18+ ans)</option>
+                            <option value="Compétition">Compétition</option>
+                            <option value="Loisir">Loisir</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Sélection des nageurs -->
+                    <div style="margin-bottom: 25px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 12px; color: #333;">
+                            <i class="fas fa-swimmer"></i> Sélectionner les nageurs
+                        </label>
+                        
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <input 
+                                type="text" 
+                                id="swimmerSearchInput" 
+                                placeholder="🔍 Rechercher un nageur..."
+                                style="width: 100%; padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 0.95rem;"
+                                oninput="filterSwimmers()"
+                            >
+                        </div>
+                        
+                        <div id="swimmersList" style="max-height: 300px; overflow-y: auto; border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px; background: white;">
+                            <!-- Liste des nageurs générée dynamiquement -->
+                        </div>
+                        
+                        <div style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-radius: 6px; text-align: center;">
+                            <span style="color: #1976d2; font-weight: 600;">
+                                <span id="selectedSwimmersCount">0</span> nageur(s) sélectionné(s)
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Boutons -->
+                    <div style="display: flex; gap: 15px; margin-top: 30px;">
+                        <button 
+                            type="button" 
+                            onclick="closeCreateTeamModal()"
+                            style="flex: 1; padding: 12px 24px; background: #f5f5f5; color: #333; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: all 0.3s;"
+                            onmouseover="this.style.background='#e0e0e0'"
+                            onmouseout="this.style.background='#f5f5f5'"
+                        >
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button 
+                            type="submit"
+                            style="flex: 2; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102,126,234,0.3);"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102,126,234,0.4)'"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102,126,234,0.3)'"
+                        >
+                            <i class="fas fa-save"></i> <span id="teamSubmitButton">Créer l'équipe</span>
+                        </button>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/equipe-dashboard.js"></script>
 </body>
 </html>
