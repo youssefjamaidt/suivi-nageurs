@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Démo - Performances de Course Améliorées</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section h2 {
+            color: #2196f3;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid #2196f3;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .feature-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .demo-best-times {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .best-time-card {
+            border-radius: 12px;
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        
+        .best-time-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .best-time-card.crawl { 
+            background: linear-gradient(135deg, #2196f315 0%, #2196f305 100%); 
+            border: 2px solid #2196f3; 
+        }
+        .best-time-card.dos { 
+            background: linear-gradient(135deg, #9c27b015 0%, #9c27b005 100%); 
+            border: 2px solid #9c27b0; 
+        }
+        .best-time-card.brasse { 
+            background: linear-gradient(135deg, #4caf5015 0%, #4caf5005 100%); 
+            border: 2px solid #4caf50; 
+        }
+        .best-time-card.papillon { 
+            background: linear-gradient(135deg, #ff980015 0%, #ff980005 100%); 
+            border: 2px solid #ff9800; 
+        }
+        
+        .best-time-card .icon {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 4rem;
+            opacity: 0.1;
+        }
+        
+        .best-time-card .type {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .best-time-card.crawl .type { color: #2196f3; }
+        .best-time-card.dos .type { color: #9c27b0; }
+        .best-time-card.brasse .type { color: #4caf50; }
+        .best-time-card.papillon .type { color: #ff9800; }
+        
+        .best-time-card .time {
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 5px;
+        }
+        
+        .best-time-card.crawl .time { color: #2196f3; }
+        .best-time-card.dos .time { color: #9c27b0; }
+        .best-time-card.brasse .time { color: #4caf50; }
+        .best-time-card.papillon .time { color: #ff9800; }
+        
+        .best-time-card .date {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 8px;
+        }
+        
+        .best-time-card .event {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 3px;
+        }
+        
+        .pagination-demo {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .btn:hover:not(:disabled) {
+            background: #2196f3;
+            color: white;
+            border-color: #2196f3;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-info {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .comparison-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .comparison-table th {
+            background: #2196f3;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .comparison-table .old {
+            color: #999;
+            text-decoration: line-through;
+        }
+        
+        .comparison-table .new {
+            color: #4caf50;
+            font-weight: 600;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        
+        .badge.success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .badge.info {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .badge.warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .cta-section h3 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .cta-section p {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+        
+        .cta-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: white;
+            color: #667eea;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏊‍♂️ Performances de Course - Nouvelle Interface</h1>
+            <p>Découvrez les améliorations apportées à la section Performances de Course</p>
+        </div>
+        
+        <div class="content">
+            <!-- Section 1: Présentation -->
+            <div class="section">
+                <h2><i class="fas fa-star"></i> Nouvelles Fonctionnalités</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🏆 Cartes des Meilleurs Temps</h3>
+                        <p>Visualisez vos records personnels sur toutes les distances et nages d'un seul coup d'œil. Design coloré et intuitif avec icônes distinctives par distance.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📖 Pagination Intelligente</h3>
+                        <p>Naviguez facilement dans votre historique complet avec des boutons Précédent/Suivant. Affichage optimisé de 3 compétitions par page pour une meilleure lisibilité.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🎨 Design Amélioré</h3>
+                        <p>Interface moderne et responsive qui s'adapte à tous les écrans. Couleurs distinctives par type de nage pour une identification rapide.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 2: Démo Meilleurs Temps -->
+            <div class="section">
+                <h2><i class="fas fa-trophy"></i> Exemple: Meilleurs Temps Personnel</h2>
+                <div class="demo-best-times">
+                    <div class="best-time-card crawl">
+                        <div class="icon">⚡</div>
+                        <div style="position: relative; z-index: 1;">
+                            <div class="type">Crawl 50m</div>
+                            <div class="time">26:50</div>
+                            <div class="date">📅 15/11/2024</div>
+                            <div class="event">📍 Championnats Régionaux</div>
+                        </div>
+                    </div>
+                    
+                    <div class="best-time-card dos">
+                        <div class="icon">🎯</div>
+                        <div style="position: relative; z-index: 1;">
+                            <div class="type">Dos 100m</div>
+                            <div class="time">1:02:35</div>
+                            <div class="date">📅 20/10/2024</div>
+                            <div class="event">📍 Open National</div>
+                        </div>
+                    </div>
+                    
+                    <div class="best-time-card brasse">
+                        <div class="icon">🎯</div>
+                        <div style="position: relative; z-index: 1;">
+                            <div class="type">Brasse 100m</div>
+                            <div class="time">1:15:80</div>
+                            <div class="date">📅 05/09/2024</div>
+                            <div class="event">📍 Meeting Départemental</div>
+                        </div>
+                    </div>
+                    
+                    <div class="best-time-card papillon">
+                        <div class="icon">⚡</div>
+                        <div style="position: relative; z-index: 1;">
+                            <div class="type">Papillon 50m</div>
+                            <div class="time">28:95</div>
+                            <div class="date">📅 12/11/2024</div>
+                            <div class="event">📍 Coupe Régionale</div>
+                        </div>
+                    </div>
+                    
+                    <div class="best-time-card crawl">
+                        <div class="icon">💪</div>
+                        <div style="position: relative; z-index: 1;">
+                            <div class="type">Crawl 200m</div>
+                            <div class="time">2:05:40</div>
+                            <div class="date">📅 28/10/2024</div>
+                            <div class="event">📍 Interclubs</div>
+                        </div>
+                    </div>
+                    
+                    <div class="best-time-card dos">
+                        <div class="icon">💪</div>
+                        <div style="position: relative; z-index: 1;">
+                            <div class="type">Dos 200m</div>
+                            <div class="time">2:18:25</div>
+                            <div class="date">📅 15/09/2024</div>
+                            <div class="event">📍 Championnats Académiques</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 3: Démo Pagination -->
+            <div class="section">
+                <h2><i class="fas fa-list"></i> Exemple: Pagination de l'Historique</h2>
+                <div class="pagination-demo">
+                    <h4 style="margin-bottom: 15px; color: #333;">📋 Historique des compétitions</h4>
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e0e0e0;">
+                        <h5 style="color: #2196f3; margin-bottom: 5px;">📍 Championnats Régionaux 2024</h5>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">15/11/2024</p>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            <div>🏊 Crawl 50m - <strong style="color: #2196f3;">26:50</strong></div>
+                            <div>🏊 Papillon 50m - <strong style="color: #2196f3;">28:95</strong></div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e0e0e0;">
+                        <h5 style="color: #2196f3; margin-bottom: 5px;">📍 Open National</h5>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">20/10/2024</p>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            <div>🏊 Dos 100m - <strong style="color: #2196f3;">1:02:35</strong></div>
+                            <div>🏊 Crawl 200m - <strong style="color: #2196f3;">2:05:40</strong></div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                        <h5 style="color: #2196f3; margin-bottom: 5px;">📍 Meeting Départemental</h5>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">05/09/2024</p>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            <div>🏊 Brasse 100m - <strong style="color: #2196f3;">1:15:80</strong></div>
+                        </div>
+                    </div>
+                    
+                    <div class="pagination-controls">
+                        <button class="btn" disabled><i class="fas fa-chevron-left"></i> Précédent</button>
+                        <span class="page-info">Page 1 / 3</span>
+                        <button class="btn"><i class="fas fa-chevron-right"></i> Suivant</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 4: Comparaison Avant/Après -->
+            <div class="section">
+                <h2><i class="fas fa-exchange-alt"></i> Comparaison Avant / Après</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Fonctionnalité</th>
+                            <th>Avant</th>
+                            <th>Après</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Meilleurs temps</strong></td>
+                            <td><span class="old">Non affichés</span></td>
+                            <td><span class="new">Cartes visuelles colorées</span> <span class="badge success">Nouveau</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Historique</strong></td>
+                            <td><span class="old">3 dernières compétitions</span></td>
+                            <td><span class="new">Historique complet paginé</span> <span class="badge info">Amélioré</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Navigation</strong></td>
+                            <td><span class="old">Défilement manuel</span></td>
+                            <td><span class="new">Boutons Précédent/Suivant</span> <span class="badge info">Amélioré</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Design</strong></td>
+                            <td><span class="old">Tableau simple</span></td>
+                            <td><span class="new">Cartes colorées par nage</span> <span class="badge warning">Redesign</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Information</strong></td>
+                            <td><span class="old">Temps uniquement</span></td>
+                            <td><span class="new">Temps + Date + Compétition</span> <span class="badge info">Enrichi</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Section 5: Avantages -->
+            <div class="section">
+                <h2><i class="fas fa-check-circle"></i> Avantages Clés</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>✨ Pour le Nageur</h3>
+                        <ul style="margin-left: 20px; color: #666; line-height: 2;">
+                            <li>Vision claire des records</li>
+                            <li>Motivation accrue</li>
+                            <li>Historique accessible</li>
+                            <li>Interface intuitive</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🎯 Pour l'Entraîneur</h3>
+                        <ul style="margin-left: 20px; color: #666; line-height: 2;">
+                            <li>Identification rapide des forces</li>
+                            <li>Suivi de progression</li>
+                            <li>Comparaison entre nages</li>
+                            <li>Données organisées</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>💻 Technique</h3>
+                        <ul style="margin-left: 20px; color: #666; line-height: 2;">
+                            <li>Code optimisé</li>
+                            <li>Responsive design</li>
+                            <li>Performance améliorée</li>
+                            <li>Maintenabilité accrue</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <h3>🚀 Prêt à tester ?</h3>
+                <p>Découvrez dès maintenant la nouvelle interface des Performances de Course</p>
+                <a href="dashboard.html" class="cta-btn">
+                    <i class="fas fa-play-circle"></i> Ouvrir le Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
