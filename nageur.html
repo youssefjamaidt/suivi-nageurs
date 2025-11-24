@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Dashboard - Suivi Nageur</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/mobile-responsive.css">
+    <style>
+        /* Loader authentification */
+        #auth-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        
+        .loader-content {
+            text-align: center;
+            color: white;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Bouton déconnexion dans header */
+        .logout-btn-header {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .logout-btn-header:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+        
+        /* Masquer le sélecteur de nageur (pas nécessaire pour nageur connecté) */
+        .sticky-selector {
+            display: none !important;
+        }
+        
+        /* Bouton saisie bien-être proéminent */
+        .wellbeing-entry-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px auto;
+            width: fit-content;
+        }
+        
+        .wellbeing-entry-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+        }
+        
+        .wellbeing-entry-btn i {
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader authentification -->
+    <div id="auth-loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p>Chargement de votre dashboard...</p>
+        </div>
+    </div>
+    
+    <!-- Contenu principal (masqué jusqu'à auth) -->
+    <div id="main-content" style="display: none;">
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🏊 Mon Dashboard</h1>
+                    <p style="color: #666; font-size: 0.9rem; margin-top: 5px;" id="swimmer-welcome"></p>
+                </div>
+                <button class="logout-btn-header" onclick="handleLogout()">
+                    🚪 Déconnexion
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard">
+        <div class="container">
+            
+            <!-- Sélecteur de nageur global (sticky) -->
+            <div class="sticky-selector">
+                <!-- Overlay pour fermer le dropdown -->
+                <div class="selector-overlay" id="selectorOverlay"></div>
+                
+                <div class="selector-circle-container">
+                    <!-- Bouton principal circulaire -->
+                    <button class="selector-circle-btn" id="selectorCircleBtn" title="Rechercher un nageur">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    
+                    <!-- Menu déroulant compact -->
+                    <div class="selector-compact-dropdown" id="selectorDropdown">
+                        <div class="selector-header">
+                            <i class="fas fa-swimmer"></i>
+                            <span>Choisir un nageur</span>
+                        </div>
+                        <div class="selector-search">
+                            <input type="text" id="swimmerSearchInput" placeholder="Rechercher...">
+                        </div>
+                        <div class="selector-list" id="selectorOptions">
+                            <div class="selector-item" data-value="all">
+                                <span>Tous les nageurs</span>
+                            </div>
+                        </div>
+                        <div class="selector-footer">
+                            <button class="selector-add-btn" id="addSwimmerBtn">
+                                <i class="fas fa-plus"></i> Nouveau
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Boutons d'actions secondaires (masqués par défaut) -->
+                <div class="selector-secondary-actions" style="display: none;">
+                    <button class="selector-secondary-btn" id="createTestSwimmerBtn" title="Créer nageur test">
+                        <i class="fas fa-flask"></i>
+                    </button>
+                    <button class="selector-secondary-btn" id="exportDataBtn" title="Exporter">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <label for="importDataFile" class="selector-secondary-btn" title="Importer">
+                        <i class="fas fa-upload"></i>
+                    </label>
+                    <input type="file" id="importDataFile" accept=".json" style="display: none;">
+                    <button class="selector-secondary-btn" id="themeToggleBtn" title="Mode Sombre">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="selector-secondary-btn danger" id="resetDataBtn" title="Réinitialiser">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 1: APERÇU COMPLET -->
+            <section id="dashboard" class="section active">
+                <!-- Bouton saisie bien-être proéminent -->
+                <button class="wellbeing-entry-btn" onclick="openWellbeingEntry()">
+                    <i class="fas fa-heart-pulse"></i>
+                    Saisir mon bien-être aujourd'hui
+                </button>
+                
+                <div class="dashboard-header">
+                    <h2>🏠 Mon Aperçu Personnel</h2>
+                    <p style="color: #666; margin-top: 5px;">Vue d'ensemble complète de vos statistiques et votre évolution</p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" id="refreshDashboardBtn">
+                            <i class="fas fa-sync"></i> Actualiser
+                        </button>
+                    </div>
+                </div>
+
+                <div id="dashboardContent">
+                    <div class="card" style="text-align: center; padding: 60px 20px;">
+                        <div class="spinner" style="margin: 0 auto 20px;"></div>
+                        <p style="color: #666;">Chargement de vos données...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: SAISIE DE DONNÉES -->
+            <section id="saisie" class="section">
+                <!-- Contenu caché, géré par le bouton flottant -->
+            </section>
+
+            <!-- Bouton Flottant Saisie de Données -->
+            <div id="floatingDataBtn" class="floating-data-button" title="Saisie de données">
+                <i class="fas fa-swimmer"></i>
+            </div>
+
+            <!-- Panel Saisie de Données -->
+            <div id="dataEntryPanel" class="data-entry-panel">
+                <div class="data-entry-panel-header">
+                    <h3><i class="fas fa-swimmer"></i> Saisie de Données</h3>
+                    <button class="close-panel-btn" id="closeDataPanel">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="data-entry-panel-body" id="dataEntryContent">
+                    <div style="text-align: center; padding: 40px 20px; color: #999;">
+                        <i class="fas fa-edit" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <p style="font-size: 1.1rem;">Sélectionnez un nageur pour saisir des données</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Overlay pour fermer le panel -->
+    <div id="dataEntryOverlay" class="data-entry-overlay"></div>
+
+    <!-- Modals -->
+    <div class="modal" id="addSwimmerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Ajouter un Nouveau Nageur</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addSwimmerForm">
+                    <div class="form-group">
+                        <label for="swimmerName">Nom complet</label>
+                        <input type="text" id="swimmerName" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="swimmerAge">Âge</label>
+                            <input type="number" id="swimmerAge" class="form-control" min="10" max="50" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="swimmerGender">Genre</label>
+                            <select id="swimmerGender" class="form-control" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="male">Homme</option>
+                                <option value="female">Femme</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="swimmerSpecialty">Spécialité</label>
+                        <select id="swimmerSpecialty" class="form-control" required>
+                            <option value="">Sélectionnez...</option>
+                            <option value="crawl">Crawl</option>
+                            <option value="brasse">Brasse</option>
+                            <option value="dos">Dos</option>
+                            <option value="papillon">Papillon</option>
+                            <option value="4nages">4 Nages</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelAddBtn">Annuler</button>
+                <button class="btn btn-primary" id="confirmAddBtn">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="dataEntryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="dataEntryTitle">Saisie des Données</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dataEntryForm" onsubmit="return false;">
+                    <!-- Le contenu du formulaire sera généré dynamiquement -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelDataBtn">Annuler</button>
+                <button class="btn btn-primary" id="saveDataBtn">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editSwimmerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Modifier le Nageur</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editSwimmerForm">
+                    <input type="hidden" id="editSwimmerId">
+                    <div class="form-group">
+                        <label for="editSwimmerName">Nom complet</label>
+                        <input type="text" id="editSwimmerName" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editSwimmerAge">Âge</label>
+                            <input type="number" id="editSwimmerAge" class="form-control" min="10" max="50" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editSwimmerGender">Genre</label>
+                            <select id="editSwimmerGender" class="form-control" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="male">Homme</option>
+                                <option value="female">Femme</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editSwimmerSpecialty">Spécialité</label>
+                        <select id="editSwimmerSpecialty" class="form-control" required>
+                            <option value="">Sélectionnez...</option>
+                            <option value="crawl">Crawl</option>
+                            <option value="brasse">Brasse</option>
+                            <option value="dos">Dos</option>
+                            <option value="papillon">Papillon</option>
+                            <option value="4nages">4 Nages</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="deleteSwimmerBtn">Supprimer</button>
+                <button class="btn btn-outline" id="cancelEditBtn">Annuler</button>
+                <button class="btn btn-primary" id="confirmEditBtn">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="dataHistoryModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="historyTitle">Historique des Données</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="dataTypeFilter">Type de données</label>
+                    <select id="dataTypeFilter" class="form-control">
+                        <option value="all">Toutes</option>
+                        <option value="wellbeing">Bien-être</option>
+                        <option value="training">Entraînement</option>
+                        <option value="performance">Performance</option>
+                        <option value="medical">Médical</option>
+                        <option value="race">Performances de Course</option>
+                        <option value="technical">Suivi Technique</option>
+                        <option value="attendance">Suivi de Présence</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dateFrom">Du</label>
+                        <input type="date" id="dateFrom" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="dateTo">Au</label>
+                        <input type="date" id="dateTo" class="form-control">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="applyFiltersBtn" style="margin-bottom: 15px;">Appliquer les filtres</button>
+                <div id="historyTableContainer"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="closeHistoryBtn">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="compareModal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Comparaison Multi-Nageurs</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Sélectionner les nageurs à comparer (2 à 4)</label>
+                    <div id="swimmerCheckboxes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <!-- Généré dynamiquement -->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="compareMetric">Métrique à comparer</label>
+                    <select id="compareMetric" class="form-control">
+                        <option value="wellbeing">Bien-être (moyenne)</option>
+                        <option value="training">Charge d'entraînement</option>
+                        <option value="vma">VMA</option>
+                        <option value="strength">Force (épaule)</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="generateComparisonBtn" style="margin-bottom: 20px;">Générer la comparaison</button>
+                <div id="comparisonResult"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="closeCompareBtn">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="sessionEntryModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 class="modal-title">📋 Nouvelle Session d'Entraînement</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="sessionEntryForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label for="sessionDate">Date de la séance</label>
+                        <input type="date" id="sessionDate" class="form-control" required>
+                    </div>
+                    
+                    <!-- Échauffement -->
+                    <div class="card" style="margin-bottom: 20px; background: #e8f5e9;">
+                        <div class="card-header" style="background: #4caf50; color: white; padding: 12px; border-radius: 8px 8px 0 0;">
+                            <h4 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-fire"></i> Échauffement
+                            </h4>
+                        </div>
+                        <div class="card-body" style="padding: 20px;">
+                            <div class="form-group">
+                                <label for="warmUpContent">Contenu de l'échauffement</label>
+                                <textarea id="warmUpContent" class="form-control" rows="3" 
+                                          placeholder="Ex: 400m mixte (100 crawl, 100 dos, 100 brasse, 100 jambes)" required></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="warmUpVolume">Volume (mètres)</label>
+                                    <input type="number" id="warmUpVolume" class="form-control session-volume" 
+                                           min="0" step="50" placeholder="400" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="warmUpDuration">Durée (minutes)</label>
+                                    <input type="number" id="warmUpDuration" class="form-control session-duration" 
+                                           min="0" step="1" placeholder="15" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Corps de séance -->
+                    <div class="card" style="margin-bottom: 20px; background: #e3f2fd;">
+                        <div class="card-header" style="background: #2196f3; color: white; padding: 12px; border-radius: 8px 8px 0 0;">
+                            <h4 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-dumbbell"></i> Corps de Séance
+                            </h4>
+                        </div>
+                        <div class="card-body" style="padding: 20px;">
+                            <div class="form-group">
+                                <label for="mainSetContent">Contenu du corps de séance</label>
+                                <textarea id="mainSetContent" class="form-control" rows="4" 
+                                          placeholder="Ex: 8x100m crawl @ 1:30 - Allure seuil" required></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="mainSetVolume">Volume (mètres)</label>
+                                    <input type="number" id="mainSetVolume" class="form-control session-volume" 
+                                           min="0" step="50" placeholder="3000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="mainSetDuration">Durée (minutes)</label>
+                                    <input type="number" id="mainSetDuration" class="form-control session-duration" 
+                                           min="0" step="1" placeholder="60" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Retour au calme -->
+                    <div class="card" style="margin-bottom: 20px; background: #fff3e0;">
+                        <div class="card-header" style="background: #ff9800; color: white; padding: 12px; border-radius: 8px 8px 0 0;">
+                            <h4 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-spa"></i> Retour au Calme
+                            </h4>
+                        </div>
+                        <div class="card-body" style="padding: 20px;">
+                            <div class="form-group">
+                                <label for="coolDownContent">Contenu du retour au calme</label>
+                                <textarea id="coolDownContent" class="form-control" rows="3" 
+                                          placeholder="Ex: 200m crawl souple" required></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="coolDownVolume">Volume (mètres)</label>
+                                    <input type="number" id="coolDownVolume" class="form-control session-volume" 
+                                           min="0" step="50" placeholder="200" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="coolDownDuration">Durée (minutes)</label>
+                                    <input type="number" id="coolDownDuration" class="form-control session-duration" 
+                                           min="0" step="1" placeholder="5" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Totaux -->
+                    <div class="card" style="background: #f5f5f5; border: 2px solid #2196f3;">
+                        <div class="card-body" style="padding: 20px;">
+                            <h4 style="margin: 0 0 15px 0; color: #2196f3;">📊 Totaux de la Séance</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Volume Total</div>
+                                    <div style="font-size: 2rem; font-weight: bold; color: #2196f3;">
+                                        <span id="totalVolume">0</span> m
+                                    </div>
+                                </div>
+                                <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Durée Totale</div>
+                                    <div style="font-size: 2rem; font-weight: bold; color: #4caf50;">
+                                        <span id="totalDuration">0</span> min
+                                    </div>
+                                </div>
+                                <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Intensité Moyenne</div>
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #ff9800;">
+                                        <span id="avgIntensity">0</span> m/min
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelSessionBtn">Annuler</button>
+                <button class="btn btn-primary" id="saveSessionBtn">
+                    <i class="fas fa-save"></i> Enregistrer la Session
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Système de Suivi des Nageurs</h3>
+                    <p>ACHBAL SPORTIFS NATATION. AMRI JAMAI YOUSSEF</p>
+                </div>
+               
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p>Email: youssef.yakachi@gmail.com</p>
+                    <p>Téléphone: +212 614 032 759</p>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 Système de Suivi des Nageurs Achbal Sportifs Natation.Amri-Jamai Youssef. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    
+    <!-- Script nageur -->
+    <script src="assets/js/nageur-dashboard.js"></script>
+    
+    <!-- Script app.js original pour les fonctions de base -->
+    <script src="assets/js/app.js?v=20251119"></script>
+    
+    <script>
+        // Override de certaines fonctions pour nageur connecté
+        window.addEventListener('DOMContentLoaded', () => {
+            // Masquer les éléments non nécessaires pour le nageur
+            document.querySelectorAll('#exportPdfBtn, #viewHistoryBtn, #compareSwimmersBtn, #createTestSwimmerBtn, #exportDataBtn, #importDataFile, #themeToggleBtn, #resetDataBtn').forEach(el => {
+                if (el) el.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

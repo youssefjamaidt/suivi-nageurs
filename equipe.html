@@ -704,6 +704,31 @@
         </div>
     </div>
 
-    <script src="assets/js/equipe-dashboard.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Configuration Firebase -->
+    <script src="assets/js/firebase-config.js"></script>
+    
+    <!-- Dashboard Équipe Firestore -->
+    <script src="assets/js/equipe-firestore.js"></script>
+    
+    <!-- Fonctions Dashboard originales (app.js pour graphiques, etc.) -->
+    <script src="assets/js/app.js"></script>
+    
+    <script>
+        // Protection: vérifier que l'utilisateur est un coach
+        requireAuth().then(async (user) => {
+            const userData = await getUserData(user.uid);
+            if (!userData || userData.role !== 'coach' || userData.status !== 'active') {
+                console.warn('Accès refusé: rôle non-coach ou statut inactif');
+                redirectByRole(userData?.role || null);
+            }
+        }).catch(() => {
+            window.location.href = 'login.html';
+        });
+    </script>
 </body>
 </html>
