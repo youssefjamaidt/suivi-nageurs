@@ -6,12 +6,12 @@
 
 // Configuration Firebase (Production - stoked-energy-477102-k5)
 const firebaseConfig = {
-    apiKey: "AIzaSyDv8jLzYxGHnxPyV3M7ZPLb9QxNYqVuGJI",
+    apiKey: "AIzaSyBu_qNgCygrwDa6E_SyjbTrmoq5LfVFdms",
     authDomain: "stoked-energy-477102-k5.firebaseapp.com",
     projectId: "stoked-energy-477102-k5",
     storageBucket: "stoked-energy-477102-k5.firebasestorage.app",
-    messagingSenderId: "784959447730",
-    appId: "1:784959447730:web:8e7d4c9a3b5f6a2e1c4d5e"
+    messagingSenderId: "515841490709",
+    appId: "1:515841490709:web:2db5928523f4b69867731c"
 };
 
 // Initialiser Firebase
