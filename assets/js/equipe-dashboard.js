@@ -102,17 +102,34 @@ function loadTeamsList() {
         const swimmerCount = team.swimmerIds ? team.swimmerIds.length : 0;
         const item = document.createElement('div');
         item.className = 'team-dropdown-item';
-        item.onclick = () => selectTeamFromDropdown(team.id, team.name);
+        item.style.cssText = 'display: flex; align-items: center; gap: 12px; position: relative; padding: 12px 15px;';
         
         item.innerHTML = `
-            <div class="team-item-icon">
+            <div class="team-item-icon" onclick="selectTeamFromDropdown('${team.id}', '${team.name.replace(/'/g, "\\'")}')" style="cursor: pointer;">
                 <i class="fas fa-users"></i>
             </div>
-            <div class="team-item-info">
+            <div class="team-item-info" onclick="selectTeamFromDropdown('${team.id}', '${team.name.replace(/'/g, "\\'")}')" style="flex: 1; cursor: pointer;">
                 <div class="team-item-name">${team.name}</div>
                 <div class="team-item-count">${swimmerCount} nageur${swimmerCount > 1 ? 's' : ''}</div>
             </div>
-            <i class="fas fa-chevron-right" style="color: #ccc;"></i>
+            <button 
+                onclick="event.stopPropagation(); showEditTeamModal('${team.id}')" 
+                style="padding: 8px 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;"
+                onmouseover="this.style.background='#5568d3'"
+                onmouseout="this.style.background='#667eea'"
+                title="Modifier l'équipe"
+            >
+                <i class="fas fa-edit"></i>
+            </button>
+            <button 
+                onclick="event.stopPropagation(); deleteTeam('${team.id}', '${team.name.replace(/'/g, "\\'")}')" 
+                style="padding: 8px 12px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; margin-left: 5px;"
+                onmouseover="this.style.background='#c0392b'"
+                onmouseout="this.style.background='#e74c3c'"
+                title="Supprimer l'équipe"
+            >
+                <i class="fas fa-trash"></i>
+            </button>
         `;
         
         dropdown.appendChild(item);
@@ -135,9 +152,34 @@ function showCreateTeamModal() {
     document.getElementById('createTeamForm').reset();
     document.getElementById('teamModalTitle').textContent = 'Créer une Équipe';
     document.getElementById('teamSubmitButton').textContent = 'Créer l\'équipe';
+    document.getElementById('createTeamForm').setAttribute('data-mode', 'create');
+    document.getElementById('createTeamForm').removeAttribute('data-team-id');
     
     // Charger la liste des nageurs
     loadSwimmersForSelection();
+    
+    modal.style.display = 'flex';
+}
+
+function showEditTeamModal(teamId) {
+    const team = getTeamById(teamId);
+    if (!team) {
+        alert('Équipe non trouvée');
+        return;
+    }
+    
+    const modal = document.getElementById('createTeamModal');
+    
+    // Remplir le formulaire avec les données de l'équipe
+    document.getElementById('teamName').value = team.name;
+    document.getElementById('teamCategory').value = team.category || '';
+    document.getElementById('teamModalTitle').textContent = 'Modifier l\'Équipe';
+    document.getElementById('teamSubmitButton').textContent = 'Enregistrer les modifications';
+    document.getElementById('createTeamForm').setAttribute('data-mode', 'edit');
+    document.getElementById('createTeamForm').setAttribute('data-team-id', teamId);
+    
+    // Charger la liste des nageurs avec les nageurs de l'équipe pré-cochés
+    loadSwimmersForSelection(team.swimmerIds || []);
     
     modal.style.display = 'flex';
 }
@@ -146,7 +188,7 @@ function closeCreateTeamModal() {
     document.getElementById('createTeamModal').style.display = 'none';
 }
 
-function loadSwimmersForSelection() {
+function loadSwimmersForSelection(preSelectedIds = []) {
     const swimmersList = document.getElementById('swimmersList');
     const swimmers = getAllSwimmers();
     
@@ -168,7 +210,7 @@ function loadSwimmersForSelection() {
     swimmers.forEach(swimmer => {
         const swimmerItem = document.createElement('div');
         swimmerItem.className = 'swimmer-checkbox-item';
-        swimmerItem.setAttribute('data-swimmer-name', `${swimmer.firstName} ${swimmer.lastName}`.toLowerCase());
+        swimmerItem.setAttribute('data-swimmer-name', (swimmer.name || '').toLowerCase());
         swimmerItem.style.cssText = `
             padding: 12px 15px;
             border-bottom: 1px solid #f0f0f0;
@@ -179,6 +221,8 @@ function loadSwimmersForSelection() {
             gap: 12px;
         `;
         
+        const isChecked = preSelectedIds.includes(swimmer.id) ? 'checked' : '';
+        
         swimmerItem.innerHTML = `
             <input 
                 type="checkbox" 
@@ -186,13 +230,14 @@ function loadSwimmersForSelection() {
                 value="${swimmer.id}"
                 onchange="updateSelectedCount()"
                 style="width: 18px; height: 18px; cursor: pointer;"
+                ${isChecked}
             >
             <label for="swimmer_${swimmer.id}" style="flex: 1; cursor: pointer; margin: 0;">
                 <div style="font-weight: 600; color: #333; margin-bottom: 3px;">
-                    ${swimmer.firstName} ${swimmer.lastName}
+                    ${swimmer.name || 'N/A'}
                 </div>
                 <div style="font-size: 0.85rem; color: #666;">
-                    ${swimmer.email || 'N/A'} • ${swimmer.birthDate || 'N/A'}
+                    👤 ${swimmer.username || 'N/A'} • 📧 ${swimmer.email || 'N/A'}
                 </div>
             </label>
         `;
@@ -239,6 +284,8 @@ function saveNewTeam(event) {
     
     const teamName = document.getElementById('teamName').value.trim();
     const teamCategory = document.getElementById('teamCategory').value;
+    const mode = document.getElementById('createTeamForm').getAttribute('data-mode');
+    const teamId = document.getElementById('createTeamForm').getAttribute('data-team-id');
     
     if (!teamName) {
         alert('Veuillez saisir un nom d\'équipe');
@@ -250,30 +297,46 @@ function saveNewTeam(event) {
     const checkboxes = document.querySelectorAll('#swimmersList input[type="checkbox"]:checked');
     checkboxes.forEach(cb => selectedSwimmers.push(cb.value));
     
-    // Créer l'équipe
     const teams = getTeams();
-    const newTeam = {
-        id: Date.now().toString(),
-        name: teamName,
-        category: teamCategory,
-        swimmerIds: selectedSwimmers,
-        createdAt: new Date().toISOString()
-    };
     
-    teams.push(newTeam);
-    saveTeamsToStorage(teams);
-    
-    // Afficher un message de succès
-    alert(`✅ Équipe "${teamName}" créée avec succès !\n${selectedSwimmers.length} nageur(s) ajouté(s).`);
-    
-    // Fermer le modal
-    closeCreateTeamModal();
-    
-    // Recharger la liste des équipes
-    loadTeamsList();
-    
-    // Sélectionner automatiquement la nouvelle équipe
-    selectTeamFromDropdown(newTeam.id, newTeam.name);
+    if (mode === 'edit' && teamId) {
+        // Mode édition
+        const teamIndex = teams.findIndex(t => t.id === teamId);
+        if (teamIndex !== -1) {
+            teams[teamIndex].name = teamName;
+            teams[teamIndex].category = teamCategory;
+            teams[teamIndex].swimmerIds = selectedSwimmers;
+            teams[teamIndex].updatedAt = new Date().toISOString();
+            
+            saveTeamsToStorage(teams);
+            alert(`✅ Équipe "${teamName}" modifiée avec succès !\n${selectedSwimmers.length} nageur(s) dans l'équipe.`);
+            
+            // Recharger la liste et le dashboard si cette équipe est affichée
+            closeCreateTeamModal();
+            loadTeamsList();
+            if (currentTeam && currentTeam.id === teamId) {
+                selectTeamFromDropdown(teamId, teamName);
+            }
+        }
+    } else {
+        // Mode création
+        const newTeam = {
+            id: Date.now().toString(),
+            name: teamName,
+            category: teamCategory,
+            swimmerIds: selectedSwimmers,
+            createdAt: new Date().toISOString()
+        };
+        
+        teams.push(newTeam);
+        saveTeamsToStorage(teams);
+        
+        alert(`✅ Équipe "${teamName}" créée avec succès !\n${selectedSwimmers.length} nageur(s) ajouté(s).`);
+        
+        closeCreateTeamModal();
+        loadTeamsList();
+        selectTeamFromDropdown(newTeam.id, newTeam.name);
+    }
 }
 
 function saveTeamsToStorage(teams) {
@@ -503,10 +566,10 @@ function loadGlobalSection(swimmers) {
             <div style="padding: 20px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #667eea; display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <div style="font-weight: 600; font-size: 1.1rem; color: #333; margin-bottom: 5px;">
-                        ${swimmer.firstName} ${swimmer.lastName}
+                        ${swimmer.name || 'N/A'}
                     </div>
                     <div style="color: #666; font-size: 0.9rem;">
-                        📧 ${swimmer.email || 'N/A'} | 🎂 ${swimmer.birthDate || 'N/A'}
+                        👤 ${swimmer.username || 'N/A'} | 📧 ${swimmer.email || 'N/A'}
                     </div>
                 </div>
                 <div style="display: flex; gap: 20px; align-items: center;">
@@ -977,5 +1040,25 @@ window.onclick = function(event) {
         createTeamModal.style.display = 'none';
     }
 };
+
+function deleteTeam(teamId, teamName) {
+    if (!confirm(`⚠️ Êtes-vous sûr de vouloir supprimer l'équipe "${teamName}" ?\n\nCette action est irréversible.`)) {
+        return;
+    }
+    
+    const teams = getTeams();
+    const updatedTeams = teams.filter(t => t.id !== teamId);
+    saveTeamsToStorage(updatedTeams);
+    
+    alert(`✅ Équipe "${teamName}" supprimée avec succès.`);
+    
+    // Si l'équipe supprimée était affichée, retour à l'état vide
+    if (currentTeam && currentTeam.id === teamId) {
+        showEmptyState();
+    }
+    
+    // Recharger la liste des équipes
+    loadTeamsList();
+}
 
 console.log('✅ Dashboard Équipe chargé avec succès');

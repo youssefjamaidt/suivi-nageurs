@@ -1,0 +1,979 @@
+/* =====================================================
+   RESPONSIVE MOBILE COMPLET - SUIVI NAGEURS
+   Optimisations pour tous les écrans mobiles
+   ===================================================== */
+
+/* =====================================================
+   MEDIA QUERIES GÉNÉRALES
+   ===================================================== */
+
+/* Tablettes (768px - 1024px) */
+@media (max-width: 1024px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .cards-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+    }
+}
+
+/* Mobile Large (481px - 768px) */
+@media (max-width: 768px) {
+    /* Reset général */
+    body {
+        font-size: 14px;
+        overflow-x: hidden;
+    }
+    
+    .container {
+        padding: 0 10px;
+    }
+    
+    /* =============== HEADER =============== */
+    header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 0;
+    }
+    
+    .btn-back {
+        position: static;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .logo {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .logo h1 {
+        font-size: 1.3rem;
+    }
+    
+    /* Navigation mobile */
+    .nav-toggle {
+        display: block !important;
+        position: absolute;
+        right: 10px;
+        top: 15px;
+        font-size: 1.5rem;
+        background: none;
+        border: none;
+        color: var(--text-color);
+        cursor: pointer;
+        z-index: 1001;
+    }
+    
+    nav {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 280px;
+        height: 100vh;
+        background: var(--card-bg);
+        box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+        transition: left 0.3s ease;
+        z-index: 1001;
+        overflow-y: auto;
+        padding-top: 60px;
+    }
+    
+    nav.active {
+        left: 0;
+    }
+    
+    nav ul {
+        flex-direction: column;
+        padding: 15px;
+        gap: 0;
+    }
+    
+    nav ul li {
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    nav a {
+        display: block;
+        padding: 15px;
+        border-radius: 8px;
+        width: 100%;
+    }
+    
+    /* =============== DASHBOARD =============== */
+    .dashboard {
+        padding: 20px 0;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .dashboard-title {
+        font-size: 1.5rem;
+    }
+    
+    .athlete-selector {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+    }
+    
+    /* =============== CARDS =============== */
+    .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .card-icon {
+        font-size: 2rem;
+    }
+    
+    /* =============== STATISTIQUES =============== */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .stat-item {
+        padding: 15px;
+    }
+    
+    .stat-value {
+        font-size: 1.8rem;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+    }
+    
+    /* =============== TABLEAUX =============== */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -10px;
+        padding: 0 10px;
+    }
+    
+    table {
+        min-width: 600px;
+        font-size: 0.85rem;
+    }
+    
+    th, td {
+        padding: 10px 8px;
+        font-size: 0.85rem;
+    }
+    
+    /* Tableau responsive (cartes empilées) */
+    .data-table-mobile {
+        display: block;
+        width: 100%;
+    }
+    
+    .data-table-mobile thead {
+        display: none;
+    }
+    
+    .data-table-mobile tbody {
+        display: block;
+    }
+    
+    .data-table-mobile tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 15px;
+        background: var(--card-bg);
+    }
+    
+    .data-table-mobile td {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .data-table-mobile td:last-child {
+        border-bottom: none;
+    }
+    
+    .data-table-mobile td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--primary-color);
+        flex: 0 0 40%;
+    }
+    
+    /* =============== BOUTONS =============== */
+    .btn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .btn-compact {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+    
+    .user-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .header-actions-compact {
+        gap: 5px;
+        padding: 8px 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* =============== FORMULAIRES =============== */
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-control {
+        padding: 12px;
+        font-size: 16px; /* Évite le zoom automatique sur iOS */
+        border-radius: 8px;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+        font-size: 16px !important; /* Évite le zoom iOS */
+        padding: 12px !important;
+        border-radius: 8px;
+    }
+    
+    /* =============== MODAUX =============== */
+    .modal {
+        padding: 10px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        max-height: 90vh;
+        margin: 10px auto;
+        border-radius: 12px;
+    }
+    
+    .modal-header {
+        padding: 15px;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .modal-title {
+        font-size: 1.1rem;
+    }
+    
+    .modal-body {
+        padding: 15px;
+        max-height: calc(90vh - 150px);
+        overflow-y: auto;
+    }
+    
+    .modal-footer {
+        padding: 15px;
+        flex-direction: column-reverse;
+        gap: 10px;
+    }
+    
+    .modal-footer button {
+        width: 100%;
+        margin: 0;
+    }
+    
+    /* =============== GRAPHIQUES =============== */
+    .chart-container {
+        height: 250px;
+        margin: 15px -10px;
+    }
+    
+    /* =============== ÉQUIPE DASHBOARD =============== */
+    .team-selector-header {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .team-selector-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .team-select-group {
+        min-width: 100%;
+    }
+    
+    .team-action-buttons {
+        width: 100%;
+        justify-content: space-around;
+    }
+    
+    .action-btn {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .action-btn i {
+        font-size: 1.5rem;
+    }
+    
+    .action-btn .btn-label {
+        font-size: 0.65rem;
+    }
+    
+    /* Team dropdown */
+    .team-dropdown-item {
+        padding: 12px !important;
+        font-size: 0.9rem;
+    }
+    
+    .team-dropdown-item button {
+        padding: 6px 10px !important;
+        font-size: 0.8rem;
+    }
+    
+    /* Stats rapides équipe */
+    .team-quick-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+    
+    /* =============== SECTIONS ANALYSE =============== */
+    .analysis-section {
+        margin-bottom: 15px;
+    }
+    
+    .section-header {
+        padding: 15px !important;
+    }
+    
+    .section-header h2 {
+        font-size: 1.1rem !important;
+    }
+    
+    .section-header h2 span:first-child {
+        font-size: 1.5rem !important;
+    }
+    
+    .section-header h2 span:last-child {
+        font-size: 1rem;
+    }
+    
+    /* Modal section plein écran */
+    .section-modal-content {
+        padding: 10px;
+    }
+    
+    .section-modal-header {
+        padding: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .section-modal-header h2 {
+        font-size: 1.3rem;
+        flex: 1;
+    }
+    
+    .section-close-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .section-modal-body {
+        padding: 15px;
+    }
+    
+    /* =============== SÉLECTEUR CIRCULAIRE =============== */
+    .sticky-selector {
+        bottom: 80px;
+        right: 15px;
+    }
+    
+    .selector-circle-btn {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .selector-circle-btn i {
+        font-size: 1.3rem;
+    }
+    
+    .selector-compact-dropdown {
+        width: 95vw;
+        max-width: 350px;
+        top: 15px;
+        max-height: 65vh;
+    }
+    
+    .selector-list {
+        max-height: 200px;
+    }
+    
+    .selector-item {
+        padding: 15px;
+        font-size: 0.95rem;
+    }
+    
+    /* =============== BOUTON FLOTTANT SAISIE =============== */
+    .floating-data-button {
+        width: 60px;
+        height: 60px;
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .floating-data-button i {
+        font-size: 1.8rem;
+    }
+    
+    /* Panel saisie de données */
+    .data-entry-panel {
+        max-width: 100%;
+    }
+    
+    .data-entry-panel-header {
+        padding: 15px;
+    }
+    
+    .data-entry-panel-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .data-entry-panel-body {
+        padding: 15px;
+    }
+    
+    .data-entry-list-item {
+        padding: 12px 15px;
+    }
+    
+    .data-entry-list-item-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+    
+    .data-entry-list-item-text h4 {
+        font-size: 1rem;
+    }
+    
+    .data-entry-list-item-text p {
+        font-size: 0.85rem;
+    }
+    
+    /* =============== TABS =============== */
+    .tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+    }
+    
+    .tab {
+        flex-shrink: 0;
+        min-width: 120px;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+    
+    /* =============== BARRES DE PROGRESSION =============== */
+    .progress-section {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .progress-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .progress-title h3 {
+        font-size: 1.1rem;
+    }
+    
+    .progress-icon {
+        font-size: 1.5rem;
+    }
+    
+    .progress-value {
+        font-size: 1.5rem;
+    }
+    
+    .progress-bar-container {
+        height: 25px;
+    }
+    
+    /* =============== CALENDRIER =============== */
+    .calendar-day {
+        min-height: 70px;
+        padding: 5px;
+        font-size: 0.8rem;
+    }
+    
+    .calendar-day-name {
+        padding: 8px 5px;
+        font-size: 0.75rem;
+    }
+    
+    /* =============== LISTE PRÉSENCE =============== */
+    .attendance-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .attendance-modal-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .attendance-modal-buttons {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .attendance-btn {
+        flex: 1;
+        padding: 10px;
+        font-size: 1rem;
+    }
+    
+    /* =============== FORMULAIRE BIEN-ÊTRE =============== */
+    .wellbeing-page {
+        padding: 15px;
+    }
+    
+    .radio-option {
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    .slider-value {
+        min-width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    /* =============== FOOTER =============== */
+    .footer-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .footer-section {
+        min-width: 100%;
+    }
+}
+
+/* Mobile Petit (320px - 480px) */
+@media (max-width: 480px) {
+    body {
+        font-size: 13px;
+    }
+    
+    .container {
+        padding: 0 8px;
+    }
+    
+    /* Header ultra compact */
+    .logo h1 {
+        font-size: 1.1rem;
+    }
+    
+    .btn-back {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    /* Dashboard */
+    .dashboard {
+        padding: 15px 0;
+    }
+    
+    .dashboard-title {
+        font-size: 1.3rem;
+    }
+    
+    /* Cards très compactes */
+    .card {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    .card-icon {
+        font-size: 1.5rem;
+    }
+    
+    /* Stats */
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+    }
+    
+    /* Boutons */
+    .btn {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .btn-compact {
+        padding: 5px 8px;
+        font-size: 0.7rem;
+    }
+    
+    /* Formulaires */
+    .form-control {
+        padding: 10px;
+    }
+    
+    /* Modaux */
+    .modal-content {
+        width: 98%;
+        max-width: 98%;
+        margin: 5px auto;
+    }
+    
+    .modal-header {
+        padding: 12px;
+    }
+    
+    .modal-title {
+        font-size: 1rem;
+    }
+    
+    .modal-body {
+        padding: 12px;
+    }
+    
+    .modal-footer {
+        padding: 12px;
+    }
+    
+    /* Graphiques */
+    .chart-container {
+        height: 200px;
+    }
+    
+    /* Équipe */
+    .team-quick-stats {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .action-btn {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .action-btn i {
+        font-size: 1.3rem;
+    }
+    
+    .action-btn .btn-label {
+        font-size: 0.6rem;
+    }
+    
+    /* Section headers */
+    .section-header {
+        padding: 12px !important;
+    }
+    
+    .section-header h2 {
+        font-size: 1rem !important;
+    }
+    
+    .section-header h2 span:first-child {
+        font-size: 1.3rem !important;
+    }
+    
+    /* Sélecteur circulaire */
+    .sticky-selector {
+        bottom: 70px;
+        right: 10px;
+    }
+    
+    .selector-circle-btn {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .selector-circle-btn i {
+        font-size: 1.2rem;
+    }
+    
+    .selector-compact-dropdown {
+        width: 98vw;
+        max-width: 320px;
+        top: 10px;
+        max-height: 55vh;
+    }
+    
+    /* Bouton flottant */
+    .floating-data-button {
+        width: 55px;
+        height: 55px;
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .floating-data-button i {
+        font-size: 1.5rem;
+    }
+    
+    /* Tableaux */
+    th, td {
+        padding: 8px 6px;
+        font-size: 0.8rem;
+    }
+    
+    /* Progress bars */
+    .progress-section {
+        padding: 12px;
+        border-left-width: 3px;
+    }
+    
+    .progress-title {
+        gap: 8px;
+    }
+    
+    .progress-icon {
+        font-size: 1.3rem;
+    }
+    
+    .progress-title h3 {
+        font-size: 0.95rem;
+    }
+    
+    .progress-value {
+        font-size: 1.3rem;
+    }
+    
+    .progress-bar-container {
+        height: 20px;
+    }
+    
+    /* Calendrier */
+    .calendar-day {
+        min-height: 60px;
+        padding: 4px;
+        font-size: 0.75rem;
+    }
+    
+    .calendar-day-name {
+        padding: 6px 4px;
+        font-size: 0.7rem;
+    }
+    
+    /* Boutons présence */
+    .attendance-btn {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        min-width: 45px;
+    }
+}
+
+/* =====================================================
+   OPTIMISATIONS TACTILES
+   ===================================================== */
+
+/* Augmenter la zone de toucher pour les petits éléments */
+@media (max-width: 768px) {
+    a, button, input[type="checkbox"], input[type="radio"], select {
+        min-height: 44px; /* Taille minimale recommandée Apple */
+        min-width: 44px;
+    }
+    
+    /* Améliorer le scroll tactile */
+    .modal-body,
+    .data-entry-panel-body,
+    .selector-list,
+    .table-container,
+    nav {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+    
+    /* Désactiver le zoom sur les inputs */
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    input[type="password"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+    
+    /* Améliorer les zones cliquables */
+    .card-header,
+    .section-header,
+    .team-dropdown-item,
+    .selector-item {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* =====================================================
+   ORIENTATION PAYSAGE MOBILE
+   ===================================================== */
+
+@media (max-width: 896px) and (orientation: landscape) {
+    .modal-content {
+        max-height: 85vh;
+    }
+    
+    .modal-body {
+        max-height: calc(85vh - 140px);
+    }
+    
+    .sticky-selector {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .floating-data-button {
+        bottom: 15px;
+        right: 80px;
+    }
+    
+    .team-quick-stats {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+    
+    .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* =====================================================
+   ACCESSIBILITÉ ET PERFORMANCE
+   ===================================================== */
+
+/* Réduire les animations sur demande système */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Mode économie d'énergie */
+@media (prefers-reduced-motion: reduce) {
+    .progress-bar-shine,
+    .floating-data-button i {
+        animation: none !important;
+    }
+}
+
+/* =====================================================
+   CORRECTIONS SPÉCIFIQUES iOS
+   ===================================================== */
+
+@supports (-webkit-touch-callout: none) {
+    /* Correction du safe area sur iPhone X+ */
+    .sticky-selector {
+        bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+    
+    .floating-data-button {
+        bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+    
+    .modal-content {
+        margin-top: env(safe-area-inset-top);
+        margin-bottom: env(safe-area-inset-bottom);
+    }
+    
+    /* Correction du bounce effect */
+    body {
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* =====================================================
+   PRINT STYLES
+   ===================================================== */
+
+@media print {
+    .sticky-selector,
+    .floating-data-button,
+    .nav-toggle,
+    .btn-back,
+    .user-actions,
+    .header-actions-compact {
+        display: none !important;
+    }
+    
+    .modal {
+        position: static;
+        display: block;
+    }
+    
+    .modal-content {
+        box-shadow: none;
+        max-width: 100%;
+    }
+    
+    .card {
+        page-break-inside: avoid;
+    }
+}
