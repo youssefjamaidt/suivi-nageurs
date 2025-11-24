@@ -414,12 +414,14 @@
                     <label for="role">Rôle *</label>
                     <select id="role" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 1rem; color: #374151; cursor: pointer; background: white;">
                         <option value="">-- Sélectionnez votre rôle --</option>
-                        <option value="admin">👑 Administrateur</option>
-                        <option value="coach">🏊‍♂️ Entraîneur</option>
+                        <!-- Option ADMIN supprimée : Seul le propriétaire peut être admin -->
+                        <!-- Option COACH supprimée : Seul l'admin peut créer des coaches -->
+                        <option value="nageur">🏊 Nageur</option>
                     </select>
                     <div style="font-size: 0.8rem; color: #6b7280; margin-top: 5px;">
-                        • <strong>Administrateur</strong> : Gestion complète de la plateforme<br>
-                        • <strong>Entraîneur</strong> : Gestion des équipes et nageurs
+                        <strong>Note importante :</strong> Cette inscription est réservée aux nageurs.<br>
+                        • <strong>Entraîneurs</strong> : Contactez l'administrateur pour recevoir une invitation<br>
+                        • Les comptes sont créés sur invitation uniquement
                     </div>
                 </div>
                 <div class="form-group">
@@ -668,7 +670,8 @@
                 const user = userCredential.user;
 
                 // Déterminer le statut selon le rôle
-                const userStatus = formData.role === 'admin' ? 'active' : 'pending';
+                // NAGEURS UNIQUEMENT : inscription avec validation coach requise
+                const userStatus = 'pending'; // Toujours en attente d'approbation du coach
                 
                 // Créer document utilisateur dans Firestore
                 await db.collection('users').doc(user.uid).set({
@@ -677,33 +680,25 @@
                     email: formData.email,
                     club: formData.club,
                     phone: formData.phone || '',
-                    role: formData.role,
-                    status: userStatus, // Admin: actif immédiatement, Coach: en attente
+                    role: formData.role, // Toujours 'nageur' maintenant
+                    status: userStatus,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     lastLogin: null,
-                    teams: []
+                    teams: [],
+                    coachId: null // Sera assigné par le coach lors de l'approbation
                 });
 
-                if (formData.role === 'admin') {
-                    // Admin: Connexion automatique et redirection vers dashboard
-                    showSuccess('Compte administrateur créé avec succès ! Redirection...');
-                    setTimeout(() => {
-                        window.location.href = 'admin.html';
-                    }, 2000);
-                } else {
-                    // Coach: Déconnexion et attente d'approbation
-                    // TODO: Envoyer email à l'admin (Cloud Function)
-                    // await db.collection('notifications').add({...})
+                // NAGEUR : Déconnexion et attente d'approbation du coach
+                // TODO: Envoyer email aux coaches pour nouvelle demande
 
-                    await auth.signOut();
+                await auth.signOut();
 
-                    // Afficher message d'attente
-                    document.getElementById('register-form').style.display = 'none';
-                    document.querySelector('.wizard-steps').style.display = 'none';
-                    document.getElementById('links-container').style.display = 'none';
-                    document.getElementById('registered-email').textContent = formData.email;
-                    document.getElementById('pending-approval').style.display = 'block';
-                }
+                // Afficher message d'attente
+                document.getElementById('register-form').style.display = 'none';
+                document.querySelector('.wizard-steps').style.display = 'none';
+                document.getElementById('links-container').style.display = 'none';
+                document.getElementById('registered-email').textContent = formData.email;
+                document.getElementById('pending-approval').style.display = 'block';
 
             } catch (error) {
                 console.error('Erreur inscription:', error);
