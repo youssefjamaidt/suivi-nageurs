@@ -94,7 +94,7 @@ async function checkUserRole(requiredRole) {
 function redirectByRole(role) {
     const redirections = {
         'admin': 'admin.html',
-        'coach': 'equipe.html',
+        'coach': 'index.html',
         'nageur': 'nageur.html'
     };
     
