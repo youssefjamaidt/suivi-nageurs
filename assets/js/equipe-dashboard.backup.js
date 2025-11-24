@@ -992,122 +992,7 @@ function selectCollectiveDataType(type) {
     }
     
     const content = document.getElementById('collectiveDataContent');
-    
-    // Étape 1: Sélection des nageurs
-    content.innerHTML = renderSwimmerSelectionScreen(type, swimmers);
-}
-
-// Nouvelle fonction pour afficher l'écran de sélection
-function renderSwimmerSelectionScreen(type, swimmers) {
-    const typeConfig = {
-        wellbeing: { icon: '😊', title: 'Bien-être', color: '#ff6b35' },
-        training: { icon: '🏊', title: 'Entraînement', color: '#4facfe' },
-        performance: { icon: '💪', title: 'Performance', color: '#8e44ad' },
-        medical: { icon: '🏥', title: 'Médical', color: '#e91e63' },
-        race: { icon: '🏅', title: 'Compétition', color: '#f39c12' },
-        technical: { icon: '📋', title: 'Technique', color: '#00bcd4' },
-        attendance: { icon: '✅', title: 'Présence', color: '#27ae60' }
-    };
-    
-    const config = typeConfig[type];
-    
-    return `
-        <div style="margin-bottom: 20px;">
-            <button onclick="showCollectiveDataEntry()" class="btn btn-outline">
-                <i class="fas fa-arrow-left"></i> Retour
-            </button>
-        </div>
-        
-        <h4 style="margin: 20px 0; color: #333;">
-            <span style="font-size: 2rem;">${config.icon}</span> ${config.title} - Sélectionner les nageurs
-        </h4>
-        
-        <div style="background: ${config.color}15; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid ${config.color};">
-            <p style="margin: 0; color: ${config.color};">
-                <i class="fas fa-info-circle"></i> 
-                Cochez les nageurs pour lesquels vous souhaitez saisir des données
-            </p>
-        </div>
-        
-        <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-            <button onclick="selectAllSwimmers()" class="btn btn-sm btn-primary">
-                <i class="fas fa-check-double"></i> Tout sélectionner
-            </button>
-            <button onclick="deselectAllSwimmers()" class="btn btn-sm btn-outline">
-                <i class="fas fa-times"></i> Tout désélectionner
-            </button>
-            <span id="selectedSwimmersCount" style="margin-left: auto; font-weight: bold; color: #333;">
-                ${swimmers.length} nageurs sélectionnés
-            </span>
-        </div>
-        
-        <div id="swimmersSelectionGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-bottom: 25px;">
-            ${swimmers.map((swimmer, index) => `
-                <label class="swimmer-checkbox-card" style="display: flex; align-items: center; padding: 15px; background: white; border: 2px solid ${config.color}40; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='${config.color}'; this.style.background='${config.color}05'" onmouseout="this.style.borderColor='${config.color}40'; this.style.background='white'">
-                    <input type="checkbox" class="swimmer-select-checkbox" data-swimmer-id="${swimmer.id}" data-swimmer-name="${swimmer.name || 'Nageur ' + (index + 1)}" onchange="updateSelectedSwimmersCount()" style="width: 20px; height: 20px; margin-right: 12px; cursor: pointer;" checked>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; color: #333; margin-bottom: 3px;">${swimmer.name || 'Nageur ' + (index + 1)}</div>
-                        <div style="font-size: 0.85rem; color: #666;">
-                            <i class="fas fa-user"></i> ${swimmer.username || 'N/A'}
-                        </div>
-                    </div>
-                    <i class="fas fa-check-circle" style="color: ${config.color}; font-size: 1.5rem; opacity: 0; transition: opacity 0.2s;"></i>
-                </label>
-            `).join('')}
-        </div>
-        
-        <button onclick="proceedToCollectiveForm('${type}')" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;">
-            <i class="fas fa-arrow-right"></i> Continuer vers le formulaire
-        </button>
-    `;
-}
-
-function selectAllSwimmers() {
-    document.querySelectorAll('.swimmer-select-checkbox').forEach(cb => cb.checked = true);
-    updateSelectedSwimmersCount();
-    updateCheckboxIcons();
-}
-
-function deselectAllSwimmers() {
-    document.querySelectorAll('.swimmer-select-checkbox').forEach(cb => cb.checked = false);
-    updateSelectedSwimmersCount();
-    updateCheckboxIcons();
-}
-
-function updateSelectedSwimmersCount() {
-    const selected = document.querySelectorAll('.swimmer-select-checkbox:checked').length;
-    const counter = document.getElementById('selectedSwimmersCount');
-    if (counter) {
-        counter.textContent = `${selected} nageur${selected > 1 ? 's' : ''} sélectionné${selected > 1 ? 's' : ''}`;
-        counter.style.color = selected > 0 ? '#27ae60' : '#e74c3c';
-    }
-    updateCheckboxIcons();
-}
-
-function updateCheckboxIcons() {
-    document.querySelectorAll('.swimmer-checkbox-card').forEach(card => {
-        const checkbox = card.querySelector('.swimmer-select-checkbox');
-        const icon = card.querySelector('.fa-check-circle');
-        if (checkbox && icon) {
-            icon.style.opacity = checkbox.checked ? '1' : '0';
-        }
-    });
-}
-
-function proceedToCollectiveForm(type) {
-    const selectedCheckboxes = document.querySelectorAll('.swimmer-select-checkbox:checked');
-    if (selectedCheckboxes.length === 0) {
-        alert('⚠️ Veuillez sélectionner au moins un nageur');
-        return;
-    }
-    
-    const selectedSwimmers = Array.from(selectedCheckboxes).map(cb => ({
-        id: cb.dataset.swimmerId,
-        name: cb.dataset.swimmerName
-    }));
-    
-    const content = document.getElementById('collectiveDataContent');
-    content.innerHTML = renderCollectiveDataForm(type, selectedSwimmers);
+    content.innerHTML = renderCollectiveDataForm(type, swimmers);
     
     // Initialiser les event listeners spécifiques au type
     initializeCollectiveFormListeners(type);
@@ -1194,114 +1079,25 @@ function generateCollectiveFields(type, swimmerId, index) {
     
     switch(type) {
         case 'wellbeing':
-            // ✅ FORMULAIRE COMPLET ALIGNÉ AVEC APP.JS (13 champs)
             return `
-                <div style="background: #f0f8ff; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
-                    <strong style="color: #1976d2;">📊 Évaluation Subjective (1-10)</strong>
-                </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>😴 Qualité du Sommeil</label>
-                        <input type="number" id="${prefix}_sleepQuality" class="form-control" min="1" max="10" placeholder="Ex: 8">
-                        <small style="color: #666;">1=Très mauvais → 10=Excellent</small>
+                        <label>😴 Sommeil (1-10)</label>
+                        <input type="number" id="${prefix}_sleep" class="form-control" min="1" max="10" placeholder="Ex: 8">
                     </div>
                     <div class="form-group">
-                        <label>⚡ Niveau d'Énergie</label>
-                        <input type="number" id="${prefix}_energyLevel" class="form-control" min="1" max="10" placeholder="Ex: 7">
-                        <small style="color: #666;">1=Épuisé → 10=Pleine forme</small>
+                        <label>😓 Fatigue (1-10)</label>
+                        <input type="number" id="${prefix}_fatigue" class="form-control" min="1" max="10" placeholder="Ex: 5">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>🎯 Motivation</label>
-                        <input type="number" id="${prefix}_motivation" class="form-control" min="1" max="10" placeholder="Ex: 8">
-                        <small style="color: #666;">1=Aucune → 10=Très motivé</small>
+                        <label>😰 Stress (1-10)</label>
+                        <input type="number" id="${prefix}_stress" class="form-control" min="1" max="10" placeholder="Ex: 3">
                     </div>
                     <div class="form-group">
-                        <label>😰 Niveau de Stress</label>
-                        <input type="number" id="${prefix}_stressLevel" class="form-control" min="1" max="10" placeholder="Ex: 3">
-                        <small style="color: #666;">1=Aucun → 10=Très stressé</small>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>💪 Récupération Musculaire</label>
-                        <input type="number" id="${prefix}_muscleRecovery" class="form-control" min="1" max="10" placeholder="Ex: 6">
-                        <small style="color: #666;">1=Très courbaturé → 10=Frais</small>
-                    </div>
-                </div>
-                
-                <div style="background: #fff3e0; padding: 12px; border-radius: 6px; margin: 15px 0 12px 0;">
-                    <strong style="color: #f57c00;">📈 Données Quantitatives</strong>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>🕐 Heures de Sommeil</label>
-                        <input type="number" id="${prefix}_sleepHours" class="form-control" min="0" max="24" step="0.5" placeholder="Ex: 7.5">
-                        <small style="color: #666;">Nombre d'heures dormies</small>
-                    </div>
-                    <div class="form-group">
-                        <label>⚖️ Poids Corporel (kg)</label>
-                        <input type="number" id="${prefix}_bodyWeight" class="form-control" min="0" step="0.1" placeholder="Ex: 70.5">
-                        <small style="color: #666;">Poids actuel</small>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>🌙 Réveils Nocturnes</label>
-                        <select id="${prefix}_nightAwakenings" class="form-control">
-                            <option value="">-- Sélectionner --</option>
-                            <option value="0">Aucun</option>
-                            <option value="1-2">1-2 fois</option>
-                            <option value="3+">3 fois ou plus</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>🌅 Qualité du Réveil</label>
-                        <select id="${prefix}_wakeQuality" class="form-control">
-                            <option value="">-- Sélectionner --</option>
-                            <option value="1">😫 Très difficile</option>
-                            <option value="2">😕 Difficile</option>
-                            <option value="3">😐 Normal</option>
-                            <option value="4">🙂 Facile</option>
-                            <option value="5">😄 Très facile</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div style="background: #ffebee; padding: 12px; border-radius: 6px; margin: 15px 0 12px 0;">
-                    <strong style="color: #d32f2f;">🩹 Symptômes Spécifiques</strong>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>😣 Douleur Musculaire (0-10)</label>
-                        <input type="number" id="${prefix}_musclePain" class="form-control" min="0" max="10" placeholder="Ex: 2">
-                        <small style="color: #666;">0=Aucune → 10=Intense</small>
-                    </div>
-                    <div class="form-group">
-                        <label>📍 Localisation Douleur</label>
-                        <input type="text" id="${prefix}_painLocation" class="form-control" placeholder="Ex: Épaule droite">
-                        <small style="color: #666;">Optionnel si douleur présente</small>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>🥱 Fatigue Générale</label>
-                        <select id="${prefix}_generalFatigue" class="form-control">
-                            <option value="">-- Sélectionner --</option>
-                            <option value="low">✅ Faible</option>
-                            <option value="moderate">⚠️ Modérée</option>
-                            <option value="high">❌ Élevée</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>🍽️ Appétit</label>
-                        <select id="${prefix}_appetite" class="form-control">
-                            <option value="">-- Sélectionner --</option>
-                            <option value="low">📉 Faible</option>
-                            <option value="normal">✅ Normal</option>
-                            <option value="high">📈 Élevé</option>
-                        </select>
+                        <label>🩹 Douleur (0-10)</label>
+                        <input type="number" id="${prefix}_pain" class="form-control" min="0" max="10" placeholder="Ex: 0">
                     </div>
                 </div>
             `;
@@ -1510,56 +1306,36 @@ function saveCollectiveData(type) {
         return;
     }
     
-    // ✅ NOUVEAU: Récupérer uniquement les nageurs sélectionnés initialement
-    const swimmerCards = document.querySelectorAll('.swimmer-collective-card');
+    const swimmers = getTeamSwimmers();
     let savedCount = 0;
     let errors = [];
-    let skippedCount = 0;
     
-    swimmerCards.forEach((card, index) => {
-        const swimmerId = card.querySelector('.swimmer-collective-fields').dataset.swimmerId;
-        const swimmer = getSwimmerById(swimmerId);
-        if (!swimmer) return;
-        
+    swimmers.forEach((swimmer, index) => {
         const prefix = `swimmer_${index}`;
-        const data = collectSwimmerData(type, prefix, swimmerId, date);
+        const data = collectSwimmerData(type, prefix, swimmer.id, date);
         
         if (data && Object.keys(data).length > 1) { // > 1 car date toujours présent
             try {
-                saveSwimmerData(swimmerId, type, data);
+                saveSwimmerData(swimmer.id, type, data);
                 savedCount++;
-                console.log(`✅ Données sauvegardées pour ${swimmer.name}`);
             } catch (error) {
                 errors.push(`${swimmer.name}: ${error.message}`);
-                console.error(`❌ Erreur pour ${swimmer.name}:`, error);
             }
-        } else {
-            skippedCount++;
-            console.log(`⏭️ Aucune donnée pour ${swimmer.name} (ignoré)`);
         }
     });
     
-    // Afficher un résumé détaillé
-    let message = '';
     if (savedCount > 0) {
-        message += `✅ Données enregistrées avec succès pour ${savedCount} nageur(s) !\n`;
-        if (skippedCount > 0) {
-            message += `⏭️ ${skippedCount} nageur(s) ignoré(s) (aucune donnée saisie)\n`;
-        }
-        
-        alert(message);
+        alert(`✅ Données enregistrées avec succès pour ${savedCount} nageur(s) !`);
         closeCollectiveDataModal();
         
-        // ✅ Recharger les sections d'analyse ET les stats rapides pour synchroniser
+        // Recharger les sections d'analyse pour synchroniser
         if (currentTeam) {
             loadAllSections();
-            displayQuickStats();
-            console.log('🔄 Sections d\'analyse et stats équipe rechargées');
         }
     } else if (errors.length > 0) {
         alert(`❌ Erreurs lors de l'enregistrement:\n${errors.join('\n')}`);
     } else {
-        alert('⚠️ Aucune donnée à enregistrer. Veuillez remplir au moins un champ pour au moins un nageur.');
+        alert('⚠️ Aucune donnée à enregistrer. Veuillez remplir au moins un champ pour chaque nageur.');
     }
 }
 
@@ -1569,48 +1345,15 @@ function collectSwimmerData(type, prefix, swimmerId, date) {
     
     switch(type) {
         case 'wellbeing':
-            // ✅ COLLECTE DES 13 CHAMPS ALIGNÉS AVEC APP.JS
-            // Page 1: Évaluation Subjective (1-10)
-            const sleepQuality = document.getElementById(`${prefix}_sleepQuality`)?.value;
-            const energyLevel = document.getElementById(`${prefix}_energyLevel`)?.value;
-            const motivation = document.getElementById(`${prefix}_motivation`)?.value;
-            const stressLevel = document.getElementById(`${prefix}_stressLevel`)?.value;
-            const muscleRecovery = document.getElementById(`${prefix}_muscleRecovery`)?.value;
+            const sleep = document.getElementById(`${prefix}_sleep`)?.value;
+            const fatigue = document.getElementById(`${prefix}_fatigue`)?.value;
+            const stress = document.getElementById(`${prefix}_stress`)?.value;
+            const pain = document.getElementById(`${prefix}_pain`)?.value;
             
-            // Page 2: Données Quantitatives
-            const sleepHours = document.getElementById(`${prefix}_sleepHours`)?.value;
-            const bodyWeight = document.getElementById(`${prefix}_bodyWeight`)?.value;
-            const nightAwakenings = document.getElementById(`${prefix}_nightAwakenings`)?.value;
-            const wakeQuality = document.getElementById(`${prefix}_wakeQuality`)?.value;
-            
-            // Page 3: Symptômes Spécifiques
-            const musclePain = document.getElementById(`${prefix}_musclePain`)?.value;
-            const painLocation = document.getElementById(`${prefix}_painLocation`)?.value;
-            const generalFatigue = document.getElementById(`${prefix}_generalFatigue`)?.value;
-            const appetite = document.getElementById(`${prefix}_appetite`)?.value;
-            
-            // Remplir data avec les valeurs présentes
-            if (sleepQuality) { data.sleepQuality = parseInt(sleepQuality); hasData = true; }
-            if (energyLevel) { data.energyLevel = parseInt(energyLevel); hasData = true; }
-            if (motivation) { data.motivation = parseInt(motivation); hasData = true; }
-            if (stressLevel) { data.stressLevel = parseInt(stressLevel); hasData = true; }
-            if (muscleRecovery) { data.muscleRecovery = parseInt(muscleRecovery); hasData = true; }
-            if (sleepHours) { data.sleepHours = parseFloat(sleepHours); hasData = true; }
-            if (bodyWeight) { data.bodyWeight = parseFloat(bodyWeight); hasData = true; }
-            if (nightAwakenings) { data.nightAwakenings = nightAwakenings; hasData = true; }
-            if (wakeQuality) { data.wakeQuality = parseInt(wakeQuality); hasData = true; }
-            if (musclePain) { data.musclePain = parseInt(musclePain); hasData = true; }
-            if (painLocation) { data.painLocation = painLocation; hasData = true; }
-            if (generalFatigue) { data.generalFatigue = generalFatigue; hasData = true; }
-            if (appetite) { data.appetite = appetite; hasData = true; }
-            
-            // Calculer le score global de bien-être (moyenne des 5 métriques subjectives)
-            if (sleepQuality && energyLevel && motivation && stressLevel && muscleRecovery) {
-                data.score = parseFloat((
-                    (parseInt(sleepQuality) + parseInt(energyLevel) + parseInt(motivation) + 
-                     (11 - parseInt(stressLevel)) + parseInt(muscleRecovery)) / 5
-                ).toFixed(2));
-            }
+            if (sleep) { data.sleep = parseInt(sleep); hasData = true; }
+            if (fatigue) { data.fatigue = parseInt(fatigue); hasData = true; }
+            if (stress) { data.stress = parseInt(stress); hasData = true; }
+            if (pain) { data.pain = parseInt(pain); hasData = true; }
             break;
             
         case 'training':
