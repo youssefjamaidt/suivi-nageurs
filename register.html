@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Suivi Nageurs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 550px;
+            padding: 50px 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-container h1 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .logo-container .emoji {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .logo-container p {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        /* Wizard Steps */
+        .wizard-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .wizard-steps::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #9ca3af;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step.active .step-circle {
+            background: #667eea;
+            color: white;
+            transform: scale(1.2);
+        }
+
+        .step.completed .step-circle {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-label {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .step.active .step-label {
+            color: #667eea;
+        }
+
+        /* Form Sections */
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #9ca3af;
+        }
+
+        .password-strength {
+            margin-top: 8px;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            background: #ef4444;
+        }
+
+        .password-strength-bar.weak { width: 33%; background: #ef4444; }
+        .password-strength-bar.medium { width: 66%; background: #f59e0b; }
+        .password-strength-bar.strong { width: 100%; background: #10b981; }
+
+        .password-hint {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            margin-top: 2px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .checkbox-group label {
+            color: #6b7280;
+            font-size: 0.9rem;
+            cursor: pointer;
+            line-height: 1.4;
+        }
+
+        .checkbox-group label a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message, .success-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #dc2626;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #059669;
+        }
+
+        .links-container {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .links-container a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .links-container a:hover {
+            text-decoration: underline;
+        }
+
+        .pending-approval {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .pending-approval .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .pending-approval h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .pending-approval p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .register-container {
+                padding: 30px 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .wizard-steps {
+                margin-bottom: 20px;
+            }
+
+            .step-label {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="logo-container">
+            <span class="emoji">🏊‍♂️</span>
+            <h1>Inscription Entraîneur</h1>
+            <p>Créez votre compte en quelques étapes</p>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
+
+        <!-- Wizard Steps -->
+        <div class="wizard-steps">
+            <div class="step active" data-step="1">
+                <div class="step-circle">1</div>
+                <span class="step-label">Informations</span>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-circle">2</div>
+                <span class="step-label">Club</span>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-circle">3</div>
+                <span class="step-label">Sécurité</span>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-circle">4</div>
+                <span class="step-label">Validation</span>
+            </div>
+        </div>
+
+        <form id="register-form">
+            <!-- Étape 1: Informations personnelles -->
+            <div class="form-section active" data-section="1">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">Prénom *</label>
+                        <input type="text" id="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Nom *</label>
+                        <input type="text" id="lastName" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Adresse email *</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" onclick="nextStep()">Continuer</button>
+                </div>
+            </div>
+
+            <!-- Étape 2: Club & Contact -->
+            <div class="form-section" data-section="2">
+                <div class="form-group">
+                    <label for="club">Nom du club / Organisation *</label>
+                    <input type="text" id="club" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Téléphone (optionnel)</label>
+                    <input type="tel" id="phone" placeholder="+33 6 12 34 56 78">
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="prevStep()">Retour</button>
+                    <button type="button" class="btn btn-primary" onclick="nextStep()">Continuer</button>
+                </div>
+            </div>
+
+            <!-- Étape 3: Mot de passe -->
+            <div class="form-section" data-section="3">
+                <div class="form-group">
+                    <label for="password">Mot de passe *</label>
+                    <div class="password-container">
+                        <input type="password" id="password" required oninput="checkPasswordStrength()">
+                        <span class="password-toggle" onclick="togglePassword('password')">👁️</span>
+                    </div>
+                    <div class="password-strength">
+                        <div class="password-strength-bar" id="strength-bar"></div>
+                    </div>
+                    <div class="password-hint">
+                        Minimum 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmer le mot de passe *</label>
+                    <div class="password-container">
+                        <input type="password" id="confirmPassword" required>
+                        <span class="password-toggle" onclick="togglePassword('confirmPassword')">👁️</span>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="prevStep()">Retour</button>
+                    <button type="button" class="btn btn-primary" onclick="nextStep()">Continuer</button>
+                </div>
+            </div>
+
+            <!-- Étape 4: Conditions -->
+            <div class="form-section" data-section="4">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="acceptTerms" required>
+                    <label for="acceptTerms">
+                        J'accepte les <a href="#" target="_blank">conditions d'utilisation</a> 
+                        et la <a href="#" target="_blank">politique de confidentialité</a>
+                    </label>
+                </div>
+                <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 20px;">
+                    ⏱️ Votre demande sera examinée par un administrateur sous 24-48h. 
+                    Vous recevrez un email de confirmation.
+                </p>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="prevStep()">Retour</button>
+                    <button type="submit" class="btn btn-primary" id="submit-btn">Créer mon compte</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Écran confirmation après inscription -->
+        <div id="pending-approval" class="pending-approval" style="display: none;">
+            <div class="icon">✅</div>
+            <h2>Demande envoyée !</h2>
+            <p>Votre demande d'inscription a été transmise aux administrateurs.</p>
+            <p>Vous recevrez un email de confirmation dès que votre compte sera validé (généralement sous 24-48h).</p>
+            <p style="margin-top: 20px;">
+                <strong>Email d'inscription :</strong> <span id="registered-email"></span>
+            </p>
+            <div style="margin-top: 30px;">
+                <a href="login.html" class="btn btn-primary" style="display: inline-block; text-decoration: none; padding: 15px 40px;">
+                    Retour à la connexion
+                </a>
+            </div>
+        </div>
+
+        <div class="links-container" id="links-container">
+            Vous avez déjà un compte ? <a href="login.html">Se connecter</a>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const toggle = field.nextElementSibling;
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                toggle.textContent = '🙈';
+            } else {
+                field.type = 'password';
+                toggle.textContent = '👁️';
+            }
+        }
+
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const strengthBar = document.getElementById('strength-bar');
+            
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+            
+            strengthBar.className = 'password-strength-bar';
+            if (strength >= 4) strengthBar.classList.add('strong');
+            else if (strength >= 3) strengthBar.classList.add('medium');
+            else if (strength >= 1) strengthBar.classList.add('weak');
+        }
+
+        function updateWizard() {
+            document.querySelectorAll('.step').forEach(step => {
+                const stepNum = parseInt(step.dataset.step);
+                step.classList.remove('active', 'completed');
+                
+                if (stepNum === currentStep) {
+                    step.classList.add('active');
+                } else if (stepNum < currentStep) {
+                    step.classList.add('completed');
+                }
+            });
+
+            document.querySelectorAll('.form-section').forEach(section => {
+                const sectionNum = parseInt(section.dataset.section);
+                section.classList.toggle('active', sectionNum === currentStep);
+            });
+        }
+
+        function validateStep(step) {
+            const section = document.querySelector(`[data-section="${step}"]`);
+            const inputs = section.querySelectorAll('input[required]');
+            
+            for (let input of inputs) {
+                if (!input.value.trim()) {
+                    showError(`Veuillez remplir tous les champs obligatoires`);
+                    input.focus();
+                    return false;
+                }
+            }
+
+            if (step === 1) {
+                const email = document.getElementById('email').value;
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showError('Adresse email invalide');
+                    return false;
+                }
+            }
+
+            if (step === 3) {
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (password.length < 8) {
+                    showError('Le mot de passe doit contenir au moins 8 caractères');
+                    return false;
+                }
+                
+                if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+                    showError('Le mot de passe doit contenir au moins 1 majuscule, 1 minuscule et 1 chiffre');
+                    return false;
+                }
+                
+                if (password !== confirmPassword) {
+                    showError('Les mots de passe ne correspondent pas');
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function nextStep() {
+            if (!validateStep(currentStep)) return;
+            
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateWizard();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateWizard();
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!validateStep(4)) return;
+            
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Création en cours...';
+            
+            try {
+                const formData = {
+                    firstName: document.getElementById('firstName').value.trim(),
+                    lastName: document.getElementById('lastName').value.trim(),
+                    email: document.getElementById('email').value.trim().toLowerCase(),
+                    club: document.getElementById('club').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    password: document.getElementById('password').value
+                };
+
+                // Créer compte Firebase Auth
+                const userCredential = await auth.createUserWithEmailAndPassword(formData.email, formData.password);
+                const user = userCredential.user;
+
+                // Créer document utilisateur dans Firestore
+                await db.collection('users').doc(user.uid).set({
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    club: formData.club,
+                    phone: formData.phone || '',
+                    role: 'coach',
+                    status: 'pending', // En attente de validation admin
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastLogin: null,
+                    teams: []
+                });
+
+                // TODO: Envoyer email à l'admin (Cloud Function)
+                // await db.collection('notifications').add({...})
+
+                // Déconnexion immédiate (compte non validé)
+                await auth.signOut();
+
+                // Afficher message de succès
+                document.getElementById('register-form').style.display = 'none';
+                document.querySelector('.wizard-steps').style.display = 'none';
+                document.getElementById('links-container').style.display = 'none';
+                document.getElementById('registered-email').textContent = formData.email;
+                document.getElementById('pending-approval').style.display = 'block';
+
+            } catch (error) {
+                console.error('Erreur inscription:', error);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Créer mon compte';
+                
+                let errorMsg = 'Une erreur est survenue';
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMsg = 'Cette adresse email est déjà utilisée';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMsg = 'Adresse email invalide';
+                        break;
+                    case 'auth/weak-password':
+                        errorMsg = 'Mot de passe trop faible';
+                        break;
+                    default:
+                        errorMsg = error.message;
+                }
+                showError(errorMsg);
+            }
+        });
+    </script>
+</body>
+</html>
