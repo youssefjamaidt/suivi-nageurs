@@ -6,12 +6,12 @@
 
 // Configuration Firebase (à remplacer avec vos propres clés)
 const firebaseConfig = {
-    apiKey: "VOTRE_API_KEY", // À remplacer
-    authDomain: "VOTRE_PROJECT_ID.firebaseapp.com", // À remplacer
-    projectId: "VOTRE_PROJECT_ID", // À remplacer
-    storageBucket: "VOTRE_PROJECT_ID.appspot.com", // À remplacer
-    messagingSenderId: "VOTRE_SENDER_ID", // À remplacer
-    appId: "VOTRE_APP_ID" // À remplacer
+    apiKey: "AIzaSyCrpyrlingOVhRX9lomieycdyofh8KdMMc", // À remplacer
+    authDomain: "suivi-nageurs-30365192-63432.firebaseapp.com", // À remplacer
+    projectId: "suivi-nageurs-30365192-63432", // À remplacer
+    storageBucket: "suivi-nageurs-30365192-63432.firebasestorage.app", // À remplacer
+    messagingSenderId: "112600155414", // À remplacer
+    appId: "1:112600155414:web:1a1a12b4eb9d4faa273c37" // À remplacer
 };
 
 // Initialiser Firebase
