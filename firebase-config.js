@@ -242,7 +242,7 @@ const defaultUserData = {
     lastName: "Système",
     role: "admin",
     status: "active",
-    club: "Votre Club",
+    club: "Mon Club",
     phone: "0600000000",
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     lastLogin: firebase.firestore.FieldValue.serverTimestamp()
