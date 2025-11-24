@@ -4,14 +4,14 @@
 // Ce fichier initialise Firebase dans l'application
 // À personnaliser avec vos clés API Firebase
 
-// Configuration Firebase (à remplacer avec vos propres clés)
+// Configuration Firebase (Production - stoked-energy-477102-k5)
 const firebaseConfig = {
-    apiKey: "AIzaSyCrpyrlingOVhRX9lomieycdyofh8KdMMc", // À remplacer
-    authDomain: "suivi-nageurs-30365192-63432.firebaseapp.com", // À remplacer
-    projectId: "suivi-nageurs-30365192-63432", // À remplacer
-    storageBucket: "suivi-nageurs-30365192-63432.firebasestorage.app", // À remplacer
-    messagingSenderId: "112600155414", // À remplacer
-    appId: "1:112600155414:web:1a1a12b4eb9d4faa273c37" // À remplacer
+    apiKey: "AIzaSyDv8jLzYxGHnxPyV3M7ZPLb9QxNYqVuGJI",
+    authDomain: "stoked-energy-477102-k5.firebaseapp.com",
+    projectId: "stoked-energy-477102-k5",
+    storageBucket: "stoked-energy-477102-k5.firebasestorage.app",
+    messagingSenderId: "784959447730",
+    appId: "1:784959447730:web:8e7d4c9a3b5f6a2e1c4d5e"
 };
 
 // Initialiser Firebase
