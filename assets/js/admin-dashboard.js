@@ -178,16 +178,22 @@ async function loadRegistrationRequests() {
     try {
         showToast('Chargement des demandes...', 'info');
         
-        // Récupérer les demandes en attente
+        // Récupérer les demandes en attente (sans orderBy pour éviter l'index composite)
         const pendingUsersSnapshot = await db.collection('users')
             .where('status', '==', 'pending')
-            .orderBy('createdAt', 'desc')
             .get();
         
-        const requests = pendingUsersSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        // Trier manuellement par date
+        const requests = pendingUsersSnapshot.docs
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+            .sort((a, b) => {
+                const dateA = a.createdAt?.toDate() || new Date(0);
+                const dateB = b.createdAt?.toDate() || new Date(0);
+                return dateB - dateA;
+            });
         
         displayRegistrationRequests(requests);
         
@@ -315,14 +321,20 @@ async function loadAllUsers() {
     try {
         showToast('Chargement des utilisateurs...', 'info');
         
-        const usersSnapshot = await db.collection('users')
-            .orderBy('createdAt', 'desc')
-            .get();
+        // Récupérer tous les utilisateurs (sans orderBy pour éviter l'index)
+        const usersSnapshot = await db.collection('users').get();
         
-        const users = usersSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        // Trier manuellement par date
+        const users = usersSnapshot.docs
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+            .sort((a, b) => {
+                const dateA = a.createdAt?.toDate() || new Date(0);
+                const dateB = b.createdAt?.toDate() || new Date(0);
+                return dateB - dateA;
+            });
         
         displayAllUsers(users);
         
