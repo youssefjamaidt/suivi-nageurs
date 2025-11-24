@@ -230,3 +230,20 @@ function showToast(message, type = 'info') {
 // export { auth, db, getCurrentUser, requireAuth, getUserData, checkUserRole, logout };
 
 console.log('🔥 Firebase configuré et prêt !');
+
+// ====================================
+// DONNÉES UTILISATEUR PAR DÉFAUT
+// ====================================
+// À utiliser pour créer des utilisateurs par défaut dans Firestore
+
+const defaultUserData = {
+    email: "admin@suivi-nageurs.com",
+    firstName: "Admin",
+    lastName: "Système",
+    role: "admin",
+    status: "active",
+    club: "Votre Club",
+    phone: "0600000000",
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+};
