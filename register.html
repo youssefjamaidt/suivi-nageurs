@@ -359,7 +359,7 @@
     <div class="register-container">
         <div class="logo-container">
             <span class="emoji">🏊‍♂️</span>
-            <h1>Inscription Entraîneur</h1>
+            <h1>Inscription</h1>
             <p>Créez votre compte en quelques étapes</p>
         </div>
 
@@ -410,6 +410,18 @@
 
             <!-- Étape 2: Club & Contact -->
             <div class="form-section" data-section="2">
+                <div class="form-group">
+                    <label for="role">Rôle *</label>
+                    <select id="role" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 1rem; color: #374151; cursor: pointer; background: white;">
+                        <option value="">-- Sélectionnez votre rôle --</option>
+                        <option value="admin">👑 Administrateur</option>
+                        <option value="coach">🏊‍♂️ Entraîneur</option>
+                    </select>
+                    <div style="font-size: 0.8rem; color: #6b7280; margin-top: 5px;">
+                        • <strong>Administrateur</strong> : Gestion complète de la plateforme<br>
+                        • <strong>Entraîneur</strong> : Gestion des équipes et nageurs
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="club">Nom du club / Organisation *</label>
                     <input type="text" id="club" required>
@@ -553,7 +565,7 @@
 
         function validateStep(step) {
             const section = document.querySelector(`[data-section="${step}"]`);
-            const inputs = section.querySelectorAll('input[required]');
+            const inputs = section.querySelectorAll('input[required], select[required]');
             
             for (let input of inputs) {
                 if (!input.value.trim()) {
@@ -567,6 +579,14 @@
                 const email = document.getElementById('email').value;
                 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                     showError('Adresse email invalide');
+                    return false;
+                }
+            }
+
+            if (step === 2) {
+                const role = document.getElementById('role').value;
+                if (!role) {
+                    showError('Veuillez sélectionner votre rôle');
                     return false;
                 }
             }
@@ -637,6 +657,7 @@
                     firstName: document.getElementById('firstName').value.trim(),
                     lastName: document.getElementById('lastName').value.trim(),
                     email: document.getElementById('email').value.trim().toLowerCase(),
+                    role: document.getElementById('role').value,
                     club: document.getElementById('club').value.trim(),
                     phone: document.getElementById('phone').value.trim(),
                     password: document.getElementById('password').value
@@ -653,7 +674,7 @@
                     email: formData.email,
                     club: formData.club,
                     phone: formData.phone || '',
-                    role: 'coach',
+                    role: formData.role,
                     status: 'pending', // En attente de validation admin
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     lastLogin: null,
