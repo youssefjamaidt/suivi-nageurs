@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Suivi Sportif - Coach</title>
+    <title>Suivi Sportif - Nageur</title>
     <link rel="stylesheet" href="assets/css/home.css">
     <link rel="stylesheet" href="assets/css/mobile-responsive.css">
     <style>
@@ -134,23 +134,31 @@
                     return;
                 }
                 
-                // Vérifier que c'est un coach
-                if (userData.role !== 'coach') {
-                    console.warn('Accès refusé: rôle non-coach');
-                    // Rediriger vers la bonne interface
-                    redirectByRole(userData.role);
+                // Vérifier le rôle et rediriger
+                if (userData.role === 'coach') {
+                    // Rediriger les coaches vers leur dashboard
+                    window.location.href = 'coach-dashboard.html';
                     return;
-                }
-                
-                // Vérifier que le compte est actif
-                if (userData.status !== 'active') {
-                    alert('Votre compte est en attente de validation par un administrateur.');
+                } else if (userData.role === 'admin') {
+                    // Rediriger les admins vers leur dashboard
+                    window.location.href = 'admin.html';
+                    return;
+                } else if (userData.role !== 'nageur') {
+                    console.warn('Accès refusé: rôle inconnu');
                     await auth.signOut();
                     window.location.href = 'login.html';
                     return;
                 }
                 
-                // Authentification OK, afficher la page
+                // Vérifier que le compte est actif
+                if (userData.status !== 'active') {
+                    alert('Votre compte est en attente de validation par votre entraîneur.');
+                    await auth.signOut();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Authentification OK pour un nageur, afficher la page
                 document.getElementById('auth-loader').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
                 document.querySelector('.logout-btn').style.display = 'block';

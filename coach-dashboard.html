@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Entraîneur - Suivi Nageurs</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .swimmers-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .add-swimmer-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-swimmer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .swimmers-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .swimmers-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .swimmers-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .swimmers-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .swimmers-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-disabled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            margin-right: 5px;
+        }
+
+        .btn-edit {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-reset-password {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .btn-disable {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-enable {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .close-modal {
+            font-size: 2rem;
+            color: #999;
+            cursor: pointer;
+            border: none;
+            background: none;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .info-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #1976D2;
+        }
+
+        .password-display {
+            background-color: #f8f9fa;
+            border: 2px dashed #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .password-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            font-family: monospace;
+            margin: 10px 0;
+            user-select: all;
+        }
+
+        .copy-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .swimmers-table {
+                font-size: 0.85rem;
+            }
+
+            .swimmers-table th,
+            .swimmers-table td {
+                padding: 10px 5px;
+            }
+
+            .action-btn {
+                padding: 5px 8px;
+                font-size: 0.75rem;
+                margin-bottom: 5px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h2>🏊 Coach Panel</h2>
+        </div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" onclick="showSection('swimmers')">
+                <span class="nav-icon">🏊‍♂️</span>
+                <span class="nav-text">Mes Nageurs</span>
+            </a>
+            <a href="dashboard.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Performances</span>
+            </a>
+            <a href="equipe.html" class="nav-item">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">Équipe</span>
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()">
+                <span class="nav-icon">🚪</span>
+                <span class="nav-text">Déconnexion</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h1>Gestion des Nageurs</h1>
+            <div class="user-info" id="user-info">
+                <span id="user-name">Chargement...</span>
+            </div>
+        </div>
+
+        <!-- Section Mes Nageurs -->
+        <div id="swimmers-section" class="swimmers-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>🏊‍♂️</span>
+                    <span>Mes Nageurs</span>
+                </h2>
+                <button class="add-swimmer-btn" onclick="openCreateSwimmerModal()">
+                    <span>➕</span>
+                    <span>Ajouter un Nageur</span>
+                </button>
+            </div>
+
+            <div id="swimmers-container">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🏊</div>
+                    <p>Chargement des nageurs...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Créer Nageur -->
+    <div id="create-swimmer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">➕ Ajouter un Nageur</h3>
+                <button class="close-modal" onclick="closeCreateSwimmerModal()">&times;</button>
+            </div>
+
+            <form id="create-swimmer-form" onsubmit="createSwimmer(event)">
+                <div class="form-group">
+                    <label for="swimmer-firstName">Prénom *</label>
+                    <input type="text" id="swimmer-firstName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="swimmer-lastName">Nom *</label>
+                    <input type="text" id="swimmer-lastName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="swimmer-email">Email *</label>
+                    <input type="email" id="swimmer-email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="swimmer-birthdate">Date de naissance</label>
+                    <input type="date" id="swimmer-birthdate">
+                </div>
+
+                <div class="form-group">
+                    <label for="swimmer-level">Niveau</label>
+                    <select id="swimmer-level">
+                        <option value="debutant">Débutant</option>
+                        <option value="intermediaire">Intermédiaire</option>
+                        <option value="avance">Avancé</option>
+                        <option value="elite">Élite</option>
+                    </select>
+                </div>
+
+                <div class="info-box">
+                    <p><strong>ℹ️ Information :</strong></p>
+                    <p>Un mot de passe temporaire sera généré automatiquement pour le nageur.</p>
+                    <p>Vous devrez le transmettre au nageur pour sa première connexion.</p>
+                </div>
+
+                <button type="submit" class="submit-btn">Créer le Nageur</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Affichage Mot de Passe -->
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🔐 Compte Créé avec Succès</h3>
+                <button class="close-modal" onclick="closePasswordModal()">&times;</button>
+            </div>
+
+            <div class="password-display">
+                <p><strong>Mot de passe temporaire du nageur :</strong></p>
+                <div class="password-value" id="temp-password">••••••••</div>
+                <button class="copy-btn" onclick="copyPassword()">📋 Copier</button>
+            </div>
+
+            <div class="info-box">
+                <p><strong>⚠️ Important :</strong></p>
+                <p>• Copiez ce mot de passe maintenant</p>
+                <p>• Transmettez-le au nageur de manière sécurisée</p>
+                <p>• Le nageur pourra se connecter avec son email et ce mot de passe</p>
+                <p>• Il est recommandé au nageur de changer ce mot de passe après sa première connexion</p>
+            </div>
+
+            <button class="submit-btn" onclick="closePasswordModal()">J'ai noté le mot de passe</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/coach-swimmers.js"></script>
+
+    <script>
+        // Vérifier l'authentification au chargement
+        async function checkAuth() {
+            try {
+                const user = await getCurrentUser();
+                
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                const userData = await getUserData(user.uid);
+                
+                if (!userData) {
+                    await auth.signOut();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Vérifier que c'est un coach actif
+                if (userData.role !== 'coach' || userData.status !== 'active') {
+                    alert('Accès réservé aux entraîneurs actifs.');
+                    await auth.signOut();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Afficher les infos utilisateur
+                document.getElementById('user-name').textContent = 
+                    `${userData.firstName} ${userData.lastName}`;
+                
+                // Charger les nageurs
+                loadSwimmers();
+                
+            } catch (error) {
+                console.error('Erreur vérification auth:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Démarrer la vérification
+        checkAuth();
+
+        // Gestion de la navigation
+        function showSection(section) {
+            // Pour l'instant, une seule section
+            document.getElementById('swimmers-section').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
