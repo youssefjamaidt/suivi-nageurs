@@ -8,7 +8,9 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-      "**/*.md"
+      "**/*.md",
+      "admin-local.html",
+      "assets/js/admin-local.js"
     ]
   }
 }

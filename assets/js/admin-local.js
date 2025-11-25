@@ -12,37 +12,23 @@ let currentEditingUser = null;
 // Vérifier l'authentification au chargement
 async function checkAuth() {
     try {
-        // CETTE VERSION NÉCESSITE UNE AUTHENTIFICATION
-        const user = await getCurrentUser();
+        // ⚠️ MODE LOCAL UNIQUEMENT - PAS D'AUTHENTIFICATION
+        // Cette version est accessible uniquement depuis les fichiers du projet
+        console.log('🔓 MODE ADMIN LOCAL - Accès sans authentification');
         
-        if (!user) {
-            alert('⚠️ Accès non autorisé. Cette page nécessite une authentification.');
-            window.location.href = 'login.html';
-            return;
-        }
+        currentAdmin = {
+            uid: 'BFJXXQypUKh4redqvcjeQxTamql1',
+            email: 'youssef.yakachi@gmail.com',
+            firstName: 'Youssef',
+            lastName: 'Yakachi',
+            role: 'admin',
+            status: 'active',
+            isLocalMode: true
+        };
         
-        const userData = await getUserData(user.uid);
-        
-        if (!userData) {
-            console.error('Données utilisateur introuvables');
-            await auth.signOut();
-            window.location.href = 'login.html';
-            return;
-        }
-        
-        // Vérifier que c'est un admin
-        if (userData.role !== 'admin') {
-            alert('⚠️ Accès refusé. Seuls les administrateurs peuvent accéder à cette page.');
-            console.warn('Accès refusé: rôle non-admin');
-            redirectByRole(userData.role);
-            return;
-        }
-        
-        currentAdmin = userData;
-        
-        // Afficher le nom de l'admin
+        // Afficher le nom de l'admin avec indication LOCAL
         document.getElementById('admin-name').textContent = 
-            `${userData.firstName} ${userData.lastName}`;
+            `${currentAdmin.firstName} ${currentAdmin.lastName} 🔓`;
         
         // Masquer loader et afficher interface
         document.getElementById('auth-loader').style.display = 'none';
@@ -53,9 +39,8 @@ async function checkAuth() {
         await loadRegistrationRequests();
         
     } catch (error) {
-        console.error('Erreur vérification auth:', error);
-        alert('Erreur d\'authentification. Redirection vers la page de connexion.');
-        window.location.href = 'login.html';
+        console.error('Erreur chargement admin local:', error);
+        alert('Erreur lors du chargement de l\'interface admin locale');
     }
 }
 
@@ -864,13 +849,8 @@ function getStatusLabel(status) {
 }
 
 async function handleLogout() {
-    if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-        try {
-            await logout();
-        } catch (error) {
-            console.error('Erreur déconnexion:', error);
-            alert('Erreur lors de la déconnexion');
-        }
+    if (confirm('Voulez-vous vraiment quitter le tableau de bord ?')) {
+        window.location.href = 'index.html';
     }
 }
 
