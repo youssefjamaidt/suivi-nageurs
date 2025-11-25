@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Déploiement Final</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        .step {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .step-number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .credentials {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .credentials h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        .cred-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .cred-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .cred-value {
+            color: #667eea;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .log-area {
+            background: #212529;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+            display: none;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 0;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+        .warning { color: #f59e0b; }
+        .links {
+            display: grid;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .link-btn {
+            display: block;
+            padding: 15px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .link-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Déploiement Application</h1>
+
+        <div class="credentials">
+            <h3>🔑 Identifiants Admin</h3>
+            <div class="cred-item">
+                <span class="cred-label">📧 Email:</span>
+                <span class="cred-value">youssef.yakachi@gmail.com</span>
+            </div>
+            <div class="cred-item">
+                <span class="cred-label">🔐 Mot de passe:</span>
+                <span class="cred-value">Maroc1997</span>
+            </div>
+            <div class="cred-item">
+                <span class="cred-label">🆔 UID:</span>
+                <span class="cred-value" style="font-size: 0.85rem;">BFJXXQypUKh4redqvcjeQxTamql1</span>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">1</span>
+                Configuration automatique
+            </div>
+            <p style="color: #666; margin-top: 10px;">
+                Cliquez sur le bouton ci-dessous pour configurer automatiquement votre compte admin dans Firestore.
+            </p>
+        </div>
+
+        <button id="deploy-btn" onclick="deployApp()">
+            🚀 Déployer et Configurer Maintenant
+        </button>
+
+        <div id="log-area" class="log-area"></div>
+
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">2</span>
+                Accès à votre application
+            </div>
+            <div class="links">
+                <a href="admin.html" class="link-btn" id="admin-link" style="pointer-events: none; opacity: 0.5;">
+                    👤 Tableau de bord Admin
+                </a>
+                <a href="https://console.firebase.google.com/project/stoked-energy-477102-k5/firestore" target="_blank" class="link-btn">
+                    🔥 Console Firebase
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        const ADMIN_UID = 'BFJXXQypUKh4redqvcjeQxTamql1';
+        const ADMIN_EMAIL = 'youssef.yakachi@gmail.com';
+        const ADMIN_PASSWORD = 'Maroc1997';
+
+        function log(message, type = 'info') {
+            const logArea = document.getElementById('log-area');
+            logArea.style.display = 'block';
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logArea.appendChild(entry);
+            logArea.scrollTop = logArea.scrollHeight;
+            console.log(message);
+        }
+
+        async function deployApp() {
+            const btn = document.getElementById('deploy-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Configuration en cours...';
+            
+            document.getElementById('log-area').innerHTML = '';
+
+            try {
+                log('🚀 Démarrage du déploiement automatique...', 'info');
+                log('', 'info');
+
+                // ÉTAPE 1: Test de connexion Firestore
+                log('📡 ÉTAPE 1/5: Test de connexion Firestore...', 'info');
+                
+                try {
+                    const testDoc = await db.collection('_system').doc('test').set({
+                        deployed: true,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    log('✅ Connexion Firestore réussie', 'success');
+                } catch (err) {
+                    log('⚠️  Erreur de connexion: ' + err.message, 'warning');
+                    
+                    if (err.code === 'permission-denied') {
+                        log('', 'info');
+                        log('🔧 ACTION REQUISE:', 'error');
+                        log('1. Ouvrez: https://console.firebase.google.com/project/stoked-energy-477102-k5/firestore/rules', 'info');
+                        log('2. Remplacez les règles par:', 'info');
+                        log('   rules_version = "2";', 'info');
+                        log('   service cloud.firestore {', 'info');
+                        log('     match /databases/{database}/documents {', 'info');
+                        log('       match /{document=**} {', 'info');
+                        log('         allow read, write: if true;', 'info');
+                        log('       }', 'info');
+                        log('     }', 'info');
+                        log('   }', 'info');
+                        log('3. Cliquez sur "Publier"', 'info');
+                        log('4. Revenez ici et recliquez sur le bouton', 'warning');
+                        log('', 'info');
+                        
+                        btn.disabled = false;
+                        btn.textContent = '🔄 Réessayer après configuration des règles';
+                        return;
+                    }
+                    throw err;
+                }
+
+                log('', 'info');
+
+                // ÉTAPE 2: Créer/Mettre à jour le compte admin
+                log('👤 ÉTAPE 2/5: Configuration du compte admin...', 'info');
+                
+                const adminDocRef = db.collection('users').doc(ADMIN_UID);
+                const adminDoc = await adminDocRef.get();
+
+                if (adminDoc.exists) {
+                    log('📄 Compte admin existe, mise à jour...', 'info');
+                    await adminDocRef.update({
+                        role: 'admin',
+                        status: 'active',
+                        email: ADMIN_EMAIL,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    log('📝 Création du compte admin...', 'info');
+                    await adminDocRef.set({
+                        email: ADMIN_EMAIL,
+                        firstName: 'Youssef',
+                        lastName: 'Yakachi',
+                        role: 'admin',
+                        status: 'active',
+                        isOwner: true,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                
+                log('✅ Compte admin configuré', 'success');
+                log('', 'info');
+
+                // ÉTAPE 3: Nettoyer les autres admins
+                log('🧹 ÉTAPE 3/5: Nettoyage des comptes...', 'info');
+                
+                const adminsSnapshot = await db.collection('users')
+                    .where('role', '==', 'admin')
+                    .get();
+
+                let otherAdmins = 0;
+                const batch = db.batch();
+                
+                adminsSnapshot.forEach(doc => {
+                    if (doc.id !== ADMIN_UID) {
+                        log(`   🗑️  Suppression: ${doc.data().email}`, 'warning');
+                        batch.delete(doc.ref);
+                        otherAdmins++;
+                    }
+                });
+
+                if (otherAdmins > 0) {
+                    await batch.commit();
+                    log(`✅ ${otherAdmins} compte(s) admin supprimé(s)`, 'success');
+                } else {
+                    log('✅ Aucun compte admin en double', 'success');
+                }
+                
+                log('', 'info');
+
+                // ÉTAPE 4: Statistiques
+                log('📊 ÉTAPE 4/5: Statistiques de la base...', 'info');
+                
+                const allUsers = await db.collection('users').get();
+                const coaches = allUsers.docs.filter(doc => doc.data().role === 'coach').length;
+                const nageurs = allUsers.docs.filter(doc => doc.data().role === 'nageur').length;
+                
+                log(`   👤 Admin: 1`, 'info');
+                log(`   🏊‍♂️ Coaches: ${coaches}`, 'info');
+                log(`   🏊 Nageurs: ${nageurs}`, 'info');
+                log(`   📋 Total: ${allUsers.size} utilisateur(s)`, 'info');
+                
+                log('', 'info');
+
+                // ÉTAPE 5: Test de connexion
+                log('🔐 ÉTAPE 5/5: Test de connexion admin...', 'info');
+                
+                try {
+                    await auth.signInWithEmailAndPassword(ADMIN_EMAIL, ADMIN_PASSWORD);
+                    log('✅ Connexion admin réussie !', 'success');
+                    
+                    const currentUserDoc = await db.collection('users').doc(auth.currentUser.uid).get();
+                    const userData = currentUserDoc.data();
+                    log(`   Connecté en tant que: ${userData.firstName} ${userData.lastName}`, 'success');
+                    log(`   Rôle: ${userData.role}`, 'success');
+                    log(`   Statut: ${userData.status}`, 'success');
+                    
+                } catch (authError) {
+                    log('⚠️  Erreur de connexion: ' + authError.message, 'warning');
+                    log('   Vous devrez vous connecter manuellement sur admin.html', 'info');
+                }
+
+                log('', 'info');
+                log('', 'info');
+                log('🎉 DÉPLOIEMENT TERMINÉ AVEC SUCCÈS !', 'success');
+                log('', 'info');
+                log('📌 Prochaines étapes:', 'info');
+                log('1. Cliquez sur "Tableau de bord Admin" ci-dessous', 'info');
+                log('2. Allez dans "Gestion Entraîneurs"', 'info');
+                log('3. Créez votre premier coach', 'info');
+                log('4. Envoyez-lui le lien d\'activation', 'info');
+                log('', 'info');
+
+                // Activer le lien admin
+                const adminLink = document.getElementById('admin-link');
+                adminLink.style.pointerEvents = 'auto';
+                adminLink.style.opacity = '1';
+                
+                btn.textContent = '✅ Déploiement Réussi !';
+                btn.style.background = '#10b981';
+
+                // Proposer de rediriger
+                setTimeout(() => {
+                    if (confirm('✅ Configuration terminée !\n\nAller sur le tableau de bord admin maintenant ?')) {
+                        window.location.href = 'admin.html';
+                    }
+                }, 2000);
+
+            } catch (error) {
+                log('', 'info');
+                log('❌ ERREUR: ' + error.message, 'error');
+                console.error('Erreur complète:', error);
+                
+                btn.disabled = false;
+                btn.textContent = '🔄 Réessayer';
+                btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+        }
+
+        // Message de bienvenue
+        window.addEventListener('load', () => {
+            console.log('🚀 Page de déploiement prête');
+        });
+    </script>
+</body>
+</html>
