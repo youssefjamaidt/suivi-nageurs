@@ -12,34 +12,19 @@ let currentEditingUser = null;
 // Vérifier l'authentification au chargement
 async function checkAuth() {
     try {
-        const user = await getCurrentUser();
-        
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
-        
-        const userData = await getUserData(user.uid);
-        
-        if (!userData) {
-            console.error('Données utilisateur introuvables');
-            await auth.signOut();
-            window.location.href = 'login.html';
-            return;
-        }
-        
-        // Vérifier que c'est un admin
-        if (userData.role !== 'admin') {
-            console.warn('Accès refusé: rôle non-admin');
-            redirectByRole(userData.role);
-            return;
-        }
-        
-        currentAdmin = userData;
+        // MODE SANS AUTHENTIFICATION - Accès direct
+        currentAdmin = {
+            uid: 'BFJXXQypUKh4redqvcjeQxTamql1',
+            email: 'youssef.yakachi@gmail.com',
+            firstName: 'Youssef',
+            lastName: 'Yakachi',
+            role: 'admin',
+            status: 'active'
+        };
         
         // Afficher le nom de l'admin
         document.getElementById('admin-name').textContent = 
-            `${userData.firstName} ${userData.lastName}`;
+            `${currentAdmin.firstName} ${currentAdmin.lastName}`;
         
         // Masquer loader et afficher interface
         document.getElementById('auth-loader').style.display = 'none';
@@ -50,8 +35,8 @@ async function checkAuth() {
         await loadRegistrationRequests();
         
     } catch (error) {
-        console.error('Erreur vérification auth:', error);
-        window.location.href = 'login.html';
+        console.error('Erreur chargement:', error);
+        alert('Erreur lors du chargement de l\'interface admin');
     }
 }
 
@@ -860,13 +845,8 @@ function getStatusLabel(status) {
 }
 
 async function handleLogout() {
-    if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-        try {
-            await logout();
-        } catch (error) {
-            console.error('Erreur déconnexion:', error);
-            alert('Erreur lors de la déconnexion');
-        }
+    if (confirm('Voulez-vous vraiment quitter le tableau de bord ?')) {
+        window.location.href = 'index.html';
     }
 }
 
