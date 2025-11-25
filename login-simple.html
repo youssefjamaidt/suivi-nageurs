@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Simple</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .info {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔑 Connexion Admin Simple</h1>
+        
+        <div class="info">
+            <strong>📧 Email:</strong> youssef.yakachi@gmail.com<br>
+            <strong>🔐 Mot de passe:</strong> Maroc1997
+        </div>
+
+        <button onclick="tryLogin()">🚀 Se Connecter et Aller sur Admin</button>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        async function tryLogin() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = '⏳ Connexion en cours...';
+
+            try {
+                // Connexion avec email/password
+                const userCredential = await auth.signInWithEmailAndPassword(
+                    'youssef.yakachi@gmail.com',
+                    'Maroc1997'
+                );
+
+                const user = userCredential.user;
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    ✅ Connexion réussie !<br>
+                    👤 UID: ${user.uid}<br>
+                    📧 Email: ${user.email}<br><br>
+                    🔄 Redirection vers admin dans 2 secondes...
+                `;
+
+                // Essayer de créer le document Firestore
+                try {
+                    await db.collection('users').doc(user.uid).set({
+                        email: user.email,
+                        firstName: 'Youssef',
+                        lastName: 'Yakachi',
+                        role: 'admin',
+                        status: 'active',
+                        isOwner: true,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    
+                    console.log('✅ Document admin créé/mis à jour');
+                } catch (firestoreError) {
+                    console.warn('⚠️ Erreur Firestore (mais connexion OK):', firestoreError.message);
+                }
+
+                // Redirection vers admin
+                setTimeout(() => {
+                    window.location.href = 'admin.html';
+                }, 2000);
+
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    ❌ Erreur de connexion<br>
+                    ${error.message}<br><br>
+                    Code: ${error.code}
+                `;
+                console.error('Erreur:', error);
+            }
+        }
+    </script>
+</body>
+</html>
