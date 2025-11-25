@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Init Admin - Youssef</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .log {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .admin-info {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .admin-info strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔑 Initialisation Admin</h1>
+        
+        <div class="admin-info">
+            <strong>📧 Email:</strong> youssef.yakachi@gmail.com<br>
+            <strong>🔐 Mot de passe:</strong> Maroc1997<br>
+            <strong>🆔 UID:</strong> BFJXXQypUKh4redqvcjeQxTamql1
+        </div>
+
+        <button id="init-btn" onclick="initAdmin()">🚀 Initialiser le Compte Admin</button>
+        
+        <div id="logs"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        const ADMIN_UID = 'BFJXXQypUKh4redqvcjeQxTamql1';
+        const ADMIN_EMAIL = 'youssef.yakachi@gmail.com';
+
+        function log(message, type = 'log') {
+            const logsDiv = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log ${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(logEntry);
+            console.log(message);
+        }
+
+        async function initAdmin() {
+            const btn = document.getElementById('init-btn');
+            btn.disabled = true;
+            document.getElementById('logs').innerHTML = '';
+
+            try {
+                log('🔄 Démarrage de l\'initialisation...', 'info');
+
+                // Vérifier la connexion Firestore
+                log('📡 Test de connexion à Firestore...', 'info');
+                
+                try {
+                    await db.collection('_test').doc('connection').set({
+                        test: true,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    log('✅ Connexion Firestore OK', 'success');
+                    
+                    // Nettoyer le test
+                    await db.collection('_test').doc('connection').delete();
+                } catch (err) {
+                    log('❌ Erreur connexion Firestore: ' + err.message, 'error');
+                    log('ℹ️  Vérifiez les règles Firestore dans la console Firebase', 'info');
+                    throw err;
+                }
+
+                // Vérifier si le document admin existe
+                log('🔍 Vérification du document admin...', 'info');
+                const adminDocRef = db.collection('users').doc(ADMIN_UID);
+                const adminDoc = await adminDocRef.get();
+
+                if (adminDoc.exists) {
+                    log('📄 Document admin existe déjà', 'info');
+                    const data = adminDoc.data();
+                    log(`   Role: ${data.role}, Status: ${data.status}`, 'info');
+
+                    if (data.role !== 'admin' || data.status !== 'active') {
+                        log('⚠️  Configuration incorrecte, mise à jour...', 'info');
+                        
+                        await adminDocRef.update({
+                            role: 'admin',
+                            status: 'active',
+                            email: ADMIN_EMAIL,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        log('✅ Document admin mis à jour', 'success');
+                    } else {
+                        log('✅ Document admin déjà correctement configuré', 'success');
+                    }
+                } else {
+                    log('📝 Création du document admin...', 'info');
+                    
+                    await adminDocRef.set({
+                        email: ADMIN_EMAIL,
+                        firstName: 'Youssef',
+                        lastName: 'Yakachi',
+                        role: 'admin',
+                        status: 'active',
+                        isOwner: true,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    log('✅ Document admin créé avec succès', 'success');
+                }
+
+                // Vérifier qu'il n'y a pas d'autres admins
+                log('🔍 Vérification des autres comptes admin...', 'info');
+                const adminsSnapshot = await db.collection('users')
+                    .where('role', '==', 'admin')
+                    .get();
+
+                log(`   Trouvé ${adminsSnapshot.size} compte(s) admin`, 'info');
+
+                if (adminsSnapshot.size > 1) {
+                    log('⚠️  Plusieurs comptes admin détectés', 'error');
+                    adminsSnapshot.forEach(doc => {
+                        if (doc.id !== ADMIN_UID) {
+                            log(`   ⚠️  Autre admin: ${doc.data().email} (${doc.id})`, 'error');
+                        }
+                    });
+                    log('💡 Utilisez setup-admin.html pour nettoyer', 'info');
+                } else {
+                    log('✅ Un seul compte admin (correct)', 'success');
+                }
+
+                log('', 'info');
+                log('🎉 Initialisation terminée !', 'success');
+                log('➡️  Vous pouvez maintenant vous connecter sur admin.html', 'info');
+                log(`📧 Email: ${ADMIN_EMAIL}`, 'info');
+                log('🔐 Mot de passe: Maroc1997', 'info');
+
+                // Proposer de rediriger
+                setTimeout(() => {
+                    if (confirm('✅ Configuration terminée !\n\nVoulez-vous aller sur la page de connexion admin ?')) {
+                        window.location.href = 'admin.html';
+                    }
+                }, 1000);
+
+            } catch (error) {
+                log('❌ ERREUR: ' + error.message, 'error');
+                console.error('Erreur détaillée:', error);
+                
+                if (error.code === 'permission-denied') {
+                    log('', 'info');
+                    log('🔧 SOLUTION: Configurez les règles Firestore', 'info');
+                    log('1. Ouvrez: https://console.firebase.google.com/project/stoked-energy-477102-k5/firestore/rules', 'info');
+                    log('2. Cliquez sur "Modifier les règles"', 'info');
+                    log('3. Remplacez par les règles du fichier firestore.rules', 'info');
+                    log('4. Cliquez sur "Publier"', 'info');
+                }
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Info au chargement
+        window.addEventListener('load', () => {
+            log('✅ Page prête. Cliquez sur le bouton pour initialiser.', 'info');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && getUserData().role == 'admin';
+    }
+    
+    function isCoach() {
+      return isSignedIn() && getUserData().role == 'coach';
+    }
+    
+    function isNageur() {
+      return isSignedIn() && getUserData().role == 'nageur';
+    }
+    
+    function isActive() {
+      return isSignedIn() && getUserData().status == 'active';
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Lecture : l'utilisateur peut lire son propre document OU admin peut tout lire
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Création : seulement pendant l'inscription (pas authentifié) ou par admin
+      allow create: if !isSignedIn() || isAdmin();
+      
+      // Mise à jour : l'utilisateur peut modifier son propre profil OU admin peut tout modifier
+      allow update: if isOwner(userId) || isAdmin();
+      
+      // Suppression : seulement admin
+      allow delete: if isAdmin();
+      
+      // Les coaches peuvent lire leurs nageurs
+      allow read: if isCoach() && resource.data.coachId == request.auth.uid;
+    }
+    
+    // Invitations collection (pour les coaches)
+    match /invitations/{invitationId} {
+      // Lecture : admin et celui qui a l'invitation (via token)
+      allow read: if isAdmin();
+      
+      // Création : seulement admin
+      allow create: if isAdmin();
+      
+      // Mise à jour : admin ou pour marquer comme utilisé (lors de l'activation)
+      allow update: if isAdmin() || (!isSignedIn() && !resource.data.used);
+      
+      // Suppression : seulement admin
+      allow delete: if isAdmin();
+    }
+    
+    // Nageurs collection (performances, etc.)
+    match /nageurs/{nageurId} {
+      // Lecture : l'utilisateur lui-même, son coach, ou admin
+      allow read: if isOwner(nageurId) || isAdmin() || 
+                    (isCoach() && resource.data.coachId == request.auth.uid);
+      
+      // Écriture : l'utilisateur lui-même, son coach, ou admin
+      allow write: if isOwner(nageurId) || isAdmin() || 
+                     (isCoach() && resource.data.coachId == request.auth.uid);
+    }
+    
+    // Performances collection
+    match /performances/{performanceId} {
+      // Lecture : le nageur concerné, son coach, ou admin
+      allow read: if isActive() && 
+                    (resource.data.userId == request.auth.uid || 
+                     isAdmin() || 
+                     (isCoach() && resource.data.coachId == request.auth.uid));
+      
+      // Écriture : le nageur concerné, son coach, ou admin
+      allow create: if isActive();
+      allow update, delete: if isActive() && 
+                              (resource.data.userId == request.auth.uid || 
+                               isAdmin() || 
+                               (isCoach() && resource.data.coachId == request.auth.uid));
+    }
+    
+    // Équipes collection
+    match /equipes/{equipeId} {
+      // Lecture : tous les utilisateurs authentifiés et actifs
+      allow read: if isActive();
+      
+      // Écriture : seulement coaches et admin
+      allow write: if isActive() && (isCoach() || isAdmin());
+    }
+    
+    // Logs collection (pour audit)
+    match /logs/{logId} {
+      // Lecture : seulement admin
+      allow read: if isAdmin();
+      
+      // Création : tous les utilisateurs authentifiés (pour traçabilité)
+      allow create: if isSignedIn();
+      
+      // Pas de modification ni suppression des logs
+      allow update, delete: if false;
+    }
+    
+    // Par défaut, tout est bloqué
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
