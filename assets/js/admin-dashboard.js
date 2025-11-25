@@ -79,6 +79,10 @@ function showSection(sectionName) {
         case 'dashboard':
             loadDashboardStats();
             break;
+        case 'coaches':
+            loadCoaches();
+            loadPendingInvitations();
+            break;
         case 'requests':
             loadRegistrationRequests();
             break;
@@ -492,6 +496,314 @@ async function toggleUserStatus(userId, newStatus) {
     } catch (error) {
         console.error('Erreur modification statut:', error);
         showToast('Erreur lors de la modification', 'error');
+    }
+}
+
+// ====================================
+// GESTION ENTRAÎNEURS
+// ====================================
+
+// Charger la liste des entraîneurs
+async function loadCoaches() {
+    try {
+        showToast('Chargement des entraîneurs...', 'info');
+        
+        const coachesSnapshot = await db.collection('users')
+            .where('role', '==', 'coach')
+            .get();
+        
+        const coaches = coachesSnapshot.docs
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+            .sort((a, b) => {
+                const dateA = a.createdAt?.toDate() || new Date(0);
+                const dateB = b.createdAt?.toDate() || new Date(0);
+                return dateB - dateA;
+            });
+        
+        displayCoaches(coaches);
+        
+    } catch (error) {
+        console.error('Erreur chargement coaches:', error);
+        showToast('Erreur chargement des entraîneurs', 'error');
+    }
+}
+
+function displayCoaches(coaches) {
+    const container = document.getElementById('coaches-table');
+    
+    if (coaches.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">🏊‍♂️</div>
+                <p>Aucun entraîneur pour le moment</p>
+                <p style="font-size: 0.9rem; margin-top: 10px;">
+                    Cliquez sur "Créer un Entraîneur" pour inviter un nouveau coach
+                </p>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom Complet</th>
+                    <th>Email</th>
+                    <th>Club</th>
+                    <th>Statut</th>
+                    <th>Date Création</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${coaches.map(coach => `
+                    <tr>
+                        <td><strong>${coach.firstName} ${coach.lastName}</strong></td>
+                        <td>${coach.email}</td>
+                        <td>${coach.club || 'N/A'}</td>
+                        <td><span class="badge ${coach.status}">${getStatusLabel(coach.status)}</span></td>
+                        <td>${formatFirestoreDate(coach.createdAt)}</td>
+                        <td>
+                            <button class="action-btn btn-edit" onclick="editUser('${coach.id}')">
+                                ✏️ Modifier
+                            </button>
+                            ${coach.status === 'active' ? 
+                                `<button class="action-btn btn-disable" onclick="toggleUserStatus('${coach.id}', 'disabled')">
+                                    🔒 Désactiver
+                                </button>` :
+                                `<button class="action-btn btn-approve" onclick="toggleUserStatus('${coach.id}', 'active')">
+                                    🔓 Activer
+                                </button>`
+                            }
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// Charger les invitations en attente
+async function loadPendingInvitations() {
+    try {
+        const invitationsSnapshot = await db.collection('invitations')
+            .where('used', '==', false)
+            .where('role', '==', 'coach')
+            .get();
+        
+        const invitations = invitationsSnapshot.docs
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+            .sort((a, b) => {
+                const dateA = a.createdAt?.toDate() || new Date(0);
+                const dateB = b.createdAt?.toDate() || new Date(0);
+                return dateB - dateA;
+            });
+        
+        displayPendingInvitations(invitations);
+        
+    } catch (error) {
+        console.error('Erreur chargement invitations:', error);
+    }
+}
+
+function displayPendingInvitations(invitations) {
+    const container = document.getElementById('invitations-table');
+    
+    if (invitations.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">📭</div>
+                <p>Aucune invitation en attente</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Nom</th>
+                    <th>Club</th>
+                    <th>Date Envoi</th>
+                    <th>Expiration</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${invitations.map(inv => {
+                    const expiresAt = inv.expiresAt?.toDate();
+                    const isExpired = expiresAt && expiresAt < new Date();
+                    
+                    return `
+                        <tr>
+                            <td><strong>${inv.email}</strong></td>
+                            <td>${inv.firstName} ${inv.lastName}</td>
+                            <td>${inv.club || 'N/A'}</td>
+                            <td>${formatFirestoreDate(inv.createdAt)}</td>
+                            <td>
+                                ${isExpired ? 
+                                    '<span class="badge disabled">Expiré</span>' : 
+                                    formatFirestoreDate(inv.expiresAt)
+                                }
+                            </td>
+                            <td>
+                                ${!isExpired ? 
+                                    `<button class="action-btn btn-edit" onclick="resendInvitation('${inv.id}')">
+                                        📨 Renvoyer
+                                    </button>` : ''
+                                }
+                                <button class="action-btn btn-reject" onclick="deleteInvitation('${inv.id}')">
+                                    🗑️ Supprimer
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// Créer un nouveau coach (invitation)
+async function createCoach() {
+    try {
+        // Récupérer les données du formulaire
+        const firstName = document.getElementById('coach-firstname').value.trim();
+        const lastName = document.getElementById('coach-lastname').value.trim();
+        const email = document.getElementById('coach-email').value.trim().toLowerCase();
+        const club = document.getElementById('coach-club').value.trim();
+        const phone = document.getElementById('coach-phone').value.trim();
+        
+        // Validation
+        if (!firstName || !lastName || !email || !club) {
+            showToast('Veuillez remplir tous les champs obligatoires', 'error');
+            return;
+        }
+        
+        showToast('Création de l\'invitation en cours...', 'info');
+        
+        // Vérifier si l'email existe déjà
+        const existingUser = await db.collection('users')
+            .where('email', '==', email)
+            .get();
+        
+        if (!existingUser.empty) {
+            showToast('Cet email est déjà utilisé par un compte existant', 'error');
+            return;
+        }
+        
+        // Vérifier si une invitation existe déjà
+        const existingInvitation = await db.collection('invitations')
+            .where('email', '==', email)
+            .where('used', '==', false)
+            .get();
+        
+        if (!existingInvitation.empty) {
+            showToast('Une invitation est déjà en attente pour cet email', 'error');
+            return;
+        }
+        
+        // Générer un token unique
+        const token = generateSecureToken();
+        
+        // Calculer date d'expiration (7 jours)
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+        
+        // Créer l'invitation dans Firestore
+        const invitationRef = await db.collection('invitations').add({
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            club: club,
+            phone: phone || '',
+            role: 'coach',
+            token: token,
+            createdBy: currentAdmin.uid || auth.currentUser.uid,
+            createdByName: `${currentAdmin.firstName} ${currentAdmin.lastName}`,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            expiresAt: firebase.firestore.Timestamp.fromDate(expiresAt),
+            used: false,
+            usedAt: null
+        });
+        
+        // Générer le lien d'activation
+        const activationLink = `${window.location.origin}/activation.html?token=${token}`;
+        
+        // TODO: Envoyer email d'invitation
+        // Pour l'instant, on affiche le lien
+        console.log('🔗 Lien d\'activation:', activationLink);
+        
+        showToast('✅ Invitation créée avec succès !', 'success');
+        
+        // Afficher le lien d'activation dans une alerte
+        alert(`✅ Invitation créée !\n\n📧 Email: ${email}\n\n🔗 Lien d'activation à envoyer:\n${activationLink}\n\n⏰ Expire le: ${expiresAt.toLocaleDateString('fr-FR')}\n\n💡 Copiez ce lien et envoyez-le à l'entraîneur par email.`);
+        
+        // Fermer le modal et rafraîchir
+        closeModal('create-coach-modal');
+        document.getElementById('create-coach-form').reset();
+        await loadPendingInvitations();
+        
+    } catch (error) {
+        console.error('Erreur création coach:', error);
+        showToast('Erreur lors de la création de l\'invitation', 'error');
+    }
+}
+
+// Générer un token sécurisé
+function generateSecureToken() {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+// Renvoyer une invitation
+async function resendInvitation(invitationId) {
+    if (!confirm('Voulez-vous renvoyer cette invitation ?')) return;
+    
+    try {
+        const invDoc = await db.collection('invitations').doc(invitationId).get();
+        const invitation = invDoc.data();
+        
+        const activationLink = `${window.location.origin}/activation.html?token=${invitation.token}`;
+        
+        // TODO: Envoyer email
+        console.log('📨 Renvoi invitation:', activationLink);
+        
+        alert(`📨 Invitation à renvoyer à:\n\n📧 ${invitation.email}\n\n🔗 ${activationLink}`);
+        
+        showToast('Lien d\'invitation copié', 'info');
+        
+    } catch (error) {
+        console.error('Erreur renvoi invitation:', error);
+        showToast('Erreur lors du renvoi', 'error');
+    }
+}
+
+// Supprimer une invitation
+async function deleteInvitation(invitationId) {
+    if (!confirm('Voulez-vous supprimer cette invitation ?')) return;
+    
+    try {
+        await db.collection('invitations').doc(invitationId).delete();
+        showToast('Invitation supprimée', 'success');
+        await loadPendingInvitations();
+    } catch (error) {
+        console.error('Erreur suppression invitation:', error);
+        showToast('Erreur lors de la suppression', 'error');
     }
 }
 

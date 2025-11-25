@@ -516,6 +516,9 @@
                 <div class="nav-item active" onclick="showSection('dashboard')">
                     📊 Dashboard
                 </div>
+                <div class="nav-item" onclick="showSection('coaches')">
+                    🏊‍♂️ Gestion Entraîneurs
+                </div>
                 <div class="nav-item" onclick="showSection('requests')">
                     📬 Demandes d'inscription
                 </div>
@@ -564,6 +567,46 @@
                             <div class="empty-state">
                                 <div class="icon">📭</div>
                                 <p>Aucune activité récente</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Gestion Entraîneurs -->
+                <div class="section" id="coaches-section">
+                    <h2 style="color: white; margin-bottom: 20px;">🏊‍♂️ Gestion des Entraîneurs</h2>
+                    
+                    <!-- Bouton Créer Entraîneur -->
+                    <div style="margin-bottom: 30px;">
+                        <button class="btn-modal primary" onclick="openModal('create-coach-modal')" style="padding: 15px 30px; font-size: 1.1rem;">
+                            ➕ Créer un Entraîneur
+                        </button>
+                    </div>
+
+                    <!-- Liste des Entraîneurs -->
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2>👥 Liste des Entraîneurs</h2>
+                            <button class="refresh-btn" onclick="loadCoaches()">🔄 Actualiser</button>
+                        </div>
+                        <div id="coaches-table">
+                            <div class="empty-state">
+                                <div class="icon">🏊‍♂️</div>
+                                <p>Aucun entraîneur pour le moment</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invitations en attente -->
+                    <div class="table-container" style="margin-top: 30px;">
+                        <div class="table-header">
+                            <h2>📨 Invitations en Attente</h2>
+                            <button class="refresh-btn" onclick="loadPendingInvitations()">🔄 Actualiser</button>
+                        </div>
+                        <div id="invitations-table">
+                            <div class="empty-state">
+                                <div class="icon">📭</div>
+                                <p>Aucune invitation en attente</p>
                             </div>
                         </div>
                     </div>
@@ -619,6 +662,56 @@
             </div>
             <div class="modal-body" id="request-details"></div>
             <div class="modal-footer" id="request-actions"></div>
+        </div>
+    </div>
+
+    <!-- Modal Créer Entraîneur -->
+    <div class="modal" id="create-coach-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Créer un Entraîneur</h3>
+                <span class="close-modal" onclick="closeModal('create-coach-modal')">×</span>
+            </div>
+            <div class="modal-body">
+                <form id="create-coach-form">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Prénom *</label>
+                        <input type="text" id="coach-firstname" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Nom *</label>
+                        <input type="text" id="coach-lastname" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Email *</label>
+                        <input type="email" id="coach-email" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                        <small style="color: #6b7280; font-size: 0.85rem;">L'invitation sera envoyée à cette adresse</small>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Club / Organisation *</label>
+                        <input type="text" id="coach-club" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Téléphone (optionnel)</label>
+                        <input type="tel" id="coach-phone" placeholder="+33 6 12 34 56 78" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                    </div>
+
+                    <div style="background: #f0f9ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 15px; margin-top: 20px;">
+                        <p style="margin: 0; color: #1e40af; font-size: 0.9rem;">
+                            <strong>ℹ️ Information :</strong><br>
+                            Un email d'invitation sera envoyé à l'entraîneur avec un lien pour activer son compte et définir son mot de passe.
+                        </p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal secondary" onclick="closeModal('create-coach-modal')">Annuler</button>
+                <button class="btn-modal primary" onclick="createCoach()">📨 Envoyer l'Invitation</button>
+            </div>
         </div>
     </div>
 
