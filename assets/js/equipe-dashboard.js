@@ -3659,12 +3659,15 @@ function renderAttendanceForm(swimmers) {
             `).join('')}
         </div>
         
-        <!-- Bouton Enregistrer en bas -->
-        <div style="margin-top: 30px; padding-top: 25px; border-top: 3px solid #e0e0e0; display: flex; gap: 15px; justify-content: center;">
-            <button onclick="resetAttendanceForm()" class="btn" style="flex: 1; max-width: 250px; padding: 15px; font-size: 1.05rem; background: white; color: #666; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+        <!-- Boutons en bas -->
+        <div style="margin-top: 30px; padding-top: 25px; border-top: 3px solid #e0e0e0; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="resetAttendanceForm()" class="btn" style="flex: 1; min-width: 200px; max-width: 250px; padding: 15px; font-size: 1.05rem; background: white; color: #666; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
                 <i class="fas fa-eraser"></i> Effacer
             </button>
-            <button onclick="saveAttendanceData()" class="btn btn-primary" style="flex: 2; max-width: 400px; padding: 15px; font-size: 1.1rem; background: linear-gradient(135deg, #27ae60 0%, #229954 100%); border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 3px 10px rgba(39,174,96,0.3);">
+            <button onclick="openAttendanceCalendarForEdit()" class="btn" style="flex: 1; min-width: 200px; max-width: 250px; padding: 15px; font-size: 1.05rem; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 3px 10px rgba(255,152,0,0.3); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <i class="fas fa-edit"></i> Modifier Date Existante
+            </button>
+            <button onclick="saveAttendanceData()" class="btn btn-primary" style="flex: 2; min-width: 280px; max-width: 450px; padding: 15px; font-size: 1.1rem; background: linear-gradient(135deg, #27ae60 0%, #229954 100%); border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 3px 10px rgba(39,174,96,0.3); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
                 <i class="fas fa-save"></i> Enregistrer la Présence (${swimmers.length} nageurs)
             </button>
         </div>
@@ -3769,6 +3772,124 @@ function loadAttendanceForSelectedDate() {
     // Regénérer le formulaire avec les nouvelles données
     const content = document.getElementById('collectiveDataContent');
     content.innerHTML = renderAttendanceForm(swimmers);
+}
+
+// Fonction pour ouvrir le calendrier et modifier une date existante
+function openAttendanceCalendarForEdit() {
+    const swimmers = getTeamSwimmers();
+    const allDates = new Set();
+    
+    // Collecter toutes les dates disponibles
+    swimmers.forEach(swimmer => {
+        if (swimmer.attendanceData && Array.isArray(swimmer.attendanceData)) {
+            swimmer.attendanceData.forEach(record => {
+                allDates.add(record.date);
+            });
+        }
+    });
+    
+    if (allDates.size === 0) {
+        alert('⚠️ Aucune date enregistrée. Veuillez d\'abord enregistrer des présences.');
+        return;
+    }
+    
+    // Créer une liste de dates triées
+    const sortedDates = Array.from(allDates).sort().reverse();
+    
+    // Créer le HTML du calendrier
+    const calendarHTML = `
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 600px; max-height: 80vh; overflow-y: auto;">
+            <h3 style="margin: 0 0 20px 0; color: #333; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-calendar-alt"></i> Sélectionner une date à modifier
+            </h3>
+            <p style="color: #666; margin-bottom: 20px;">
+                Cliquez sur une date pour charger et modifier les présences de cette journée.
+            </p>
+            <div style="display: grid; gap: 12px;">
+                ${sortedDates.map(date => {
+                    const dateObj = new Date(date);
+                    const formattedDate = dateObj.toLocaleDateString('fr-FR', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+                    
+                    // Compter les statuts pour cette date
+                    let presentCount = 0;
+                    let absentCount = 0;
+                    swimmers.forEach(swimmer => {
+                        const record = swimmer.attendanceData?.find(r => r.date === date);
+                        if (record) {
+                            if (record.status === 'present') presentCount++;
+                            else if (record.status === 'absent') absentCount++;
+                        }
+                    });
+                    
+                    return `
+                        <button onclick="loadAttendanceForEdit('${date}')" 
+                                style="padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; cursor: pointer; text-align: left; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 10px rgba(102,126,234,0.3);"
+                                onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 15px rgba(102,126,234,0.4)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 10px rgba(102,126,234,0.3)'">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                <div style="font-size: 1.1rem; font-weight: 600;">
+                                    <i class="fas fa-calendar-day"></i> ${formattedDate}
+                                </div>
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <div style="display: flex; gap: 15px; font-size: 0.9rem; opacity: 0.9;">
+                                <span><i class="fas fa-check-circle"></i> ${presentCount} présents</span>
+                                <span><i class="fas fa-times-circle"></i> ${absentCount} absents</span>
+                            </div>
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+            <button onclick="closeModal()" style="margin-top: 25px; width: 100%; padding: 15px; background: #e0e0e0; color: #666; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600;">
+                <i class="fas fa-times"></i> Annuler
+            </button>
+        </div>
+    `;
+    
+    // Afficher dans une modal
+    showModal(calendarHTML);
+}
+
+// Fonction pour charger une date spécifique pour modification
+function loadAttendanceForEdit(date) {
+    const swimmers = getTeamSwimmers();
+    
+    // Charger les données pour cette date
+    loadAttendanceForDate(swimmers, date);
+    
+    // Mettre à jour la date dans le formulaire
+    const dateInput = document.getElementById('attendanceDate');
+    if (dateInput) {
+        dateInput.value = date;
+        updateAttendanceDateDisplay();
+    }
+    
+    // Regénérer le formulaire
+    const content = document.getElementById('collectiveDataContent');
+    content.innerHTML = renderAttendanceForm(swimmers);
+    
+    // Fermer la modal
+    closeModal();
+    
+    // Message de confirmation
+    setTimeout(() => {
+        const infoBox = document.querySelector('#collectiveDataContent [style*="background: #e3f2fd"]');
+        if (infoBox) {
+            infoBox.style.background = '#fff3cd';
+            infoBox.style.borderLeft = '4px solid #ff9800';
+            infoBox.innerHTML = `
+                <i class="fas fa-edit" style="color: #ff9800; margin-right: 10px;"></i>
+                <span style="color: #856404; font-weight: 500;">
+                    <strong>Mode modification:</strong> Données du ${new Date(date).toLocaleDateString('fr-FR')}. Modifiez et enregistrez pour mettre à jour.
+                </span>
+            `;
+        }
+    }, 100);
 }
 
 // Fonction pour effacer le formulaire (tous absents)
@@ -4006,7 +4127,7 @@ function saveAttendanceData() {
     // Rafraîchir automatiquement l'affichage si la vue détaillée est ouverte
     const detailedView = document.getElementById('attendanceDetailedView');
     if (detailedView && detailedView.style.display !== 'none') {
-        // Rafraîchir les statistiques
+        // Rafraîchir les statistiques dans la vue détaillée
         refreshAttendanceStats();
     }
     
@@ -4014,11 +4135,14 @@ function saveAttendanceData() {
     window.attendanceStatuses = {};
     closeCollectiveDataModal();
     
-    // Recharger les sections si on est sur l'équipe
+    // Recharger la section Présence & Assiduité sur l'aperçu global
     if (currentTeam) {
         const attendanceSection = document.getElementById('attendanceSection');
-        if (attendanceSection && attendanceSection.style.display !== 'none') {
+        if (attendanceSection) {
+            // Toujours recharger la section pour mettre à jour les statistiques
             loadAttendanceSection(getTeamSwimmers());
+            
+            console.log('✅ Section Présence & Assiduité rechargée avec les nouvelles données');
         }
     }
 }
