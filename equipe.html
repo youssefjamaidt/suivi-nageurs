@@ -9,6 +9,23 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/mobile-responsive.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Configuration Firebase -->
+    <script src="assets/js/firebase-config.js"></script>
+    <script src="assets/js/sync-service.js"></script>
+</head>
+<body>
+    <script>
+        // Vérifier l'accès au chargement de la page
+        if (sessionStorage.getItem('swim_app_access') !== 'granted') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    
     <style>
         .team-selector-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -211,6 +228,28 @@
             }
         }
         
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+        }
+        
         .team-dropdown-item {
             padding: 15px 20px;
             cursor: pointer;
@@ -408,6 +447,10 @@
                             <i class="fas fa-chart-pie"></i>
                             <span class="btn-label">Aperçu</span>
                         </button>
+                        <button class="action-btn btn-team-calendar" onclick="showTeamCalendar()" title="Calendrier des données" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span class="btn-label">Calendrier</span>
+                        </button>
                         <button class="action-btn btn-team-manage" onclick="showTeamManagement()" title="Gérer les équipes">
                             <i class="fas fa-cog"></i>
                             <span class="btn-label">Gestion</span>
@@ -602,6 +645,23 @@
         </div>
     </div>
 
+    <!-- Modal: Calendrier Équipe -->
+    <div id="teamCalendarModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 1200px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h3 style="margin: 0; color: white;">
+                    <i class="fas fa-calendar-alt"></i> Calendrier de l'Équipe
+                </h3>
+                <button class="close-modal" onclick="closeTeamCalendar()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <div id="teamCalendarContent">
+                    <!-- Contenu généré dynamiquement -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Créer/Modifier une Équipe -->
     <div id="createTeamModal" class="modal" style="display: none;">
         <div class="modal-content" style="max-width: 700px;">
@@ -704,31 +764,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Configuration Firebase -->
-    <script src="assets/js/firebase-config.js"></script>
-    
-    <!-- Dashboard Équipe Firestore -->
-    <script src="assets/js/equipe-firestore.js"></script>
-    
-    <!-- Fonctions Dashboard originales (app.js pour graphiques, etc.) -->
-    <script src="assets/js/app.js"></script>
-    
-    <script>
-        // Protection: vérifier que l'utilisateur est un coach
-        requireAuth().then(async (user) => {
-            const userData = await getUserData(user.uid);
-            if (!userData || userData.role !== 'coach' || userData.status !== 'active') {
-                console.warn('Accès refusé: rôle non-coach ou statut inactif');
-                redirectByRole(userData?.role || null);
-            }
-        }).catch(() => {
-            window.location.href = 'login.html';
-        });
-    </script>
+    <script src="assets/js/equipe-dashboard.js"></script>
 </body>
 </html>

@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - Suivi Nageurs</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <title>Accès - Suivi Nageurs</title>
     <style>
-        /* Style spécifique page de connexion */
         * {
             margin: 0;
             padding: 0;
@@ -18,8 +16,8 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             padding: 20px;
         }
 
@@ -27,477 +25,201 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 400px;
             width: 100%;
-            max-width: 450px;
-            padding: 50px 40px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .logo-container {
             text-align: center;
-            margin-bottom: 40px;
         }
 
-        .logo-container h1 {
-            color: #667eea;
-            font-size: 2rem;
+        .login-header {
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 28px;
             margin-bottom: 10px;
         }
 
-        .logo-container .emoji {
-            font-size: 3rem;
-            margin-bottom: 10px;
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .login-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
             display: block;
-        }
-
-        .logo-container p {
-            color: #6b7280;
-            font-size: 1rem;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group label {
-            display: block;
+            color: #333;
+            font-weight: 600;
             margin-bottom: 8px;
-            color: #374151;
-            font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 14px;
         }
 
-        .form-group input {
+        .input-group input {
             width: 100%;
             padding: 15px;
-            border: 2px solid #e5e7eb;
+            border: 2px solid #e0e0e0;
             border-radius: 10px;
-            font-size: 1rem;
+            font-size: 16px;
             transition: all 0.3s ease;
+            outline: none;
         }
 
-        .form-group input:focus {
-            outline: none;
+        .input-group input:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .password-container {
-            position: relative;
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: #9ca3af;
-            user-select: none;
-        }
-
-        .password-toggle:hover {
-            color: #667eea;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-
-        .checkbox-group label {
-            color: #6b7280;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .btn-login {
+        .login-btn {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4caf50, #45a049);
             color: white;
             border: none;
             border-radius: 10px;
-            font-size: 1.1rem;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
 
-        .btn-login:hover {
+        .login-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
 
-        .btn-login:active {
+        .login-btn:active {
             transform: translateY(0);
         }
 
-        .btn-login:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .links-container {
-            text-align: center;
-            margin-top: 25px;
-        }
-
-        .links-container a {
-            color: #667eea;
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: color 0.3s ease;
-        }
-
-        .links-container a:hover {
-            color: #764ba2;
-            text-decoration: underline;
-        }
-
-        .separator {
-            margin: 20px 0;
-            color: #9ca3af;
-            font-size: 0.9rem;
-        }
-
         .error-message {
-            background: #fee2e2;
-            border: 1px solid #ef4444;
-            color: #dc2626;
+            background: #ffebee;
+            color: #c62828;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
-            font-size: 0.9rem;
+            font-size: 14px;
             display: none;
+            animation: shake 0.5s;
         }
 
-        .success-message {
-            background: #d1fae5;
-            border: 1px solid #10b981;
-            color: #059669;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            display: none;
+        .error-message.show {
+            display: block;
         }
 
-        .loader {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
 
-        .loader .spinner {
-            border: 3px solid #f3f4f6;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
         @media (max-width: 480px) {
             .login-container {
                 padding: 30px 20px;
             }
 
-            .logo-container h1 {
-                font-size: 1.5rem;
+            .login-header h1 {
+                font-size: 24px;
             }
 
-            .logo-container .emoji {
-                font-size: 2rem;
+            .login-icon {
+                font-size: 50px;
             }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <!-- Logo et titre -->
-        <div class="logo-container">
-            <span class="emoji">🏊‍♂️</span>
+        <div class="login-icon">🏊‍♂️</div>
+        <div class="login-header">
             <h1>Suivi Nageurs</h1>
-            <p>Connectez-vous à votre compte</p>
+            <p>Entrez le code d'accès pour continuer</p>
         </div>
 
-        <!-- Message d'erreur -->
-        <div id="error-message" class="error-message"></div>
-        
-        <!-- Message de succès -->
-        <div id="success-message" class="success-message"></div>
+        <div class="error-message" id="errorMessage">
+            Code d'accès incorrect. Veuillez réessayer.
+        </div>
 
-        <!-- Formulaire de connexion -->
-        <form id="login-form">
-            <div class="form-group">
-                <label for="email">Adresse email</label>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="accessCode">Code d'accès</label>
                 <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="votre.email@exemple.com"
+                    type="password" 
+                    id="accessCode" 
+                    placeholder="Entrez le code d'accès"
                     required
-                    autocomplete="email"
+                    autocomplete="off"
                 >
             </div>
 
-            <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <div class="password-container">
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        placeholder="••••••••"
-                        required
-                        autocomplete="current-password"
-                    >
-                    <span class="password-toggle" onclick="togglePassword()">👁️</span>
-                </div>
-            </div>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="remember-me" name="remember-me">
-                <label for="remember-me">Se souvenir de moi</label>
-            </div>
-
-            <button type="submit" class="btn-login" id="login-btn">
-                Se connecter
+            <button type="submit" class="login-btn">
+                Entrer
             </button>
         </form>
-
-        <!-- Loader -->
-        <div class="loader" id="loader">
-            <div class="spinner"></div>
-            <p style="margin-top: 10px; color: #6b7280;">Connexion en cours...</p>
-        </div>
-
-        <!-- Liens -->
-        <div class="links-container">
-            <a href="forgot-password.html">Mot de passe oublié ?</a>
-            <div class="separator">ou</div>
-            <a href="register.html" style="font-weight: 600;">Créer un compte entraîneur</a>
-        </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Configuration Firebase -->
-    <script src="firebase-config.js"></script>
-
-    <!-- Script de connexion -->
     <script>
-        // Éléments DOM
-        const loginForm = document.getElementById('login-form');
-        const loginBtn = document.getElementById('login-btn');
-        const loader = document.getElementById('loader');
-        const errorMessage = document.getElementById('error-message');
-        const successMessage = document.getElementById('success-message');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const rememberMeCheckbox = document.getElementById('remember-me');
+        const CORRECT_CODE = '0412199700';
+        const ACCESS_KEY = 'swim_app_access';
 
-        // Toggle visibilité mot de passe
-        function togglePassword() {
-            const passwordField = document.getElementById('password');
-            const toggle = document.querySelector('.password-toggle');
-            
-            if (passwordField.type === 'password') {
-                passwordField.type = 'text';
-                toggle.textContent = '🙈';
-            } else {
-                passwordField.type = 'password';
-                toggle.textContent = '👁️';
+        // Vérifier si l'utilisateur est déjà authentifié
+        function checkAccess() {
+            const access = sessionStorage.getItem(ACCESS_KEY);
+            if (access === 'granted') {
+                window.location.href = 'index.html';
             }
         }
 
-        // Afficher message d'erreur
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            successMessage.style.display = 'none';
-            
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 5000);
-        }
+        // Vérifier l'accès au chargement de la page
+        checkAccess();
 
-        // Afficher message de succès
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
-        }
-
-        // Afficher loader
-        function showLoader() {
-            loader.style.display = 'block';
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Connexion...';
-        }
-
-        // Masquer loader
-        function hideLoader() {
-            loader.style.display = 'none';
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Se connecter';
-        }
-
-        // Gestion soumission formulaire
-        loginForm.addEventListener('submit', async (e) => {
+        // Gérer la soumission du formulaire
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-            const rememberMe = rememberMeCheckbox.checked;
-            
-            // Validation basique
-            if (!email || !password) {
-                showError('Veuillez remplir tous les champs');
-                return;
-            }
-            
-            showLoader();
-            
-            try {
-                // Connexion Firebase
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
+            const accessCode = document.getElementById('accessCode').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (accessCode === CORRECT_CODE) {
+                // Code correct - accorder l'accès
+                sessionStorage.setItem(ACCESS_KEY, 'granted');
                 
-                // Récupérer données utilisateur
-                const userDoc = await db.collection('users').doc(user.uid).get();
+                // Animation de succès
+                const btn = document.querySelector('.login-btn');
+                btn.style.background = 'linear-gradient(135deg, #4caf50, #45a049)';
+                btn.textContent = '✓ Accès accordé';
                 
-                if (!userDoc.exists) {
-                    throw new Error('Données utilisateur introuvables');
-                }
-                
-                const userData = userDoc.data();
-                
-                // Vérifier statut compte
-                if (userData.status === 'disabled') {
-                    await auth.signOut();
-                    throw new Error('Votre compte a été désactivé. Contactez un administrateur.');
-                }
-                
-                if (userData.status === 'pending' && userData.role === 'coach') {
-                    await auth.signOut();
-                    throw new Error('Votre compte est en attente de validation par un administrateur.');
-                }
-                
-                // Mettre à jour dernière connexion
-                await db.collection('users').doc(user.uid).update({
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Configuration persistence
-                if (rememberMe) {
-                    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-                } else {
-                    await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
-                }
-                
-                // Redirection selon rôle
-                showSuccess('Connexion réussie ! Redirection...');
-                
+                // Redirection après une courte pause
                 setTimeout(() => {
-                    switch (userData.role) {
-                        case 'admin':
-                            window.location.href = 'admin.html';
-                            break;
-                        case 'coach':
-                            window.location.href = 'index.html';
-                            break;
-                        case 'nageur':
-                            window.location.href = 'nageur.html';
-                            break;
-                        default:
-                            window.location.href = 'login.html';
-                    }
-                }, 1000);
+                    window.location.href = 'index.html';
+                }, 500);
+            } else {
+                // Code incorrect - afficher l'erreur
+                errorMessage.classList.add('show');
+                document.getElementById('accessCode').value = '';
+                document.getElementById('accessCode').focus();
                 
-            } catch (error) {
-                console.error('Erreur connexion:', error);
-                hideLoader();
-                
-                // Messages d'erreur personnalisés
-                let errorMsg = 'Une erreur est survenue';
-                
-                switch (error.code) {
-                    case 'auth/invalid-email':
-                        errorMsg = 'Adresse email invalide';
-                        break;
-                    case 'auth/user-disabled':
-                        errorMsg = 'Ce compte a été désactivé';
-                        break;
-                    case 'auth/user-not-found':
-                        errorMsg = 'Aucun compte trouvé avec cet email';
-                        break;
-                    case 'auth/wrong-password':
-                        errorMsg = 'Mot de passe incorrect';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMsg = 'Trop de tentatives. Réessayez plus tard.';
-                        break;
-                    default:
-                        errorMsg = error.message;
-                }
-                
-                showError(errorMsg);
+                // Masquer le message d'erreur après 3 secondes
+                setTimeout(() => {
+                    errorMessage.classList.remove('show');
+                }, 3000);
             }
         });
 
-        // Vérifier si déjà connecté
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                // Utilisateur déjà connecté, rediriger
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    redirectByRole(userData.role);
-                }
-            }
+        // Masquer le message d'erreur quand l'utilisateur commence à taper
+        document.getElementById('accessCode').addEventListener('input', function() {
+            document.getElementById('errorMessage').classList.remove('show');
         });
-
-        // Afficher message de déconnexion si présent dans URL
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('logout') === 'success') {
-            showSuccess('Déconnexion réussie !');
-            // Nettoyer URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
     </script>
 </body>
 </html>

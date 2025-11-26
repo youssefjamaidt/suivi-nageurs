@@ -212,6 +212,11 @@ function getTeams() {
 function saveTeamsToStorage(teams) {
     CacheTeam.clear();
     localStorage.setItem('teams', JSON.stringify(teams));
+    
+    // Synchroniser avec Firebase si disponible
+    if (typeof syncService !== 'undefined' && syncService.syncEnabled) {
+        syncService.saveTeams(teams);
+    }
 }
 
 // Obtenir une équipe par ID
@@ -503,6 +508,11 @@ function getAllSwimmers() {
 function saveSwimmers(swimmers) {
     CacheTeam.clear(); // Invalider cache
     localStorage.setItem('swimmers', JSON.stringify(swimmers));
+    
+    // Synchroniser avec Firebase si disponible
+    if (typeof syncService !== 'undefined' && syncService.syncEnabled) {
+        syncService.saveSwimmers(swimmers);
+    }
 }
 
 // =====================================================
@@ -3670,6 +3680,11 @@ function getAttendances() {
 // Sauvegarder les présences
 function saveAttendancesToStorage(attendances) {
     localStorage.setItem('attendances', JSON.stringify(attendances));
+    
+    // Synchroniser avec Firebase si disponible
+    if (typeof syncService !== 'undefined' && syncService.syncEnabled) {
+        syncService.saveAttendances(attendances);
+    }
 }
 
 // Afficher le formulaire de présence

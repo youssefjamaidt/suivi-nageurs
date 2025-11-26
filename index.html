@@ -3,93 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Suivi Sportif - Nageur</title>
+    <title>Suivi Sportif</title>
     <link rel="stylesheet" href="assets/css/home.css">
     <link rel="stylesheet" href="assets/css/mobile-responsive.css">
-    <style>
-        /* Loader protection */
-        #auth-loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-        
-        .loader-content {
-            text-align: center;
-            color: white;
-        }
-        
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Bouton déconnexion */
-        .logout-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-        }
-        
-        .logout-btn:hover {
-            background: white;
-            color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .welcome-text {
-            text-align: center;
-            color: white;
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-            font-weight: 600;
-        }
-    </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Configuration Firebase -->
+    <script src="assets/js/firebase-config.js"></script>
+    <script src="assets/js/sync-service.js"></script>
 </head>
 <body>
-    <!-- Loader d'authentification -->
-    <div id="auth-loader">
-        <div class="loader-content">
-            <div class="spinner"></div>
-            <p>Vérification de l'authentification...</p>
-        </div>
-    </div>
+    <script>
+        // Vérifier l'accès au chargement de la page
+        if (sessionStorage.getItem('swim_app_access') !== 'granted') {
+            window.location.href = 'login.html';
+        }
+    </script>
     
-    <!-- Bouton déconnexion -->
-    <button class="logout-btn" onclick="handleLogout()" style="display: none;">
-        🚪 Déconnexion
-    </button>
-    
-    <div class="container" style="display: none;" id="main-content">
+    <div class="container">
         <div class="card-wrapper">
             <a href="dashboard.html" class="sport-card">
                 <div class="card-content">
@@ -105,93 +39,5 @@
             </a>
         </div>
     </div>
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    
-    <script>
-        // Vérifier l'authentification au chargement
-        async function checkAuth() {
-            try {
-                const user = await getCurrentUser();
-                
-                if (!user) {
-                    // Pas connecté, rediriger vers login
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                // Récupérer les données utilisateur
-                const userData = await getUserData(user.uid);
-                
-                if (!userData) {
-                    console.error('Données utilisateur introuvables');
-                    await auth.signOut();
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                // Vérifier le rôle et rediriger
-                if (userData.role === 'coach') {
-                    // Rediriger les coaches vers leur dashboard
-                    window.location.href = 'coach-dashboard.html';
-                    return;
-                } else if (userData.role === 'admin') {
-                    // Rediriger les admins vers leur dashboard
-                    window.location.href = 'admin.html';
-                    return;
-                } else if (userData.role !== 'nageur') {
-                    console.warn('Accès refusé: rôle inconnu');
-                    await auth.signOut();
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                // Vérifier que le compte est actif
-                if (userData.status !== 'active') {
-                    alert('Votre compte est en attente de validation par votre entraîneur.');
-                    await auth.signOut();
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                // Authentification OK pour un nageur, afficher la page
-                document.getElementById('auth-loader').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-                document.querySelector('.logout-btn').style.display = 'block';
-                
-                // Ajouter message de bienvenue
-                const welcomeText = document.createElement('div');
-                welcomeText.className = 'welcome-text';
-                welcomeText.textContent = `Bienvenue ${userData.firstName} ${userData.lastName} 👋`;
-                document.querySelector('.container').insertBefore(
-                    welcomeText, 
-                    document.querySelector('.card-wrapper')
-                );
-                
-            } catch (error) {
-                console.error('Erreur vérification auth:', error);
-                window.location.href = 'login.html';
-            }
-        }
-        
-        // Gérer la déconnexion
-        async function handleLogout() {
-            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-                try {
-                    await logout();
-                } catch (error) {
-                    console.error('Erreur déconnexion:', error);
-                    alert('Erreur lors de la déconnexion');
-                }
-            }
-        }
-        
-        // Vérifier l'authentification au chargement de la page
-        checkAuth();
-    </script>
 </body>
 </html>

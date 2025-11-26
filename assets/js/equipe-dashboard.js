@@ -1664,55 +1664,1079 @@ function getTechnicalRecommendations(stats, totalSwimmers) {
 
 function loadAttendanceSection(swimmers) {
     const content = document.getElementById('attendanceContent');
+    
+    content.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px;">
+            <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(39,174,96,0.3);">
+                <i class="fas fa-calendar-check" style="font-size: 3.5rem; color: white;"></i>
+            </div>
+            <h2 style="color: #27ae60; margin-bottom: 15px; font-size: 2rem;">Assiduité & Présence de l'Équipe</h2>
+            <p style="color: #666; font-size: 1.1rem; margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Consultez les statistiques détaillées, analysez les données par nageur et gérez les présences de votre équipe
+            </p>
+            
+            <button onclick="openAttendanceDetailedView()" 
+                    style="padding: 18px 40px; background: linear-gradient(135deg, #27ae60 0%, #229954 100%); color: white; border: none; border-radius: 12px; font-size: 1.15rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(39,174,96,0.3); transition: all 0.3s ease;"
+                    onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 20px rgba(39,174,96,0.4)'"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(39,174,96,0.3)'">
+                <i class="fas fa-chart-line"></i> Voir les Statistiques Détaillées
+            </button>
+        </div>
+    `;
+}
+
+function openAttendanceDetailedView() {
+    const swimmers = getTeamSwimmers();
+    const content = document.getElementById('attendanceContent');
     const attendanceStats = calculateTeamAttendanceStats(swimmers);
     
     content.innerHTML = `
-        <h3 style="margin-bottom: 25px; color: #27ae60;">
-            <i class="fas fa-calendar-check"></i> Assiduité de l'Équipe
+        <!-- En-tête avec bouton retour -->
+        <div style="margin-bottom: 30px;">
+            <button onclick="loadAttendanceSection(getTeamSwimmers())" 
+                    style="padding: 10px 20px; background: white; color: #27ae60; border: 2px solid #27ae60; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;"
+                    onmouseover="this.style.background='#27ae60'; this.style.color='white'"
+                    onmouseout="this.style.background='white'; this.style.color='#27ae60'">
+                <i class="fas fa-arrow-left"></i> Retour
+            </button>
+        </div>
+        
+        <h3 style="margin-bottom: 25px; color: #27ae60; display: flex; align-items: center; gap: 12px;">
+            <i class="fas fa-calendar-check"></i> 
+            <span>Assiduité & Présence de l'Équipe</span>
         </h3>
         
-        <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); padding: 20px; border-radius: 12px; color: white; margin-bottom: 25px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                <div>
-                    <div style="font-size: 2.5rem; font-weight: bold; margin-bottom: 5px;">${attendanceStats.averageRate}%</div>
-                    <div style="font-size: 1.1rem; opacity: 0.9;">Taux de Présence Moyen</div>
+        <!-- Navigation par onglets -->
+        <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px; overflow: hidden;">
+            <div style="display: flex; border-bottom: 2px solid #e0e0e0; overflow-x: auto;">
+                <button onclick="showAttendanceTab('overview')" 
+                        id="tab-overview"
+                        class="attendance-tab active"
+                        style="flex: 1; min-width: 150px; padding: 18px 20px; background: linear-gradient(135deg, #27ae60 0%, #229954 100%); color: white; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; border-bottom: 3px solid #1e8449;">
+                    <i class="fas fa-chart-pie"></i> Vue d'Ensemble
+                </button>
+                <button onclick="showAttendanceTab('statistics')" 
+                        id="tab-statistics"
+                        class="attendance-tab"
+                        style="flex: 1; min-width: 150px; padding: 18px 20px; background: #f5f5f5; color: #666; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    <i class="fas fa-chart-bar"></i> Statistiques
+                </button>
+                <button onclick="showAttendanceTab('swimmers')" 
+                        id="tab-swimmers"
+                        class="attendance-tab"
+                        style="flex: 1; min-width: 150px; padding: 18px 20px; background: #f5f5f5; color: #666; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    <i class="fas fa-users"></i> Par Nageur
+                </button>
+                <button onclick="showAttendanceTab('analysis')" 
+                        id="tab-analysis"
+                        class="attendance-tab"
+                        style="flex: 1; min-width: 150px; padding: 18px 20px; background: #f5f5f5; color: #666; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    <i class="fas fa-lightbulb"></i> Analyse
+                </button>
+            </div>
+            
+            <!-- Contenu des onglets -->
+            <div id="attendance-tab-content" style="padding: 30px;">
+                ${generateAttendanceOverviewTab(attendanceStats, swimmers)}
+            </div>
+        </div>
+    `;
+}
+
+// Variable globale pour stocker le filtre de nageur actif
+let currentSwimmerFilter = null;
+
+// Fonction pour générer la barre de filtrage par nageur
+function generateSwimmerFilterBar(filteredSwimmers, allSwimmers) {
+    const currentTab = document.querySelector('.attendance-tab.active')?.id.replace('tab-', '') || 'overview';
+    
+    return `
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <label style="color: white; font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-filter"></i> Filtrer par nageur :
+                </label>
+                <select onchange="applySwimmerFilter(this.value)" 
+                        style="flex: 1; min-width: 250px; padding: 12px 15px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: white; font-size: 1rem; color: #333; cursor: pointer; font-weight: 500;">
+                    <option value="">🏊 Toute l'équipe (${allSwimmers.length} nageurs)</option>
+                    ${allSwimmers.map(swimmer => `
+                        <option value="${swimmer.id}" ${currentSwimmerFilter === swimmer.id ? 'selected' : ''}>
+                            ${swimmer.name}
+                        </option>
+                    `).join('')}
+                </select>
+                ${currentSwimmerFilter ? `
+                    <button onclick="clearSwimmerFilter()" 
+                            style="padding: 12px 20px; background: white; color: #667eea; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s;"
+                            onmouseover="this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.transform='scale(1)'">
+                        <i class="fas fa-times"></i> Réinitialiser
+                    </button>
+                ` : ''}
+            </div>
+            ${currentSwimmerFilter ? `
+                <div style="margin-top: 15px; padding: 12px 20px; background: rgba(255,255,255,0.2); border-radius: 8px; color: white; font-weight: 500;">
+                    <i class="fas fa-info-circle"></i> Affichage des données pour : <strong>${allSwimmers.find(s => s.id === currentSwimmerFilter)?.name || 'Nageur inconnu'}</strong>
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 0.9rem; opacity: 0.9;">📊 ${attendanceStats.totalRecords} enregistrements</div>
-                    <div style="font-size: 0.9rem; opacity: 0.9;">👥 ${attendanceStats.swimmersWithData}/${swimmers.length} nageurs suivis</div>
-                    <div style="font-size: 0.9rem; opacity: 0.9;">❌ ${attendanceStats.totalAbsences} absence(s)</div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Fonction pour appliquer le filtre par nageur
+function applySwimmerFilter(swimmerId) {
+    if (swimmerId === '') {
+        currentSwimmerFilter = null;
+    } else {
+        currentSwimmerFilter = swimmerId;
+    }
+    
+    // Récupérer l'onglet actuel
+    const activeTab = document.querySelector('.attendance-tab[style*="linear-gradient"]');
+    const tabName = activeTab ? activeTab.id.replace('tab-', '') : 'overview';
+    
+    // Rafraîchir l'affichage avec le filtre appliqué
+    showAttendanceTab(tabName);
+}
+
+// Fonction pour réinitialiser le filtre
+function clearSwimmerFilter() {
+    currentSwimmerFilter = null;
+    
+    // Récupérer l'onglet actuel
+    const activeTab = document.querySelector('.attendance-tab[style*="linear-gradient"]');
+    const tabName = activeTab ? activeTab.id.replace('tab-', '') : 'overview';
+    
+    // Rafraîchir l'affichage
+    showAttendanceTab(tabName);
+}
+
+function showAttendanceTab(tabName) {
+    // TOUJOURS recalculer les statistiques avec les données les plus récentes
+    let swimmers = getTeamSwimmers();
+    const allSwimmers = getAllSwimmers();
+    
+    // Appliquer le filtre par nageur si actif
+    if (currentSwimmerFilter) {
+        swimmers = swimmers.filter(s => s.id === currentSwimmerFilter);
+    }
+    
+    // Recharger les données depuis localStorage pour s'assurer qu'elles sont à jour
+    const attendanceStats = calculateTeamAttendanceStats(swimmers);
+    
+    // Mettre à jour les styles des onglets
+    document.querySelectorAll('.attendance-tab').forEach(tab => {
+        tab.style.background = '#f5f5f5';
+        tab.style.color = '#666';
+        tab.style.borderBottom = 'none';
+    });
+    
+    const activeTab = document.getElementById(`tab-${tabName}`);
+    activeTab.style.background = 'linear-gradient(135deg, #27ae60 0%, #229954 100%)';
+    activeTab.style.color = 'white';
+    activeTab.style.borderBottom = '3px solid #1e8449';
+    
+    // Mettre à jour le contenu avec les statistiques fraîches
+    const content = document.getElementById('attendance-tab-content');
+    
+    switch(tabName) {
+        case 'overview':
+            content.innerHTML = generateSwimmerFilterBar(swimmers, getTeamSwimmers()) + generateAttendanceOverviewTab(attendanceStats, swimmers);
+            break;
+        case 'statistics':
+            content.innerHTML = generateSwimmerFilterBar(swimmers, getTeamSwimmers()) + generateAttendanceStatisticsTab(attendanceStats, swimmers);
+            break;
+        case 'swimmers':
+            content.innerHTML = generateSwimmerFilterBar(swimmers, getTeamSwimmers()) + generateAttendanceSwimmersTab(attendanceStats, swimmers);
+            break;
+        case 'analysis':
+            content.innerHTML = generateSwimmerFilterBar(swimmers, getTeamSwimmers()) + generateAttendanceAnalysisTab(attendanceStats, swimmers);
+            break;
+    }
+}
+
+// Fonction pour rafraîchir les données d'assiduité en temps réel
+function refreshAttendanceStats(tabName) {
+    // Animation visuelle du rafraîchissement
+    const content = document.getElementById('attendance-tab-content');
+    
+    // Effet de fade-out rapide
+    content.style.opacity = '0.5';
+    content.style.transition = 'opacity 0.2s';
+    
+    // Après un court délai, recharger les données
+    setTimeout(() => {
+        // Le filtre actif est conservé dans currentSwimmerFilter
+        // La fonction showAttendanceTab l'appliquera automatiquement
+        showAttendanceTab(tabName);
+        
+        // Rétablir l'opacité normale avec effet de fade-in
+        setTimeout(() => {
+            content.style.opacity = '1';
+            
+            // Notification de succès (optionnelle)
+            showNotification('✓ Données rafraîchies avec succès', 'success');
+        }, 100);
+    }, 200);
+}
+
+// Fonction pour générer l'analyse dynamique de l'assiduité
+function getAttendanceRecommendations(stats, totalSwimmers) {
+    let analysis = '';
+    
+    // Détecter si on affiche un seul nageur
+    const isSingleSwimmer = currentSwimmerFilter !== null;
+    const swimmerName = isSingleSwimmer ? getTeamSwimmers().find(s => s.id === currentSwimmerFilter)?.name : null;
+    
+    if (isSingleSwimmer && swimmerName) {
+        // Analyse personnalisée pour un nageur individuel
+        analysis += `<p><strong style="color: #667eea;">👤 Analyse personnalisée pour ${swimmerName}</strong></p>`;
+    }
+    
+    // Analyse du taux de présence global
+    if (stats.averageRate >= 90) {
+        analysis += isSingleSwimmer 
+            ? `<p>🎉 <strong>Excellente assiduité !</strong> Vous affichez un taux de présence exceptionnel de <strong>${stats.averageRate}%</strong>. Continuez sur cette lancée !</p>`
+            : `<p>🎉 <strong>Excellente performance !</strong> L'équipe affiche un taux de présence exceptionnel de <strong>${stats.averageRate}%</strong>. Cette régularité est un atout majeur pour la progression collective.</p>`;
+    } else if (stats.averageRate >= 75) {
+        analysis += isSingleSwimmer
+            ? `<p>✅ <strong>Bonne assiduité.</strong> Avec un taux de <strong>${stats.averageRate}%</strong>, vous montrez un bon engagement. Quelques efforts supplémentaires pour atteindre l'excellence !</p>`
+            : `<p>✅ <strong>Bonne assiduité globale.</strong> Avec un taux de <strong>${stats.averageRate}%</strong>, l'équipe montre un engagement satisfaisant. Quelques améliorations permettraient d'atteindre l'excellence.</p>`;
+    } else if (stats.averageRate >= 60) {
+        analysis += isSingleSwimmer
+            ? `<p>⚠️ <strong>Assiduité moyenne.</strong> Le taux de <strong>${stats.averageRate}%</strong> indique des absences régulières. Une meilleure régularité améliorerait vos performances.</p>`
+            : `<p>⚠️ <strong>Assiduité moyenne.</strong> Le taux de <strong>${stats.averageRate}%</strong> indique des absences régulières qui peuvent impacter la progression. Des actions ciblées sont recommandées.</p>`;
+    } else {
+        analysis += isSingleSwimmer
+            ? `<p>🚨 <strong>Assiduité préoccupante.</strong> Avec seulement <strong>${stats.averageRate}%</strong> de présence, un effort important est nécessaire pour progresser.</p>`
+            : `<p>🚨 <strong>Assiduité préoccupante.</strong> Avec seulement <strong>${stats.averageRate}%</strong> de présence, l'équipe nécessite une intervention urgente pour améliorer la régularité.</p>`;
+    }
+    
+    // Analyse des absences
+    if (stats.totalAbsences === 0) {
+        analysis += `<p>🌟 <strong>Aucune absence enregistrée !</strong> Performance remarquable de tous les nageurs.</p>`;
+    } else {
+        const absenceRatio = (stats.totalAbsences / stats.totalRecords * 100).toFixed(1);
+        
+        if (stats.unexcusedAbsences > stats.excusedAbsences) {
+            const unexcusedPercent = ((stats.unexcusedAbsences / stats.totalAbsences) * 100).toFixed(0);
+            analysis += `<p>⚠️ <strong>${unexcusedPercent}% des absences ne sont pas justifiées</strong> (${stats.unexcusedAbsences}/${stats.totalAbsences}). Il est important d'encourager la communication pour comprendre les raisons des absences.</p>`;
+        } else if (stats.excusedAbsences > 0) {
+            const excusedPercent = stats.excusedRate;
+            analysis += `<p>📋 <strong>Bon taux de justification</strong> : ${excusedPercent}% des absences sont excusées. Cela témoigne d'une bonne communication avec les nageurs.</p>`;
+        }
+    }
+    
+    // Analyse des retards
+    if (stats.totalLates > 0) {
+        const lateRatio = (stats.totalLates / stats.totalRecords * 100).toFixed(1);
+        
+        if (stats.totalLates > stats.totalAbsences) {
+            analysis += `<p>⏰ <strong>Attention aux retards !</strong> On observe <strong>${stats.totalLates} retards</strong>, ce qui dépasse le nombre d'absences. Considérez un rappel sur l'importance de la ponctualité.</p>`;
+        } else if (stats.unexcusedLates > stats.excusedLates) {
+            analysis += `<p>⏰ <strong>${stats.totalLates} retards enregistrés</strong>, dont ${stats.unexcusedLates} non justifiés. La ponctualité reste un point à améliorer.</p>`;
+        } else {
+            analysis += `<p>⏰ <strong>${stats.totalLates} retards</strong> au total, avec une bonne communication (${stats.excusedLates} justifiés).</p>`;
+        }
+    }
+    
+    // Analyse des nageurs parfaits
+    if (stats.perfectAttendanceCount > 0) {
+        const perfectPercent = ((stats.perfectAttendanceCount / totalSwimmers) * 100).toFixed(0);
+        analysis += `<p>🏆 <strong>${stats.perfectAttendanceCount} nageur(s) avec une assiduité parfaite</strong> (${perfectPercent}% de l'équipe). Ces nageurs sont des exemples à valoriser !</p>`;
+    }
+    
+    // Analyse des nageurs nécessitant un suivi
+    if (stats.topAbsentees.length > 0) {
+        const maxAbsences = stats.topAbsentees[0].absences;
+        
+        if (maxAbsences >= 5) {
+            analysis += `<p>🔴 <strong>Suivi prioritaire requis :</strong> ${stats.topAbsentees.length} nageur(s) accumulent des absences importantes (jusqu'à ${maxAbsences}). Un entretien individuel est recommandé.</p>`;
+        } else if (maxAbsences >= 3) {
+            analysis += `<p>🟠 <strong>Vigilance nécessaire :</strong> ${stats.topAbsentees.length} nageur(s) commencent à accumuler des absences. Un suivi préventif est conseillé.</p>`;
+        }
+    }
+    
+    // Analyse du volume de données
+    if (stats.totalRecords === 0) {
+        analysis += `<p>📊 <strong>Aucune donnée disponible.</strong> Commencez à enregistrer les présences pour obtenir des analyses détaillées.</p>`;
+    } else if (stats.totalRecords < totalSwimmers * 5) {
+        analysis += `<p>📊 <strong>Données limitées</strong> (${stats.totalRecords} enregistrements). Continuez le suivi régulier pour des analyses plus précises.</p>`;
+    } else {
+        const avgSessionsPerSwimmer = (stats.totalRecords / totalSwimmers).toFixed(1);
+        analysis += `<p>📊 <strong>Base de données solide</strong> : ${stats.totalRecords} enregistrements sur ${totalSwimmers} nageurs (moyenne de ${avgSessionsPerSwimmer} sessions/nageur). Les analyses sont fiables.</p>`;
+    }
+    
+    // Recommandation finale basée sur le contexte global
+    if (stats.averageRate >= 85 && stats.perfectAttendanceCount > 0 && stats.topAbsentees.length === 0) {
+        analysis += `<p>💪 <strong>Continue comme ça !</strong> L'équipe est sur une excellente trajectoire. Maintenez cette dynamique positive.</p>`;
+    } else if (stats.averageRate < 70 || stats.topAbsentees.length >= 3) {
+        analysis += `<p>💡 <strong>Actions recommandées :</strong> Organisez des entretiens individuels avec les nageurs absents, identifiez les obstacles et proposez des solutions adaptées.</p>`;
+    }
+    
+    return analysis || '<p>📊 Continuez à enregistrer les données pour obtenir une analyse détaillée.</p>';
+}
+
+// Fonction pour générer les points positifs dynamiquement
+function getPositivePoints(stats, totalSwimmers) {
+    const points = [];
+    
+    if (stats.averageRate >= 80) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-check" style="margin-right: 8px;"></i> Excellent taux de présence global (${stats.averageRate}%)</li>`);
+    } else if (stats.averageRate >= 70) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-check" style="margin-right: 8px;"></i> Bon taux de présence (${stats.averageRate}%)</li>`);
+    }
+    
+    if (stats.perfectAttendanceCount > 0) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-check" style="margin-right: 8px;"></i> ${stats.perfectAttendanceCount} nageur(s) avec assiduité parfaite (${((stats.perfectAttendanceCount/totalSwimmers)*100).toFixed(0)}% de l'équipe)</li>`);
+    }
+    
+    if (stats.excusedRate >= 70 && stats.totalAbsences > 0) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-check" style="margin-right: 8px;"></i> Excellent taux de justification des absences (${stats.excusedRate}%)</li>`);
+    } else if (stats.excusedRate >= 50 && stats.totalAbsences > 0) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-check" style="margin-right: 8px;"></i> Bon taux de justification des absences (${stats.excusedRate}%)</li>`);
+    }
+    
+    if (stats.swimmersWithData >= totalSwimmers * 0.9) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-check" style="margin-right: 8px;"></i> Excellent suivi des nageurs (${stats.swimmersWithData}/${totalSwimmers} nageurs suivis)</li>`);
+    } else if (stats.swimmersWithData >= totalSwimmers * 0.7) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-check" style="margin-right: 8px;"></i> Bon suivi des nageurs (${stats.swimmersWithData}/${totalSwimmers})</li>`);
+    }
+    
+    if (stats.totalRecords >= totalSwimmers * 10) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-check" style="margin-right: 8px;"></i> Base de données riche (${stats.totalRecords} enregistrements)</li>`);
+    }
+    
+    if (stats.totalAbsences === 0 && stats.totalRecords > 0) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-check" style="margin-right: 8px;"></i> Aucune absence ! Assiduité exemplaire</li>`);
+    }
+    
+    if (stats.totalLates === 0 && stats.totalRecords > 0) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-check" style="margin-right: 8px;"></i> Aucun retard enregistré ! Excellente ponctualité</li>`);
+    }
+    
+    // Si aucun point positif, afficher un message d'encouragement
+    if (points.length === 0) {
+        points.push(`<li style="padding: 10px; background: #fff9c4; border-radius: 8px; color: #f57f17;"><i class="fas fa-info-circle" style="margin-right: 8px;"></i> Continuez à enregistrer les présences pour identifier les points forts</li>`);
+    }
+    
+    return points.join('');
+}
+
+// Fonction pour générer les points d'attention dynamiquement
+function getAttentionPoints(stats, totalSwimmers) {
+    const points = [];
+    
+    if (stats.averageRate < 60) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #ffebee; border-radius: 8px; color: #c62828;"><i class="fas fa-times" style="margin-right: 8px;"></i> Taux de présence faible (${stats.averageRate}%) - Action urgente requise</li>`);
+    } else if (stats.averageRate < 70) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #fff3e0; border-radius: 8px; color: #e65100;"><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> Taux de présence à améliorer (${stats.averageRate}%)</li>`);
+    }
+    
+    if (stats.totalAbsences > totalSwimmers * 3) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #ffebee; border-radius: 8px; color: #c62828;"><i class="fas fa-times" style="margin-right: 8px;"></i> Nombre très élevé d'absences (${stats.totalAbsences} au total)</li>`);
+    } else if (stats.totalAbsences > totalSwimmers * 1.5) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #fff3e0; border-radius: 8px; color: #e65100;"><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> Nombre élevé d'absences (${stats.totalAbsences})</li>`);
+    }
+    
+    if (stats.unexcusedAbsences > stats.excusedAbsences && stats.totalAbsences > 0) {
+        const unexcusedPercent = ((stats.unexcusedAbsences / stats.totalAbsences) * 100).toFixed(0);
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #fff3e0; border-radius: 8px; color: #e65100;"><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> ${unexcusedPercent}% des absences non justifiées (${stats.unexcusedAbsences}/${stats.totalAbsences})</li>`);
+    }
+    
+    if (stats.topAbsentees.length >= 5) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #ffebee; border-radius: 8px; color: #c62828;"><i class="fas fa-times" style="margin-right: 8px;"></i> ${stats.topAbsentees.length} nageurs nécessitent un suivi urgent</li>`);
+    } else if (stats.topAbsentees.length > 0) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #fff3e0; border-radius: 8px; color: #e65100;"><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> ${stats.topAbsentees.length} nageur(s) à suivre de près</li>`);
+    }
+    
+    if (stats.swimmersWithData < totalSwimmers * 0.5) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #ffebee; border-radius: 8px; color: #c62828;"><i class="fas fa-times" style="margin-right: 8px;"></i> Suivi très incomplet (seulement ${stats.swimmersWithData}/${totalSwimmers} nageurs)</li>`);
+    } else if (stats.swimmersWithData < totalSwimmers * 0.7) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #fff3e0; border-radius: 8px; color: #e65100;"><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> Suivi incomplet des nageurs (${stats.swimmersWithData}/${totalSwimmers})</li>`);
+    }
+    
+    if (stats.totalLates > stats.totalAbsences && stats.totalLates > 5) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #fff3e0; border-radius: 8px; color: #e65100;"><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> Problème de ponctualité (${stats.totalLates} retards)</li>`);
+    }
+    
+    if (stats.unexcusedLates > stats.excusedLates && stats.totalLates > 3) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #fff3e0; border-radius: 8px; color: #e65100;"><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> Retards majoritairement non justifiés (${stats.unexcusedLates}/${stats.totalLates})</li>`);
+    }
+    
+    if (stats.totalRecords < totalSwimmers * 3 && stats.totalRecords > 0) {
+        points.push(`<li style="padding: 10px; margin-bottom: 10px; background: #fff9c4; border-radius: 8px; color: #f57f17;"><i class="fas fa-info-circle" style="margin-right: 8px;"></i> Données limitées - Continuez le suivi régulier</li>`);
+    }
+    
+    // Si aucun point d'attention, afficher un message positif
+    if (points.length === 0) {
+        points.push(`<li style="padding: 10px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;"><i class="fas fa-thumbs-up" style="margin-right: 8px;"></i> Aucun point d'attention majeur ! Excellente gestion de l'assiduité</li>`);
+    }
+    
+    return points.join('');
+}
+
+// Fonction pour générer des recommandations dynamiques et personnalisées
+function getDynamicRecommendations(stats, totalSwimmers) {
+    const recommendations = [];
+    const isSingleSwimmer = currentSwimmerFilter !== null;
+    
+    // Recommandation 1: Basée sur le taux de présence
+    if (stats.averageRate < 60) {
+        recommendations.push(`
+            <div style="padding: 15px; background: #ffebee; border-left: 4px solid #f44336; border-radius: 8px;">
+                <strong style="color: #c62828; display: block; margin-bottom: 8px;">🚨 ${isSingleSwimmer ? 'URGENCE : Amélioration Nécessaire' : 'URGENCE : Plan d\'Action Immédiat'}</strong>
+                <p style="margin: 0; color: #666; line-height: 1.6;">${isSingleSwimmer 
+                    ? `Le taux de présence de ${stats.averageRate}% est préoccupant. Il est important de discuter des obstacles qui empêchent une participation régulière et de trouver des solutions.`
+                    : `Le taux de présence de ${stats.averageRate}% nécessite une intervention urgente. Organisez une réunion d'équipe pour identifier les problèmes et établir un plan d'amélioration concret avec des objectifs mesurables.`
+                }</p>
+            </div>
+        `);
+    } else if (stats.averageRate < 75) {
+        recommendations.push(`
+            <div style="padding: 15px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px;">
+                <strong style="color: #e65100; display: block; margin-bottom: 8px;">⚠️ Amélioration de l'Assiduité</strong>
+                <p style="margin: 0; color: #666; line-height: 1.6;">${isSingleSwimmer
+                    ? `Avec ${stats.averageRate}% de présence, il y a une marge de progression. Identifiez les obstacles et fixez-vous des objectifs réalistes pour améliorer votre régularité.`
+                    : `Avec ${stats.averageRate}% de présence, l'équipe peut mieux faire. Identifiez les obstacles principaux et mettez en place des mesures incitatives pour encourager la régularité.`
+                }</p>
+            </div>
+        `);
+    } else if (stats.averageRate >= 90) {
+        recommendations.push(`
+            <div style="padding: 15px; background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 8px;">
+                <strong style="color: #2e7d32; display: block; margin-bottom: 8px;">🌟 ${isSingleSwimmer ? 'Excellent Travail !' : 'Maintien de l\'Excellence'}</strong>
+                <p style="margin: 0; color: #666; line-height: 1.6;">${isSingleSwimmer
+                    ? `Excellent taux de présence (${stats.averageRate}%) ! Vous êtes un exemple pour l'équipe. Continuez cet engagement exemplaire !`
+                    : `Excellent taux de présence (${stats.averageRate}%) ! Continuez à célébrer les succès et à valoriser les nageurs assidus pour maintenir cette dynamique positive.`
+                }</p>
+            </div>
+        `);
+    }
+    
+    // Recommandation 2: Basée sur les absences non justifiées
+    if (stats.unexcusedAbsences > stats.excusedAbsences && stats.totalAbsences > 0) {
+        const unexcusedPercent = ((stats.unexcusedAbsences / stats.totalAbsences) * 100).toFixed(0);
+        recommendations.push(`
+            <div style="padding: 15px; background: #f0f8ff; border-left: 4px solid #2196f3; border-radius: 8px;">
+                <strong style="color: #1565c0; display: block; margin-bottom: 8px;">📞 ${isSingleSwimmer ? 'Importance de Justifier les Absences' : 'Communication Renforcée'}</strong>
+                <p style="margin: 0; color: #666; line-height: 1.6;">${isSingleSwimmer
+                    ? `${unexcusedPercent}% de vos absences ne sont pas justifiées. Pensez à prévenir votre coach en cas d'absence pour maintenir une bonne communication et faciliter l'organisation de l'équipe.`
+                    : `${unexcusedPercent}% des absences ne sont pas justifiées. Facilitez la communication en créant un canal simple pour signaler les absences (SMS, email, app). Rappelez l'importance de prévenir en cas d'absence.`
+                }</p>
+            </div>
+        `);
+    }
+    
+    // Recommandation 3: Basée sur les nageurs nécessitant un suivi (seulement en mode équipe)
+    if (!isSingleSwimmer && stats.topAbsentees.length >= 3) {
+        const maxAbsences = stats.topAbsentees[0].absences;
+        recommendations.push(`
+            <div style="padding: 15px; background: #f0f8ff; border-left: 4px solid #2196f3; border-radius: 8px;">
+                <strong style="color: #1565c0; display: block; margin-bottom: 8px;">👥 Suivi Individualisé</strong>
+                <p style="margin: 0; color: #666; line-height: 1.6;">${stats.topAbsentees.length} nageurs accumulent des absences (jusqu'à ${maxAbsences}). Planifiez des entretiens individuels pour comprendre les raisons et proposer des solutions adaptées à chaque situation.</p>
+            </div>
+        `);
+    } else if (!isSingleSwimmer && stats.perfectAttendanceCount > 0) {
+        const perfectPercent = ((stats.perfectAttendanceCount / totalSwimmers) * 100).toFixed(0);
+        recommendations.push(`
+            <div style="padding: 15px; background: #fff9c4; border-left: 4px solid #ffc107; border-radius: 8px;">
+                <strong style="color: #f57f17; display: block; margin-bottom: 8px;">🏆 Valorisation des Exemples</strong>
+                <p style="margin: 0; color: #666; line-height: 1.6;">${stats.perfectAttendanceCount} nageur(s) (${perfectPercent}% de l'équipe) ont une assiduité parfaite ! Mettez-les en avant lors des entraînements et organisez une reconnaissance publique pour inspirer les autres.</p>
+            </div>
+        `);
+    }
+    
+    // Recommandation 4: Basée sur les retards
+    if (stats.totalLates > stats.totalAbsences && stats.totalLates > (isSingleSwimmer ? 2 : 5)) {
+        recommendations.push(`
+            <div style="padding: 15px; background: #f0f8ff; border-left: 4px solid #2196f3; border-radius: 8px;">
+                <strong style="color: #1565c0; display: block; margin-bottom: 8px;">⏰ Amélioration de la Ponctualité</strong>
+                <p style="margin: 0; color: #666; line-height: 1.6;">${isSingleSwimmer
+                    ? `Vous avez enregistré ${stats.totalLates} retards, ce qui dépasse vos absences. La ponctualité est importante : un échauffement manqué peut impacter vos performances et augmenter les risques de blessure.`
+                    : `Les retards (${stats.totalLates}) dépassent les absences. Rappelez l'importance de la ponctualité et envisagez d'ajuster les horaires si nécessaire. Un échauffement manqué peut impacter la performance et augmenter les risques de blessure.`
+                }</p>
+            </div>
+        `);
+    }
+    
+    // Recommandation 5: Basée sur le suivi des données (seulement mode équipe)
+    if (!isSingleSwimmer) {
+        if (stats.swimmersWithData < totalSwimmers * 0.7) {
+            recommendations.push(`
+                <div style="padding: 15px; background: #f0f8ff; border-left: 4px solid #2196f3; border-radius: 8px;">
+                    <strong style="color: #1565c0; display: block; margin-bottom: 8px;">📊 Amélioration du Suivi</strong>
+                    <p style="margin: 0; color: #666; line-height: 1.6;">Seulement ${stats.swimmersWithData} nageurs sur ${totalSwimmers} ont des données enregistrées. Assurez-vous de suivre tous les nageurs régulièrement pour obtenir une vision complète de l'assiduité de l'équipe.</p>
                 </div>
+            `);
+        } else if (stats.totalRecords >= totalSwimmers * 10) {
+            recommendations.push(`
+                <div style="padding: 15px; background: #f0f8ff; border-left: 4px solid #2196f3; border-radius: 8px;">
+                    <strong style="color: #1565c0; display: block; margin-bottom: 8px;">📈 Analyse des Tendances</strong>
+                    <p style="margin: 0; color: #666; line-height: 1.6;">Avec ${stats.totalRecords} enregistrements, vous disposez d'une base solide. Analysez les tendances mensuelles et hebdomadaires pour identifier les périodes critiques et adapter votre planification.</p>
+                </div>
+            `);
+        }
+    }
+    
+    // Recommandation toujours présente selon le mode
+    if (isSingleSwimmer) {
+        recommendations.push(`
+            <div style="padding: 15px; background: #f0f8ff; border-left: 4px solid #2196f3; border-radius: 8px;">
+                <strong style="color: #1565c0; display: block; margin-bottom: 8px;">🎯 Objectifs Personnels</strong>
+                <p style="margin: 0; color: #666; line-height: 1.6;">Fixez-vous des objectifs d'assiduité réalistes et suivez vos progrès. Discutez avec votre coach pour établir un plan personnalisé qui vous aidera à maintenir une présence régulière aux entraînements.</p>
+            </div>
+        `);
+    } else {
+        recommendations.push(`
+            <div style="padding: 15px; background: #f0f8ff; border-left: 4px solid #2196f3; border-radius: 8px;">
+                <strong style="color: #1565c0; display: block; margin-bottom: 8px;">👨‍👩‍👧‍👦 Partenariat avec les Parents</strong>
+                <p style="margin: 0; color: #666; line-height: 1.6;">Partagez régulièrement les statistiques d'assiduité avec les parents via email ou une application. Un suivi transparent favorise l'engagement familial et renforce la motivation des nageurs.</p>
+            </div>
+        `);
+    }
+    
+    // Si très peu de données, recommander de commencer le suivi
+    if (stats.totalRecords === 0) {
+        return `
+            <div style="padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 8px;">
+                <strong style="color: #1565c0; display: block; margin-bottom: 8px;">🚀 ${isSingleSwimmer ? 'Démarrage du Suivi Personnel' : 'Démarrage du Suivi'}</strong>
+                <p style="margin: 0; color: #666; line-height: 1.6;">${isSingleSwimmer
+                    ? `Aucune donnée de présence n'a encore été enregistrée. Le suivi régulier de votre assiduité vous aidera à progresser et à rester motivé.`
+                    : `Commencez à enregistrer les présences dès maintenant pour obtenir des analyses détaillées et des recommandations personnalisées. Un suivi régulier est la clé d'une bonne gestion de l'équipe.`
+                }</p>
+            </div>
+        `;
+    }
+    
+    return recommendations.join('');
+}
+
+// Fonction de notification simple (si elle n'existe pas déjà)
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #27ae60 0%, #229954 100%)' : 'linear-gradient(135deg, #2196f3 0%, #42a5f5 100%)'};
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        z-index: 10000;
+        font-weight: 600;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+    }, 2000);
+}
+
+function generateAttendanceOverviewTab(attendanceStats, swimmers) {
+    return `
+        <h4 style="margin: 0 0 25px 0; color: #333; font-size: 1.5rem;">📊 Moyennes de l'Équipe</h4>
+        
+        <!-- Cartes des 5 Statuts -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); border-radius: 15px; color: white; box-shadow: 0 6px 20px rgba(76,175,80,0.4); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    <i class="fas fa-check-circle" style="font-size: 2rem;"></i>
+                </div>
+                <div style="font-size: 3rem; font-weight: bold; margin-bottom: 10px;" id="overview-present-count">${attendanceStats.presentCount}</div>
+                <div style="font-size: 1.1rem; opacity: 0.95; font-weight: 600; margin-bottom: 8px;">✅ Présents</div>
+                <div style="font-size: 0.9rem; opacity: 0.85; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 20px; display: inline-block;">
+                    <span id="overview-present-rate">${attendanceStats.totalRecords > 0 ? Math.round((attendanceStats.presentCount / attendanceStats.totalRecords) * 100) : 0}%</span> du total
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #f44336 0%, #e57373 100%); border-radius: 15px; color: white; box-shadow: 0 6px 20px rgba(244,67,54,0.4); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    <i class="fas fa-times-circle" style="font-size: 2rem;"></i>
+                </div>
+                <div style="font-size: 3rem; font-weight: bold; margin-bottom: 10px;" id="overview-absent-count">${attendanceStats.unexcusedAbsences}</div>
+                <div style="font-size: 1.1rem; opacity: 0.95; font-weight: 600; margin-bottom: 8px;">❌ Absents</div>
+                <div style="font-size: 0.9rem; opacity: 0.85; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 20px; display: inline-block;">
+                    <span id="overview-absent-rate">${attendanceStats.totalRecords > 0 ? Math.round((attendanceStats.unexcusedAbsences / attendanceStats.totalRecords) * 100) : 0}%</span> du total
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%); border-radius: 15px; color: white; box-shadow: 0 6px 20px rgba(156,39,176,0.4); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    <i class="fas fa-clipboard-check" style="font-size: 2rem;"></i>
+                </div>
+                <div style="font-size: 3rem; font-weight: bold; margin-bottom: 10px;" id="overview-excused-absent-count">${attendanceStats.excusedAbsences}</div>
+                <div style="font-size: 1.1rem; opacity: 0.95; font-weight: 600; margin-bottom: 8px;">📝 Abs. Justifiés</div>
+                <div style="font-size: 0.9rem; opacity: 0.85; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 20px; display: inline-block;">
+                    <span id="overview-excused-absent-rate">${attendanceStats.totalRecords > 0 ? Math.round((attendanceStats.excusedAbsences / attendanceStats.totalRecords) * 100) : 0}%</span> du total
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%); border-radius: 15px; color: white; box-shadow: 0 6px 20px rgba(255,152,0,0.4); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    <i class="fas fa-clock" style="font-size: 2rem;"></i>
+                </div>
+                <div style="font-size: 3rem; font-weight: bold; margin-bottom: 10px;" id="overview-late-count">${attendanceStats.unexcusedLates}</div>
+                <div style="font-size: 1.1rem; opacity: 0.95; font-weight: 600; margin-bottom: 8px;">⏰ Retards</div>
+                <div style="font-size: 0.9rem; opacity: 0.85; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 20px; display: inline-block;">
+                    <span id="overview-late-rate">${attendanceStats.totalRecords > 0 ? Math.round((attendanceStats.unexcusedLates / attendanceStats.totalRecords) * 100) : 0}%</span> du total
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); border-radius: 15px; color: white; box-shadow: 0 6px 20px rgba(33,150,243,0.4); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-8px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    <i class="fas fa-history" style="font-size: 2rem;"></i>
+                </div>
+                <div style="font-size: 3rem; font-weight: bold; margin-bottom: 10px;" id="overview-excused-late-count">${attendanceStats.excusedLates}</div>
+                <div style="font-size: 1.1rem; opacity: 0.95; font-weight: 600; margin-bottom: 8px;">⏰ Ret. Justifiés</div>
+                <div style="font-size: 0.9rem; opacity: 0.85; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 20px; display: inline-block;">
+                    <span id="overview-excused-late-rate">${attendanceStats.totalRecords > 0 ? Math.round((attendanceStats.excusedLates / attendanceStats.totalRecords) * 100) : 0}%</span> du total
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function generateAttendanceStatisticsTab(attendanceStats, swimmers) {
+    // Créer les graphiques après un court délai
+    setTimeout(() => createAttendanceCharts(attendanceStats), 150);
+    
+    return `
+        <!-- Boutons Rafraîchir et Export PDF -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <h4 style="margin: 0; color: #333; font-size: 1.5rem;">📊 Statistiques Détaillées par Statut</h4>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="exportAttendanceToPDF()" 
+                        style="padding: 10px 20px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; box-shadow: 0 3px 10px rgba(231,76,60,0.3); transition: all 0.3s;"
+                        onmouseover="this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.transform='translateY(0)'">
+                    <i class="fas fa-file-pdf"></i> Exporter PDF
+                </button>
+                <button onclick="refreshAttendanceStats('statistics')" 
+                        style="padding: 10px 20px; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; box-shadow: 0 3px 10px rgba(33,150,243,0.3); transition: all 0.3s;"
+                        onmouseover="this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.transform='translateY(0)'">
+                    <i class="fas fa-sync-alt"></i> Rafraîchir
+                </button>
+            </div>
+        </div>
+        
+        <!-- Message de mise à jour -->
+        <div style="background: #e3f2fd; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
+            <i class="fas fa-info-circle"></i> <strong>Dernière mise à jour :</strong> ${new Date().toLocaleString('fr-FR')} | <strong>${attendanceStats.totalRecords}</strong> enregistrement(s) | <strong>${swimmers.length}</strong> nageur(s)
+        </div>
+        
+        <!-- Graphiques visuels -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <h5 style="margin: 0 0 20px 0; color: #333; font-size: 1.2rem; text-align: center;">📊 Répartition des Statuts</h5>
+                <canvas id="attendanceDistributionChart" style="max-height: 300px;"></canvas>
+            </div>
+            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <h5 style="margin: 0 0 20px 0; color: #333; font-size: 1.2rem; text-align: center;">📈 Évolution Temporelle</h5>
+                <canvas id="attendanceTrendChart" style="max-height: 300px;"></canvas>
             </div>
         </div>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px;">
-            <div style="text-align: center; padding: 20px; background: ${attendanceStats.averageRate >= 80 ? 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)' : attendanceStats.averageRate >= 60 ? 'linear-gradient(135deg, #ff9800 0%, #ffa726 100%)' : 'linear-gradient(135deg, #f44336 0%, #e57373 100%)'}; border-radius: 10px; color: white;">
-                <div style="font-size: 2rem; font-weight: bold;">${attendanceStats.presentCount}</div>
-                <div style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">✅ Présences</div>
+            <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(76,175,80,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="font-size: 2.8rem; font-weight: bold; margin-bottom: 8px;">${attendanceStats.presentCount}</div>
+                <div style="font-size: 1rem; opacity: 0.95; font-weight: 500;">✅ Présents</div>
+                <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">${attendanceStats.totalRecords > 0 ? Math.round((attendanceStats.presentCount / attendanceStats.totalRecords) * 100) : 0}% du total</div>
             </div>
-            <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #f44336 0%, #e57373 100%); border-radius: 10px; color: white;">
-                <div style="font-size: 2rem; font-weight: bold;">${attendanceStats.totalAbsences}</div>
-                <div style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">❌ Absences</div>
+            <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #f44336 0%, #e57373 100%); border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(244,67,54,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="font-size: 2.8rem; font-weight: bold; margin-bottom: 8px;">${attendanceStats.unexcusedAbsences}</div>
+                <div style="font-size: 1rem; opacity: 0.95; font-weight: 500;">❌ Absents</div>
+                <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">${attendanceStats.totalRecords > 0 ? Math.round((attendanceStats.unexcusedAbsences / attendanceStats.totalRecords) * 100) : 0}% du total</div>
             </div>
-            <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); border-radius: 10px; color: white;">
-                <div style="font-size: 2rem; font-weight: bold;">${attendanceStats.excusedRate}%</div>
-                <div style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">📝 Absences Justifiées</div>
+            <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%); border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(156,39,176,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="font-size: 2.8rem; font-weight: bold; margin-bottom: 8px;">${attendanceStats.excusedAbsences}</div>
+                <div style="font-size: 1rem; opacity: 0.95; font-weight: 500;">📝 Abs. Justifiés</div>
+                <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">${attendanceStats.totalRecords > 0 ? Math.round((attendanceStats.excusedAbsences / attendanceStats.totalRecords) * 100) : 0}% du total</div>
+            </div>
+            <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%); border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(255,152,0,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="font-size: 2.8rem; font-weight: bold; margin-bottom: 8px;">${attendanceStats.unexcusedLates}</div>
+                <div style="font-size: 1rem; opacity: 0.95; font-weight: 500;">⏰ Retards</div>
+                <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">${attendanceStats.totalRecords > 0 ? Math.round((attendanceStats.unexcusedLates / attendanceStats.totalRecords) * 100) : 0}% du total</div>
+            </div>
+            <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(33,150,243,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div style="font-size: 2.8rem; font-weight: bold; margin-bottom: 8px;">${attendanceStats.excusedLates}</div>
+                <div style="font-size: 1rem; opacity: 0.95; font-weight: 500;">⏰ Ret. Justifiés</div>
+                <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">${attendanceStats.totalRecords > 0 ? Math.round((attendanceStats.excusedLates / attendanceStats.totalRecords) * 100) : 0}% du total</div>
             </div>
         </div>
         
-        ${attendanceStats.topAbsentees.length > 0 ? `
-        <div style="background: #ffebee; padding: 20px; border-radius: 10px; border-left: 4px solid #f44336; margin-bottom: 20px;">
-            <h4 style="margin: 0 0 10px 0; color: #333;">⚠️ Nageurs avec le Plus d'Absences</h4>
-            <ul style="margin: 5px 0 0 0; padding-left: 20px; color: #666;">
-                ${attendanceStats.topAbsentees.map(swimmer => `<li style="margin-bottom: 5px;">${swimmer.name} (${swimmer.absences} absence(s))</li>`).join('')}
-            </ul>
+        <h4 style="margin: 30px 0 15px 0; color: #333; font-size: 1.3rem;">🏆 Indicateurs Clés de Performance</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <div style="background: white; padding: 25px; border-radius: 12px; border-left: 5px solid #27ae60; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #27ae60, #229954); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-percentage" style="font-size: 1.5rem; color: white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #27ae60;">${attendanceStats.averageRate}%</div>
+                        <div style="font-size: 0.9rem; color: #666;">Taux Global</div>
+                    </div>
+                </div>
+                <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #666;">
+                    Taux de présence moyen de l'équipe
+                </div>
+            </div>
+            
+            <div style="background: white; padding: 25px; border-radius: 12px; border-left: 5px solid #9c27b0; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #9c27b0, #ba68c8); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-star" style="font-size: 1.5rem; color: white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #9c27b0;">${attendanceStats.perfectAttendanceCount}</div>
+                        <div style="font-size: 0.9rem; color: #666;">Assiduité Parfaite</div>
+                    </div>
+                </div>
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #666;">
+                    Nageurs avec 100% de présence
+                </div>
+            </div>
+            
+            <div style="background: white; padding: 25px; border-radius: 12px; border-left: 5px solid #00bcd4; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #00bcd4, #4dd0e1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-calendar-week" style="font-size: 1.5rem; color: white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #00bcd4;">${attendanceStats.averageSessionsPerWeek}</div>
+                        <div style="font-size: 0.9rem; color: #666;">Sessions/Semaine</div>
+                    </div>
+                </div>
+                <div style="background: #e0f7fa; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #666;">
+                    Nombre moyen de sessions hebdomadaires
+                </div>
+            </div>
+            
+            <div style="background: white; padding: 25px; border-radius: 12px; border-left: 5px solid #ff5722; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff5722, #ff7043); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-database" style="font-size: 1.5rem; color: white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #ff5722;">${attendanceStats.totalRecords}</div>
+                        <div style="font-size: 0.9rem; color: #666;">Enregistrements</div>
+                    </div>
+                </div>
+                <div style="background: #fbe9e7; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #666;">
+                    Total des données de présence
+                </div>
+            </div>
+            
+            <div style="background: white; padding: 25px; border-radius: 12px; border-left: 5px solid #673ab7; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #673ab7, #9575cd); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-chart-line" style="font-size: 1.5rem; color: white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #673ab7;">${attendanceStats.engagementRate || 0}%</div>
+                        <div style="font-size: 0.9rem; color: #666;">Engagement</div>
+                    </div>
+                </div>
+                <div style="background: #ede7f6; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #666;">
+                    Taux d'engagement global
+                </div>
+            </div>
+            
+            <div style="background: white; padding: 25px; border-radius: 12px; border-left: 5px solid #009688; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #009688, #4db6ac); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-fire" style="font-size: 1.5rem; color: white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #009688;">${attendanceStats.regularityScore || 0}</div>
+                        <div style="font-size: 0.9rem; color: #666;">Régularité</div>
+                    </div>
+                </div>
+                <div style="background: #e0f2f1; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #666;">
+                    Score de régularité des présences
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+            <div style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); padding: 25px; border-radius: 12px; border: 2px solid #f44336;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #9c27b0, #ba68c8); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-star" style="font-size: 1.5rem; color: white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #9c27b0;">${attendanceStats.perfectAttendanceCount}</div>
+                        <div style="font-size: 0.9rem; color: #666;">Assiduité Parfaite</div>
+                    </div>
+                </div>
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #666;">
+                    Nageurs avec 100% de présence
+                </div>
+            </div>
+            
+            <div style="background: white; padding: 25px; border-radius: 12px; border-left: 5px solid #00bcd4; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #00bcd4, #4dd0e1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-calendar-week" style="font-size: 1.5rem; color: white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #00bcd4;">${attendanceStats.averageSessionsPerWeek}</div>
+                        <div style="font-size: 0.9rem; color: #666;">Sessions/Semaine</div>
+                    </div>
+                </div>
+                <div style="background: #e0f7fa; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #666;">
+                    Nombre moyen de sessions hebdomadaires
+                </div>
+            </div>
+            
+            <div style="background: white; padding: 25px; border-radius: 12px; border-left: 5px solid #ff5722; box-shadow: 0 3px 12px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff5722, #ff7043); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-database" style="font-size: 1.5rem; color: white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #ff5722;">${attendanceStats.totalRecords}</div>
+                        <div style="font-size: 0.9rem; color: #666;">Enregistrements</div>
+                    </div>
+                </div>
+                <div style="background: #fbe9e7; padding: 10px; border-radius: 8px; font-size: 0.85rem; color: #666;">
+                    Total des données de présence
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+            <div style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); padding: 25px; border-radius: 12px; border: 2px solid #f44336;">
+                <h5 style="margin: 0 0 15px 0; color: #c62828; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-exclamation-triangle"></i> Statistiques Absences
+                </h5>
+                <div style="display: grid; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; border-radius: 8px;">
+                        <span style="color: #666;">Total Absences:</span>
+                        <span style="font-weight: bold; color: #f44336;">${attendanceStats.totalAbsences}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; border-radius: 8px;">
+                        <span style="color: #666;">Non Justifiées:</span>
+                        <span style="font-weight: bold; color: #f44336;">${attendanceStats.unexcusedAbsences}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; border-radius: 8px;">
+                        <span style="color: #666;">Justifiées:</span>
+                        <span style="font-weight: bold; color: #9c27b0;">${attendanceStats.excusedAbsences}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; border-radius: 8px;">
+                        <span style="color: #666;">Taux Justification:</span>
+                        <span style="font-weight: bold; color: #2196f3;">${attendanceStats.excusedRate}%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 25px; border-radius: 12px; border: 2px solid #ff9800;">
+                <h5 style="margin: 0 0 15px 0; color: #e65100; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-clock"></i> Statistiques Retards
+                </h5>
+                <div style="display: grid; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; border-radius: 8px;">
+                        <span style="color: #666;">Total Retards:</span>
+                        <span style="font-weight: bold; color: #ff9800;">${attendanceStats.totalLates}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; border-radius: 8px;">
+                        <span style="color: #666;">Non Justifiés:</span>
+                        <span style="font-weight: bold; color: #ff9800;">${attendanceStats.unexcusedLates}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; border-radius: 8px;">
+                        <span style="color: #666;">Justifiés:</span>
+                        <span style="font-weight: bold; color: #2196f3;">${attendanceStats.excusedLates}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; border-radius: 8px;">
+                        <span style="color: #666;">Taux Justification:</span>
+                        <span style="font-weight: bold; color: #2196f3;">${attendanceStats.totalLates > 0 ? Math.round((attendanceStats.excusedLates / attendanceStats.totalLates) * 100) : 0}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function generateAttendanceSwimmersTab(attendanceStats, swimmers) {
+    return `
+        <!-- Bouton Rafraîchir -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h4 style="margin: 0; color: #333; font-size: 1.5rem;">👥 Détails par Nageur</h4>
+            <button onclick="refreshAttendanceStats('swimmers')" 
+                    style="padding: 10px 20px; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; box-shadow: 0 3px 10px rgba(33,150,243,0.3); transition: all 0.3s;"
+                    onmouseover="this.style.transform='translateY(-2px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                <i class="fas fa-sync-alt"></i> Rafraîchir les Données
+            </button>
+        </div>
+        
+        <!-- Message de mise à jour -->
+        <div style="background: #e3f2fd; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
+            <i class="fas fa-info-circle"></i> <strong>Dernière mise à jour :</strong> ${new Date().toLocaleString('fr-FR')} | <strong>${attendanceStats.totalRecords}</strong> enregistrement(s) | <strong>${swimmers.length}</strong> nageur(s)
+        </div>
+        
+        <div style="overflow-x: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 12px;">
+            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">
+                <thead>
+                    <tr style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); color: white;">
+                        <th style="padding: 15px 12px; text-align: left; font-weight: 600; font-size: 0.95rem; position: sticky; left: 0; background: linear-gradient(135deg, #27ae60 0%, #229954 100%); z-index: 10;">👤 Nageur</th>
+                        <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">✅ Présents</th>
+                        <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">❌ Absents</th>
+                        <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">📝 Abs. Just.</th>
+                        <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">⏰ Retards</th>
+                        <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">⏰ Ret. Just.</th>
+                        <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">📊 Total</th>
+                        <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">📈 Taux</th>
+                        <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">🏆 Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${attendanceStats.detailedSwimmerStats.map((stat, index) => `
+                        <tr style="border-bottom: 1px solid #e0e0e0; ${index % 2 === 0 ? 'background: #fafafa;' : 'background: white;'} transition: background 0.2s;" onmouseover="this.style.background='#f0f8ff'" onmouseout="this.style.background='${index % 2 === 0 ? '#fafafa' : 'white'}'">
+                            <td style="padding: 14px 12px; font-weight: 600; color: #333; position: sticky; left: 0; background: ${index % 2 === 0 ? '#fafafa' : 'white'}; z-index: 5;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.9rem;">
+                                        ${stat.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span>${stat.name}</span>
+                                </div>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center;">
+                                <span style="display: inline-block; padding: 6px 12px; background: #e8f5e9; color: #4caf50; font-weight: 600; border-radius: 8px; font-size: 0.95rem;">${stat.presences}</span>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center;">
+                                <span style="display: inline-block; padding: 6px 12px; background: #ffebee; color: #f44336; font-weight: 600; border-radius: 8px; font-size: 0.95rem;">${stat.absences}</span>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center;">
+                                <span style="display: inline-block; padding: 6px 12px; background: #f3e5f5; color: #9c27b0; font-weight: 600; border-radius: 8px; font-size: 0.95rem;">${stat.excusedAbsences}</span>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center;">
+                                <span style="display: inline-block; padding: 6px 12px; background: #fff3e0; color: #ff9800; font-weight: 600; border-radius: 8px; font-size: 0.95rem;">${stat.lates}</span>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center;">
+                                <span style="display: inline-block; padding: 6px 12px; background: #e3f2fd; color: #2196f3; font-weight: 600; border-radius: 8px; font-size: 0.95rem;">${stat.excusedLates}</span>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center;">
+                                <span style="font-weight: 600; color: #666; font-size: 0.95rem;">${stat.total}</span>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center;">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                                    <div style="width: 100%; max-width: 100px; height: 10px; background: #e0e0e0; border-radius: 5px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+                                        <div style="height: 100%; background: ${stat.rate >= 80 ? 'linear-gradient(90deg, #4caf50 0%, #66bb6a 100%)' : stat.rate >= 60 ? 'linear-gradient(90deg, #ff9800 0%, #ffa726 100%)' : 'linear-gradient(90deg, #f44336 0%, #e57373 100%)'}; width: ${stat.rate}%; transition: width 0.3s ease;"></div>
+                                    </div>
+                                    <span style="font-weight: 700; color: ${stat.rate >= 80 ? '#4caf50' : stat.rate >= 60 ? '#ff9800' : '#f44336'}; font-size: 1rem;">${stat.rate}%</span>
+                                </div>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center;">
+                                <span style="display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.15); ${
+                                    stat.rate >= 95 ? 'background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: white;' :
+                                    stat.rate >= 80 ? 'background: linear-gradient(135deg, #8bc34a 0%, #9ccc65 100%); color: white;' :
+                                    stat.rate >= 60 ? 'background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%); color: white;' :
+                                    'background: linear-gradient(135deg, #f44336 0%, #e57373 100%); color: white;'
+                                }">
+                                    ${stat.rate >= 95 ? '⭐ Excellent' : stat.rate >= 80 ? '✅ Bon' : stat.rate >= 60 ? '⚠️ Moyen' : '❌ Faible'}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        
+        ${attendanceStats.perfectAttendanceSwimmers.length > 0 ? `
+        <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding: 25px; border-radius: 12px; border: 2px solid #4caf50; margin-top: 30px;">
+            <h4 style="margin: 0 0 15px 0; color: #2e7d32; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-trophy"></i> Nageurs avec Assiduité Parfaite (100%)
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+                ${attendanceStats.perfectAttendanceSwimmers.map(name => `
+                    <div style="background: white; padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-star" style="color: #f57f17; font-size: 1.2rem;"></i>
+                        </div>
+                        <span style="font-weight: 600; color: #333;">${name}</span>
+                    </div>
+                `).join('')}
+            </div>
         </div>
         ` : ''}
         
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #27ae60;">
-            <h4 style="margin: 0 0 10px 0; color: #333;">📊 Analyse Assiduité</h4>
-            <div style="color: #666; line-height: 1.6;">
+        ${attendanceStats.topAbsentees.length > 0 ? `
+        <div style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); padding: 25px; border-radius: 12px; border: 2px solid #f44336; margin-top: 20px;">
+            <h4 style="margin: 0 0 15px 0; color: #c62828; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-exclamation-triangle"></i> Nageurs Nécessitant un Suivi
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;">
+                ${attendanceStats.topAbsentees.map(swimmer => `
+                    <div style="background: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                        <span style="font-weight: 600; color: #333;">${swimmer.name}</span>
+                        <span style="padding: 6px 12px; background: #f44336; color: white; border-radius: 12px; font-weight: 700; font-size: 0.9rem;">${swimmer.absences} absence(s)</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        ` : ''}
+    `;
+}
+
+function generateAttendanceAnalysisTab(attendanceStats, swimmers) {
+    return `
+        <!-- Bouton Rafraîchir -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h4 style="margin: 0; color: #333; font-size: 1.5rem;">💡 Analyse & Recommandations</h4>
+            <button onclick="refreshAttendanceStats('analysis')" 
+                    style="padding: 10px 20px; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; box-shadow: 0 3px 10px rgba(33,150,243,0.3); transition: all 0.3s;"
+                    onmouseover="this.style.transform='translateY(-2px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                <i class="fas fa-sync-alt"></i> Rafraîchir l'Analyse
+            </button>
+        </div>
+        
+        <!-- Message de mise à jour -->
+        <div style="background: #e3f2fd; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
+            <i class="fas fa-info-circle"></i> <strong>Analyse générée le :</strong> ${new Date().toLocaleString('fr-FR')} | Basée sur <strong>${attendanceStats.totalRecords}</strong> enregistrement(s)
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 25px; border-radius: 12px; border-left: 5px solid #27ae60; margin-bottom: 25px;">
+            <h5 style="margin: 0 0 15px 0; color: #27ae60; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-chart-line"></i> Analyse Globale de l'Assiduité
+            </h5>
+            <div style="color: #666; line-height: 1.8; font-size: 1.05rem;">
                 ${getAttendanceRecommendations(attendanceStats, swimmers.length)}
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.1); border-top: 4px solid #4caf50;">
+                <h5 style="margin: 0 0 15px 0; color: #4caf50; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-check-circle"></i> Points Positifs
+                </h5>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    ${getPositivePoints(attendanceStats, swimmers.length)}
+                </ul>
+            </div>
+            
+            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.1); border-top: 4px solid #ff9800;">
+                <h5 style="margin: 0 0 15px 0; color: #ff9800; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-exclamation-circle"></i> Points d'Attention
+                </h5>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    ${getAttentionPoints(attendanceStats, swimmers.length)}
+                </ul>
+            </div>
+        </div>
+        
+        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.1); border-top: 4px solid #2196f3;">
+            <h5 style="margin: 0 0 20px 0; color: #2196f3; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-lightbulb"></i> Recommandations Personnalisées
+            </h5>
+            <div style="display: grid; gap: 15px;">
+                ${getDynamicRecommendations(attendanceStats, swimmers.length)}
             </div>
         </div>
     `;
@@ -1721,37 +2745,102 @@ function loadAttendanceSection(swimmers) {
 function calculateTeamAttendanceStats(swimmers) {
     const allAttendanceData = [];
     const swimmerAbsences = [];
+    const detailedSwimmerStats = [];
+    const perfectAttendanceSwimmers = [];
     
     swimmers.forEach(swimmer => {
         if (swimmer.attendanceData && Array.isArray(swimmer.attendanceData)) {
             allAttendanceData.push(...swimmer.attendanceData);
             
-            const absences = swimmer.attendanceData.filter(record => 
-                record.status === 'absent' || record.status === 'absence'
-            ).length;
+            // Calculer les stats détaillées par nageur
+            let presences = 0;
+            let absences = 0;
+            let excusedAbsences = 0;
+            let lates = 0;
+            let excusedLates = 0;
             
-            if (absences > 0) {
-                swimmerAbsences.push({ name: swimmer.name, absences: absences });
+            swimmer.attendanceData.forEach(record => {
+                if (record.status === 'present' || record.status === 'présent') {
+                    presences++;
+                } else if (record.status === 'absent' || record.status === 'absence') {
+                    if (record.excused === true || record.excused === 'yes') {
+                        excusedAbsences++;
+                    } else {
+                        absences++;
+                    }
+                } else if (record.status === 'late' || record.status === 'retard') {
+                    if (record.excused === true || record.excused === 'yes') {
+                        excusedLates++;
+                    } else {
+                        lates++;
+                    }
+                }
+            });
+            
+            const total = swimmer.attendanceData.length;
+            const rate = total > 0 ? Math.round((presences / total) * 100) : 100;
+            const totalAbsences = absences + excusedAbsences;
+            
+            if (totalAbsences > 0) {
+                swimmerAbsences.push({ name: swimmer.name, absences: totalAbsences });
             }
+            
+            if (rate === 100 && total > 0) {
+                perfectAttendanceSwimmers.push(swimmer.name);
+            }
+            
+            detailedSwimmerStats.push({
+                name: swimmer.name,
+                presences: presences,
+                absences: absences,
+                excusedAbsences: excusedAbsences,
+                lates: lates,
+                excusedLates: excusedLates,
+                total: total,
+                rate: rate
+            });
+        } else {
+            // Nageur sans données = assiduité parfaite par défaut
+            detailedSwimmerStats.push({
+                name: swimmer.name,
+                presences: 0,
+                absences: 0,
+                excusedAbsences: 0,
+                lates: 0,
+                excusedLates: 0,
+                total: 0,
+                rate: 100
+            });
         }
     });
     
     let presentCount = 0;
-    let totalAbsences = 0;
+    let unexcusedAbsences = 0;
     let excusedAbsences = 0;
+    let unexcusedLates = 0;
+    let excusedLates = 0;
     
     allAttendanceData.forEach(record => {
         if (record.status === 'present' || record.status === 'présent') {
             presentCount++;
         } else if (record.status === 'absent' || record.status === 'absence') {
-            totalAbsences++;
             if (record.excused === true || record.excused === 'yes') {
                 excusedAbsences++;
+            } else {
+                unexcusedAbsences++;
+            }
+        } else if (record.status === 'late' || record.status === 'retard') {
+            if (record.excused === true || record.excused === 'yes') {
+                excusedLates++;
+            } else {
+                unexcusedLates++;
             }
         }
     });
     
     const totalRecords = allAttendanceData.length;
+    const totalAbsences = unexcusedAbsences + excusedAbsences;
+    const totalLates = unexcusedLates + excusedLates;
     const averageRate = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 100;
     const excusedRate = totalAbsences > 0 ? Math.round((excusedAbsences / totalAbsences) * 100) : 0;
     
@@ -1760,18 +2849,447 @@ function calculateTeamAttendanceStats(swimmers) {
         .sort((a, b) => b.absences - a.absences)
         .slice(0, 5);
     
+    // Calculer moyenne sessions par semaine
+    const uniqueDates = new Set(allAttendanceData.map(r => r.date));
+    const totalDays = uniqueDates.size;
+    const totalWeeks = totalDays > 0 ? Math.ceil(totalDays / 7) : 1;
+    const averageSessionsPerWeek = totalWeeks > 0 ? (totalRecords / totalWeeks).toFixed(1) : '0.0';
+    
+    // Trier les stats détaillées par taux de présence (décroissant)
+    detailedSwimmerStats.sort((a, b) => b.rate - a.rate);
+    
+    // Calculer le taux d'engagement (présences + retards / total)
+    const engagementRate = totalRecords > 0 ? 
+        Math.round(((presentCount + unexcusedLates + excusedLates) / totalRecords) * 100) : 0;
+    
+    // Calculer le score de régularité (basé sur la variance des présences)
+    let regularityScore = 100;
+    if (uniqueDates.size > 1) {
+        const sortedDates = Array.from(uniqueDates).sort();
+        const gaps = [];
+        for (let i = 1; i < sortedDates.length; i++) {
+            const gap = Math.abs(new Date(sortedDates[i]) - new Date(sortedDates[i-1])) / (1000 * 60 * 60 * 24);
+            gaps.push(gap);
+        }
+        if (gaps.length > 0) {
+            const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+            const variance = gaps.reduce((sum, gap) => sum + Math.pow(gap - avgGap, 2), 0) / gaps.length;
+            regularityScore = Math.max(0, Math.min(100, Math.round(100 - (variance / 10))));
+        }
+    }
+    
+    // Préparer les données pour les graphiques
+    const dateGroups = {};
+    allAttendanceData.forEach(record => {
+        if (!dateGroups[record.date]) {
+            dateGroups[record.date] = {
+                present: 0,
+                absent: 0,
+                excusedAbsent: 0,
+                late: 0,
+                excusedLate: 0
+            };
+        }
+        
+        if (record.status === 'present' || record.status === 'présent') {
+            dateGroups[record.date].present++;
+        } else if (record.status === 'absent' || record.status === 'absence') {
+            if (record.excused) {
+                dateGroups[record.date].excusedAbsent++;
+            } else {
+                dateGroups[record.date].absent++;
+            }
+        } else if (record.status === 'late' || record.status === 'retard') {
+            if (record.excused) {
+                dateGroups[record.date].excusedLate++;
+            } else {
+                dateGroups[record.date].late++;
+            }
+        }
+    });
+    
     const stats = {
         totalRecords: totalRecords,
         presentCount: presentCount,
-        totalAbsences: totalAbsences,
+        unexcusedAbsences: unexcusedAbsences,
         excusedAbsences: excusedAbsences,
+        totalAbsences: totalAbsences,
+        unexcusedLates: unexcusedLates,
+        excusedLates: excusedLates,
+        totalLates: totalLates,
         averageRate: averageRate,
         excusedRate: excusedRate,
         topAbsentees: topAbsentees,
-        swimmersWithData: swimmers.filter(s => s.attendanceData && s.attendanceData.length > 0).length
+        perfectAttendanceCount: perfectAttendanceSwimmers.length,
+        perfectAttendanceSwimmers: perfectAttendanceSwimmers,
+        averageSessionsPerWeek: averageSessionsPerWeek,
+        detailedSwimmerStats: detailedSwimmerStats,
+        swimmersWithData: swimmers.filter(s => s.attendanceData && s.attendanceData.length > 0).length,
+        engagementRate: engagementRate,
+        regularityScore: regularityScore,
+        dateGroups: dateGroups,
+        allDates: Array.from(uniqueDates).sort()
     };
     
     return stats;
+}
+
+// Fonction pour créer les graphiques de présence
+function createAttendanceCharts(attendanceStats) {
+    // Attendre que les canvas soient dans le DOM
+    setTimeout(() => {
+        // Graphique de répartition (Pie/Doughnut Chart)
+        const distributionCanvas = document.getElementById('attendanceDistributionChart');
+        if (distributionCanvas) {
+            const ctx = distributionCanvas.getContext('2d');
+            
+            // Détruire le graphique existant s'il existe
+            if (window.attendanceDistributionChart) {
+                window.attendanceDistributionChart.destroy();
+            }
+            
+            window.attendanceDistributionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['✅ Présents', '❌ Absents', '📝 Abs. Justifiés', '⏰ Retards', '⏰ Ret. Justifiés'],
+                    datasets: [{
+                        data: [
+                            attendanceStats.presentCount,
+                            attendanceStats.unexcusedAbsences,
+                            attendanceStats.excusedAbsences,
+                            attendanceStats.unexcusedLates,
+                            attendanceStats.excusedLates
+                        ],
+                        backgroundColor: [
+                            '#4caf50',
+                            '#f44336',
+                            '#9c27b0',
+                            '#ff9800',
+                            '#2196f3'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12,
+                                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Graphique d'évolution temporelle (Line Chart)
+        const trendCanvas = document.getElementById('attendanceTrendChart');
+        if (trendCanvas && attendanceStats.dateGroups) {
+            const ctx = trendCanvas.getContext('2d');
+            
+            // Détruire le graphique existant s'il existe
+            if (window.attendanceTrendChart) {
+                window.attendanceTrendChart.destroy();
+            }
+            
+            const sortedDates = attendanceStats.allDates || [];
+            const presentData = sortedDates.map(date => attendanceStats.dateGroups[date]?.present || 0);
+            const absentData = sortedDates.map(date => 
+                (attendanceStats.dateGroups[date]?.absent || 0) + 
+                (attendanceStats.dateGroups[date]?.excusedAbsent || 0)
+            );
+            const lateData = sortedDates.map(date => 
+                (attendanceStats.dateGroups[date]?.late || 0) + 
+                (attendanceStats.dateGroups[date]?.excusedLate || 0)
+            );
+            
+            // Formater les dates pour l'affichage
+            const formattedDates = sortedDates.map(date => {
+                const d = new Date(date);
+                return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+            });
+            
+            window.attendanceTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: formattedDates,
+                    datasets: [
+                        {
+                            label: '✅ Présents',
+                            data: presentData,
+                            borderColor: '#4caf50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: '❌ Absents',
+                            data: absentData,
+                            borderColor: '#f44336',
+                            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: '⏰ Retards',
+                            data: lateData,
+                            borderColor: '#ff9800',
+                            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12,
+                                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            },
+                            title: {
+                                display: true,
+                                text: 'Nombre de nageurs',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+    }, 100);
+}
+
+// Fonction pour exporter les données de présence en PDF
+function exportAttendanceToPDF() {
+    const swimmers = getTeamSwimmers();
+    const attendanceStats = calculateTeamAttendanceStats(swimmers);
+    
+    if (attendanceStats.totalRecords === 0) {
+        alert('⚠️ Aucune donnée de présence à exporter.');
+        return;
+    }
+    
+    // Créer le contenu HTML pour le PDF
+    const content = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Rapport de Présence - ${currentTeam?.name || 'Équipe'}</title>
+            <style>
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    padding: 40px;
+                    color: #333;
+                }
+                h1 {
+                    color: #27ae60;
+                    text-align: center;
+                    margin-bottom: 10px;
+                }
+                .subtitle {
+                    text-align: center;
+                    color: #666;
+                    margin-bottom: 30px;
+                    font-size: 14px;
+                }
+                .stats-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 20px;
+                    margin-bottom: 30px;
+                }
+                .stat-card {
+                    border: 2px solid #e0e0e0;
+                    border-radius: 10px;
+                    padding: 20px;
+                    text-align: center;
+                }
+                .stat-value {
+                    font-size: 36px;
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
+                .stat-label {
+                    font-size: 14px;
+                    color: #666;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                }
+                th {
+                    background: #27ae60;
+                    color: white;
+                    padding: 12px;
+                    text-align: left;
+                    font-weight: 600;
+                }
+                td {
+                    padding: 10px 12px;
+                    border-bottom: 1px solid #e0e0e0;
+                }
+                tr:nth-child(even) {
+                    background: #f9f9f9;
+                }
+                .footer {
+                    margin-top: 40px;
+                    text-align: center;
+                    color: #999;
+                    font-size: 12px;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>📊 Rapport de Présence & Assiduité</h1>
+            <div class="subtitle">
+                ${currentTeam?.name || 'Équipe'} | Généré le ${new Date().toLocaleDateString('fr-FR', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                })}
+            </div>
+            
+            <h2>📈 Statistiques Globales</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #4caf50;">${attendanceStats.presentCount}</div>
+                    <div class="stat-label">✅ Présents</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #f44336;">${attendanceStats.unexcusedAbsences}</div>
+                    <div class="stat-label">❌ Absents</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #9c27b0;">${attendanceStats.excusedAbsences}</div>
+                    <div class="stat-label">📝 Abs. Justifiés</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #ff9800;">${attendanceStats.unexcusedLates}</div>
+                    <div class="stat-label">⏰ Retards</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #2196f3;">${attendanceStats.excusedLates}</div>
+                    <div class="stat-label">⏰ Ret. Justifiés</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #27ae60;">${attendanceStats.averageRate}%</div>
+                    <div class="stat-label">📊 Taux Global</div>
+                </div>
+            </div>
+            
+            <h2>👥 Détails par Nageur</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nageur</th>
+                        <th>Présents</th>
+                        <th>Absents</th>
+                        <th>Abs. Just.</th>
+                        <th>Retards</th>
+                        <th>Ret. Just.</th>
+                        <th>Total</th>
+                        <th>Taux</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${attendanceStats.detailedSwimmerStats.map(stat => `
+                        <tr>
+                            <td><strong>${stat.name}</strong></td>
+                            <td>${stat.presences}</td>
+                            <td>${stat.absences}</td>
+                            <td>${stat.excusedAbsences}</td>
+                            <td>${stat.lates}</td>
+                            <td>${stat.excusedLates}</td>
+                            <td>${stat.total}</td>
+                            <td><strong>${stat.rate}%</strong></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            
+            <div class="footer">
+                Document généré automatiquement par l'application Suivi Nageurs<br>
+                © ${new Date().getFullYear()} - Tous droits réservés
+            </div>
+        </body>
+        </html>
+    `;
+    
+    // Ouvrir dans une nouvelle fenêtre pour imprimer/sauvegarder en PDF
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(content);
+    printWindow.document.close();
+    
+    // Attendre que le contenu soit chargé puis lancer l'impression
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
 }
 
 function getAttendanceRecommendations(stats, totalSwimmers) {
@@ -1942,14 +3460,18 @@ function selectCollectiveDataType(type) {
 
 // Nouvelle fonction pour afficher l'écran de sélection
 function renderSwimmerSelectionScreen(type, swimmers) {
+    // Si c'est la présence, afficher directement le nouveau formulaire
+    if (type === 'attendance') {
+        return renderAttendanceForm(swimmers);
+    }
+    
     const typeConfig = {
         wellbeing: { icon: '😊', title: 'Bien-être', color: '#ff6b35' },
         training: { icon: '🏊', title: 'Entraînement', color: '#4facfe' },
         performance: { icon: '💪', title: 'Performance', color: '#8e44ad' },
         medical: { icon: '🏥', title: 'Médical', color: '#e91e63' },
         race: { icon: '🏅', title: 'Compétition', color: '#f39c12' },
-        technical: { icon: '📋', title: 'Technique', color: '#00bcd4' },
-        attendance: { icon: '✅', title: 'Présence', color: '#27ae60' }
+        technical: { icon: '📋', title: 'Technique', color: '#00bcd4' }
     };
     
     const config = typeConfig[type];
@@ -2003,6 +3525,502 @@ function renderSwimmerSelectionScreen(type, swimmers) {
             <i class="fas fa-arrow-right"></i> Continuer vers le formulaire
         </button>
     `;
+}
+
+// ============================================
+// FORMULAIRE DE PRÉSENCE MODERNE
+// ============================================
+
+function renderAttendanceForm(swimmers) {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Récupérer la dernière date enregistrée pour charger les données
+    const lastAttendanceDate = getLastAttendanceDate(swimmers);
+    const dateToUse = lastAttendanceDate || today;
+    
+    // Initialiser le statut de chaque nageur
+    if (!window.attendanceStatuses) {
+        window.attendanceStatuses = {};
+    }
+    
+    // Charger les données existantes pour la dernière date
+    loadAttendanceForDate(swimmers, dateToUse);
+    
+    // Conserver la date sélectionnée globalement
+    window.currentAttendanceDate = dateToUse;
+    
+    return `
+        <div style="margin-bottom: 20px;">
+            <button onclick="showCollectiveDataEntry()" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Retour
+            </button>
+        </div>
+        
+        <h4 style="margin: 25px 0; color: #333; text-align: center;">
+            <span style="font-size: 2rem;">✅</span> Feuille de Présence
+        </h4>
+        
+        <!-- Calendrier en haut -->
+        <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); padding: 25px; border-radius: 12px; margin-bottom: 30px; color: white; box-shadow: 0 4px 15px rgba(39,174,96,0.3);">
+            <label style="display: block; margin-bottom: 10px; font-weight: 600; font-size: 1.1rem;">
+                <i class="fas fa-calendar-alt"></i> Sélectionner la Date
+            </label>
+            <input type="date" id="attendanceDate" value="${dateToUse}" style="width: 100%; padding: 12px 15px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.95); font-size: 1.1rem; color: #333; font-weight: 500;" onchange="loadAttendanceForSelectedDate()">
+            <div id="attendanceDateDisplay" style="margin-top: 10px; font-size: 1.05rem; opacity: 0.9; text-align: center;">
+                ${new Date(dateToUse).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </div>
+        </div>
+        
+        <!-- Info box -->
+        <div style="background: ${lastAttendanceDate ? '#e3f2fd' : '#fff3cd'}; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid ${lastAttendanceDate ? '#2196f3' : '#ffc107'};">
+            <p style="margin: 0; color: ${lastAttendanceDate ? '#1976d2' : '#856404'}; font-weight: 500;">
+                <i class="fas fa-${lastAttendanceDate ? 'history' : 'exclamation-triangle'}"></i> 
+                ${lastAttendanceDate ? `<strong>Historique chargé:</strong> Données du ${new Date(lastAttendanceDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}. Modifiez si nécessaire.` : '<strong>Nouvelle date:</strong> Tous les nageurs sont définis comme "Absent" par défaut. Modifiez les statuts et enregistrez.'}
+            </p>
+        </div>
+        
+        <!-- Compteurs en haut -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 25px;">
+            <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); border-radius: 10px; color: white; box-shadow: 0 2px 8px rgba(76,175,80,0.3);">
+                <div style="font-size: 2rem; font-weight: bold;" id="presentCount">0</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">✅ Présents</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #f44336 0%, #e57373 100%); border-radius: 10px; color: white; box-shadow: 0 2px 8px rgba(244,67,54,0.3);">
+                <div style="font-size: 2rem; font-weight: bold;" id="absentCount">0</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">❌ Absents</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%); border-radius: 10px; color: white; box-shadow: 0 2px 8px rgba(156,39,176,0.3);">
+                <div style="font-size: 2rem; font-weight: bold;" id="absentExcusedCount">0</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">📝 Abs. Justifiés</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%); border-radius: 10px; color: white; box-shadow: 0 2px 8px rgba(255,152,0,0.3);">
+                <div style="font-size: 2rem; font-weight: bold;" id="lateCount">0</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">⏰ Retards</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%); border-radius: 10px; color: white; box-shadow: 0 2px 8px rgba(33,150,243,0.3);">
+                <div style="font-size: 2rem; font-weight: bold;" id="lateExcusedCount">0</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">⏰ Ret. Justifiés</div>
+            </div>
+        </div>
+        
+        <!-- Liste des nageurs avec boutons de statut -->
+        <div style="max-height: 50vh; overflow-y: auto; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; background: #fafafa;">
+            ${swimmers.map((swimmer, index) => `
+                <div class="attendance-swimmer-card" data-swimmer-id="${swimmer.id}" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: all 0.3s;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="font-weight: 600; color: #333; font-size: 1.1rem; margin-bottom: 5px;">
+                                <span style="display: inline-block; width: 30px; height: 30px; background: #27ae60; color: white; border-radius: 50%; text-align: center; line-height: 30px; margin-right: 10px; font-size: 0.9rem;">${index + 1}</span>
+                                ${swimmer.name || 'Nageur ' + (index + 1)}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #666; margin-left: 40px;">
+                                <i class="fas fa-user"></i> ${swimmer.username || 'N/A'}
+                            </div>
+                        </div>
+                        
+                        <div class="attendance-status-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button onclick="setAttendanceStatus('${swimmer.id}', 'present')" 
+                                    class="attendance-status-btn status-present ${window.attendanceStatuses[swimmer.id] === 'present' ? 'active' : ''}" 
+                                    data-status="present"
+                                    style="padding: 10px 18px; border: 2px solid #4caf50; border-radius: 8px; background: ${window.attendanceStatuses[swimmer.id] === 'present' ? '#4caf50' : 'white'}; color: ${window.attendanceStatuses[swimmer.id] === 'present' ? 'white' : '#4caf50'}; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;">
+                                ✅ Présent
+                            </button>
+                            
+                            <button onclick="setAttendanceStatus('${swimmer.id}', 'absent')" 
+                                    class="attendance-status-btn status-absent ${window.attendanceStatuses[swimmer.id] === 'absent' ? 'active' : ''}" 
+                                    data-status="absent"
+                                    style="padding: 10px 18px; border: 2px solid #f44336; border-radius: 8px; background: ${window.attendanceStatuses[swimmer.id] === 'absent' ? '#f44336' : 'white'}; color: ${window.attendanceStatuses[swimmer.id] === 'absent' ? 'white' : '#f44336'}; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;">
+                                ❌ Absent
+                            </button>
+                            
+                            <button onclick="setAttendanceStatus('${swimmer.id}', 'absent_excused')" 
+                                    class="attendance-status-btn status-absent-excused ${window.attendanceStatuses[swimmer.id] === 'absent_excused' ? 'active' : ''}" 
+                                    data-status="absent_excused"
+                                    style="padding: 10px 18px; border: 2px solid #9c27b0; border-radius: 8px; background: ${window.attendanceStatuses[swimmer.id] === 'absent_excused' ? '#9c27b0' : 'white'}; color: ${window.attendanceStatuses[swimmer.id] === 'absent_excused' ? 'white' : '#9c27b0'}; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;">
+                                📝 Absent Justifié
+                            </button>
+                            
+                            <button onclick="setAttendanceStatus('${swimmer.id}', 'late')" 
+                                    class="attendance-status-btn status-late ${window.attendanceStatuses[swimmer.id] === 'late' ? 'active' : ''}" 
+                                    data-status="late"
+                                    style="padding: 10px 18px; border: 2px solid #ff9800; border-radius: 8px; background: ${window.attendanceStatuses[swimmer.id] === 'late' ? '#ff9800' : 'white'}; color: ${window.attendanceStatuses[swimmer.id] === 'late' ? 'white' : '#ff9800'}; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;">
+                                ⏰ Retard
+                            </button>
+                            
+                            <button onclick="setAttendanceStatus('${swimmer.id}', 'late_excused')" 
+                                    class="attendance-status-btn status-late-excused ${window.attendanceStatuses[swimmer.id] === 'late_excused' ? 'active' : ''}" 
+                                    data-status="late_excused"
+                                    style="padding: 10px 18px; border: 2px solid #2196f3; border-radius: 8px; background: ${window.attendanceStatuses[swimmer.id] === 'late_excused' ? '#2196f3' : 'white'}; color: ${window.attendanceStatuses[swimmer.id] === 'late_excused' ? 'white' : '#2196f3'}; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;">
+                                ⏰ Retard Justifié
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <!-- Bouton Enregistrer en bas -->
+        <div style="margin-top: 30px; padding-top: 25px; border-top: 3px solid #e0e0e0; display: flex; gap: 15px; justify-content: center;">
+            <button onclick="resetAttendanceForm()" class="btn" style="flex: 1; max-width: 250px; padding: 15px; font-size: 1.05rem; background: white; color: #666; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+                <i class="fas fa-eraser"></i> Effacer
+            </button>
+            <button onclick="saveAttendanceData()" class="btn btn-primary" style="flex: 2; max-width: 400px; padding: 15px; font-size: 1.1rem; background: linear-gradient(135deg, #27ae60 0%, #229954 100%); border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 3px 10px rgba(39,174,96,0.3);">
+                <i class="fas fa-save"></i> Enregistrer la Présence (${swimmers.length} nageurs)
+            </button>
+        </div>
+        
+        <script>
+            // Initialiser les compteurs
+            updateAttendanceCounts();
+        </script>
+    `;
+}
+
+function updateAttendanceDateDisplay() {
+    const dateInput = document.getElementById('attendanceDate');
+    const display = document.getElementById('attendanceDateDisplay');
+    if (dateInput && display) {
+        const date = new Date(dateInput.value);
+        display.textContent = date.toLocaleDateString('fr-FR', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    }
+}
+
+// Fonction pour obtenir la dernière date avec des données de présence
+function getLastAttendanceDate(swimmers) {
+    let lastDate = null;
+    let maxTimestamp = 0;
+    
+    swimmers.forEach(swimmer => {
+        if (swimmer.attendanceData && Array.isArray(swimmer.attendanceData)) {
+            swimmer.attendanceData.forEach(record => {
+                const timestamp = new Date(record.timestamp || record.date).getTime();
+                if (timestamp > maxTimestamp) {
+                    maxTimestamp = timestamp;
+                    lastDate = record.date;
+                }
+            });
+        }
+    });
+    
+    return lastDate;
+}
+
+// Fonction pour charger les données de présence pour une date spécifique
+function loadAttendanceForDate(swimmers, date) {
+    if (!window.attendanceStatuses) {
+        window.attendanceStatuses = {};
+    }
+    
+    const allSwimmers = getAllSwimmers();
+    
+    // Vérifier si cette date a déjà des données enregistrées
+    const dateHasData = allSwimmers.some(swimmer => 
+        swimmer.attendanceData && 
+        swimmer.attendanceData.some(record => record.date === date)
+    );
+    
+    swimmers.forEach(swimmer => {
+        const fullSwimmer = allSwimmers.find(s => s.id === swimmer.id);
+        
+        if (fullSwimmer && fullSwimmer.attendanceData) {
+            const dateRecord = fullSwimmer.attendanceData.find(record => record.date === date);
+            
+            if (dateRecord) {
+                // Reconstruire le statut complet depuis l'historique
+                let status = dateRecord.status;
+                if (dateRecord.excused) {
+                    if (status === 'absent') {
+                        status = 'absent_excused';
+                    } else if (status === 'late') {
+                        status = 'late_excused';
+                    }
+                }
+                window.attendanceStatuses[swimmer.id] = status;
+            } else {
+                // Date existe pour d'autres nageurs mais pas celui-ci -> Absent par défaut
+                window.attendanceStatuses[swimmer.id] = 'absent';
+            }
+        } else {
+            // Pas de données du tout -> Absent par défaut (nouvelle date)
+            window.attendanceStatuses[swimmer.id] = 'absent';
+        }
+    });
+}
+
+// Fonction appelée quand on change la date dans le formulaire
+function loadAttendanceForSelectedDate() {
+    const dateInput = document.getElementById('attendanceDate');
+    if (!dateInput) return;
+    
+    const selectedDate = dateInput.value;
+    const swimmers = getTeamSwimmers();
+    
+    // Charger les données pour la nouvelle date
+    loadAttendanceForDate(swimmers, selectedDate);
+    
+    // Mettre à jour l'affichage de la date
+    updateAttendanceDateDisplay();
+    
+    // Regénérer le formulaire avec les nouvelles données
+    const content = document.getElementById('collectiveDataContent');
+    content.innerHTML = renderAttendanceForm(swimmers);
+}
+
+// Fonction pour effacer le formulaire (tous absents)
+function resetAttendanceForm() {
+    if (!confirm('Voulez-vous effacer tous les statuts et les remettre à "Absent" ?')) {
+        return;
+    }
+    
+    const swimmers = getTeamSwimmers();
+    swimmers.forEach(swimmer => {
+        window.attendanceStatuses[swimmer.id] = 'absent';
+    });
+    
+    // Regénérer le formulaire
+    const content = document.getElementById('collectiveDataContent');
+    content.innerHTML = renderAttendanceForm(swimmers);
+}
+
+function setAttendanceStatus(swimmerId, status) {
+    // Mettre à jour le statut
+    window.attendanceStatuses[swimmerId] = status;
+    
+    // Mettre à jour l'interface - tous les boutons de ce nageur
+    const card = document.querySelector(`.attendance-swimmer-card[data-swimmer-id="${swimmerId}"]`);
+    if (card) {
+        const buttons = card.querySelectorAll('.attendance-status-btn');
+        buttons.forEach(btn => {
+            const btnStatus = btn.dataset.status;
+            const isActive = btnStatus === status;
+            
+            btn.classList.toggle('active', isActive);
+            
+            // Couleurs des boutons
+            const colors = {
+                present: { border: '#4caf50', bg: '#4caf50', text: 'white', bgInactive: 'white', textInactive: '#4caf50' },
+                absent: { border: '#f44336', bg: '#f44336', text: 'white', bgInactive: 'white', textInactive: '#f44336' },
+                absent_excused: { border: '#9c27b0', bg: '#9c27b0', text: 'white', bgInactive: 'white', textInactive: '#9c27b0' },
+                late: { border: '#ff9800', bg: '#ff9800', text: 'white', bgInactive: 'white', textInactive: '#ff9800' },
+                late_excused: { border: '#2196f3', bg: '#2196f3', text: 'white', bgInactive: 'white', textInactive: '#2196f3' }
+            };
+            
+            const color = colors[btnStatus];
+            if (isActive) {
+                btn.style.background = color.bg;
+                btn.style.color = color.text;
+                btn.style.transform = 'scale(1.05)';
+                btn.style.boxShadow = `0 4px 12px ${color.bg}66`;
+            } else {
+                btn.style.background = color.bgInactive;
+                btn.style.color = color.textInactive;
+                btn.style.transform = 'scale(1)';
+                btn.style.boxShadow = 'none';
+            }
+        });
+    }
+    
+    // Mettre à jour les compteurs
+    updateAttendanceCounts();
+}
+
+function updateAttendanceCounts() {
+    const statuses = window.attendanceStatuses || {};
+    const counts = {
+        present: 0,
+        absent: 0,
+        absent_excused: 0,
+        late: 0,
+        late_excused: 0
+    };
+    
+    Object.values(statuses).forEach(status => {
+        if (counts.hasOwnProperty(status)) {
+            counts[status]++;
+        }
+    });
+    
+    // Mettre à jour l'affichage
+    const presentEl = document.getElementById('presentCount');
+    const absentEl = document.getElementById('absentCount');
+    const absentExcusedEl = document.getElementById('absentExcusedCount');
+    const lateEl = document.getElementById('lateCount');
+    const lateExcusedEl = document.getElementById('lateExcusedCount');
+    
+    if (presentEl) presentEl.textContent = counts.present;
+    if (absentEl) absentEl.textContent = counts.absent;
+    if (absentExcusedEl) absentExcusedEl.textContent = counts.absent_excused;
+    if (lateEl) lateEl.textContent = counts.late;
+    if (lateExcusedEl) lateExcusedEl.textContent = counts.late_excused;
+}
+
+// Fonction pour charger les données existantes et les modifier
+function loadExistingAttendanceForEdit() {
+    const dateInput = document.getElementById('attendanceDate');
+    if (!dateInput || !dateInput.value) {
+        alert('⚠️ Veuillez sélectionner une date pour charger les données existantes');
+        return;
+    }
+    
+    const selectedDate = dateInput.value;
+    const swimmers = getAllSwimmers();
+    const teamSwimmers = getTeamSwimmers();
+    
+    // Réinitialiser les statuts
+    window.attendanceStatuses = {};
+    
+    let foundData = 0;
+    
+    // Charger les données existantes pour cette date
+    teamSwimmers.forEach(swimmer => {
+        const fullSwimmer = swimmers.find(s => s.id === swimmer.id);
+        if (fullSwimmer && fullSwimmer.attendanceData) {
+            const existingEntry = fullSwimmer.attendanceData.find(entry => entry.date === selectedDate);
+            
+            if (existingEntry) {
+                // Reconstruire le statut complet (avec late_excused ou absent_excused)
+                let status = existingEntry.status;
+                if (existingEntry.status === 'late' && existingEntry.excused) {
+                    status = 'late_excused';
+                } else if (existingEntry.status === 'absent' && existingEntry.excused) {
+                    status = 'absent_excused';
+                }
+                
+                window.attendanceStatuses[swimmer.id] = status;
+                foundData++;
+                
+                // Mettre à jour visuellement le bouton
+                setTimeout(() => {
+                    const card = document.querySelector(`.attendance-swimmer-card[data-swimmer-id="${swimmer.id}"]`);
+                    if (card) {
+                        const buttons = card.querySelectorAll('.attendance-status-btn');
+                        buttons.forEach(btn => {
+                            const btnStatus = btn.dataset.status;
+                            const isActive = btnStatus === status;
+                            btn.classList.toggle('active', isActive);
+                            
+                            // Appliquer les couleurs
+                            const colors = {
+                                present: { border: '#4caf50', bg: '#4caf50' },
+                                absent: { border: '#f44336', bg: '#f44336' },
+                                absent_excused: { border: '#9c27b0', bg: '#9c27b0' },
+                                late: { border: '#ff9800', bg: '#ff9800' },
+                                late_excused: { border: '#2196f3', bg: '#2196f3' }
+                            };
+                            
+                            const color = colors[btnStatus];
+                            if (color) {
+                                btn.style.background = isActive ? color.bg : 'white';
+                                btn.style.color = isActive ? 'white' : color.border;
+                            }
+                        });
+                    }
+                }, 100);
+            }
+        }
+    });
+    
+    // Mettre à jour les compteurs
+    updateAttendanceCounters();
+    
+    if (foundData > 0) {
+        alert(`✅ ${foundData} présence(s) chargée(s) pour le ${new Date(selectedDate).toLocaleDateString('fr-FR')}.\n\nVous pouvez maintenant modifier les statuts et cliquer sur "Enregistrer" pour sauvegarder.`);
+    } else {
+        alert(`ℹ️ Aucune donnée trouvée pour le ${new Date(selectedDate).toLocaleDateString('fr-FR')}.\n\nVous pouvez créer une nouvelle saisie de présence.`);
+    }
+}
+
+function saveAttendanceData() {
+    const dateInput = document.getElementById('attendanceDate');
+    if (!dateInput || !dateInput.value) {
+        alert('⚠️ Veuillez sélectionner une date');
+        return;
+    }
+    
+    const date = dateInput.value;
+    const statuses = window.attendanceStatuses || {};
+    
+    if (Object.keys(statuses).length === 0) {
+        alert('⚠️ Aucun statut défini');
+        return;
+    }
+    
+    let savedCount = 0;
+    let swimmers = getAllSwimmers();
+    
+    Object.keys(statuses).forEach(swimmerId => {
+        const status = statuses[swimmerId];
+        const swimmerIndex = swimmers.findIndex(s => s.id === swimmerId);
+        
+        if (swimmerIndex !== -1) {
+            const swimmer = swimmers[swimmerIndex];
+            
+            // Initialiser attendanceData si nécessaire
+            if (!swimmer.attendanceData) {
+                swimmer.attendanceData = [];
+            }
+            
+            // Vérifier si une entrée existe déjà pour cette date
+            const existingIndex = swimmer.attendanceData.findIndex(entry => entry.date === date);
+            
+            // Préparer les données
+            let attendanceEntry = {
+                date: date,
+                status: status,
+                excused: false,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Gérer les statuts avec justification
+            if (status === 'late_excused') {
+                attendanceEntry.status = 'late';
+                attendanceEntry.excused = true;
+            } else if (status === 'absent_excused') {
+                attendanceEntry.status = 'absent';
+                attendanceEntry.excused = true;
+            }
+            
+            if (existingIndex !== -1) {
+                // Mettre à jour l'entrée existante
+                swimmer.attendanceData[existingIndex] = attendanceEntry;
+            } else {
+                // Ajouter une nouvelle entrée
+                swimmer.attendanceData.push(attendanceEntry);
+            }
+            
+            swimmers[swimmerIndex] = swimmer;
+            savedCount++;
+        }
+    });
+    
+    // Sauvegarder dans localStorage
+    localStorage.setItem('swimmers', JSON.stringify(swimmers));
+    
+    alert(`✅ Présence enregistrée avec succès pour ${savedCount} nageur(s) le ${new Date(date).toLocaleDateString('fr-FR')}`);
+    
+    // Rafraîchir automatiquement l'affichage si la vue détaillée est ouverte
+    const detailedView = document.getElementById('attendanceDetailedView');
+    if (detailedView && detailedView.style.display !== 'none') {
+        // Rafraîchir les statistiques
+        refreshAttendanceStats();
+    }
+    
+    // Réinitialiser et fermer
+    window.attendanceStatuses = {};
+    closeCollectiveDataModal();
+    
+    // Recharger les sections si on est sur l'équipe
+    if (currentTeam) {
+        const attendanceSection = document.getElementById('attendanceSection');
+        if (attendanceSection && attendanceSection.style.display !== 'none') {
+            loadAttendanceSection(getTeamSwimmers());
+        }
+    }
 }
 
 function selectAllSwimmers() {
@@ -2733,6 +4751,795 @@ function closeTeamOverviewModal() {
 }
 
 // ============================================
+// CALENDRIER ÉQUIPE
+// ============================================
+
+function showTeamCalendar() {
+    if (!currentTeam) {
+        alert('Veuillez sélectionner une équipe d\'abord');
+        return;
+    }
+    
+    const modal = document.getElementById('teamCalendarModal');
+    const content = document.getElementById('teamCalendarContent');
+    
+    renderTeamCalendar(content);
+    modal.style.display = 'flex';
+}
+
+function closeTeamCalendar() {
+    document.getElementById('teamCalendarModal').style.display = 'none';
+}
+
+function renderTeamCalendar(container) {
+    const swimmers = getTeamSwimmers();
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    
+    // Obtenir toutes les dates avec des données
+    const datesWithData = getAllDatesWithData(swimmers);
+    
+    let html = `
+        <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <button onclick="changeCalendarMonth(-1)" class="btn btn-outline" style="padding: 8px 16px;">
+                    <i class="fas fa-chevron-left"></i> Mois Précédent
+                </button>
+                <button onclick="changeCalendarMonth(1)" class="btn btn-outline" style="padding: 8px 16px; margin-left: 10px;">
+                    Mois Suivant <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <h3 style="margin: 0; color: #333;" id="calendarMonthYear">
+                ${getMonthName(currentMonth)} ${currentYear}
+            </h3>
+            <button onclick="goToToday()" class="btn btn-primary" style="padding: 8px 16px;">
+                <i class="fas fa-calendar-day"></i> Aujourd'hui
+            </button>
+        </div>
+        
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 20px; height: 20px; background: #4caf50; border-radius: 4px;"></div>
+                    <span style="color: #333; font-size: 0.9rem;">Jour avec données</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 20px; height: 20px; background: #2196f3; border: 3px solid #1976d2; border-radius: 4px;"></div>
+                    <span style="color: #333; font-size: 0.9rem;">Aujourd'hui</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #666; font-size: 0.9rem;">📊 ${datesWithData.size} jour(s) avec données</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="calendarGrid">
+            ${generateCalendarGrid(currentYear, currentMonth, datesWithData)}
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+function generateCalendarGrid(year, month, datesWithData) {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay(); // 0 = dimanche, 1 = lundi, etc.
+    const today = new Date();
+    
+    let html = `
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #e0e0e0; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+            <!-- En-têtes des jours -->
+            ${['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(day => `
+                <div style="padding: 12px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; font-weight: 600; text-align: center; font-size: 0.9rem;">
+                    ${day}
+                </div>
+            `).join('')}
+            
+            <!-- Jours vides avant le 1er du mois -->
+            ${Array(startDayOfWeek).fill(0).map(() => `
+                <div style="min-height: 100px; background: #f5f5f5;"></div>
+            `).join('')}
+            
+            <!-- Jours du mois -->
+            ${Array.from({length: daysInMonth}, (_, i) => {
+                const day = i + 1;
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const hasData = datesWithData.has(dateStr);
+                const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+                const dataCount = datesWithData.get(dateStr) || 0;
+                
+                return `
+                    <div onclick="showDayData('${dateStr}')" style="
+                        min-height: 100px;
+                        padding: 10px;
+                        background: ${hasData ? '#e8f5e9' : 'white'};
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        border: ${isToday ? '3px solid #2196f3' : 'none'};
+                        position: relative;
+                    " onmouseover="this.style.background='#e3f2fd'" onmouseout="this.style.background='${hasData ? '#e8f5e9' : 'white'}'">
+                        <div style="font-weight: ${isToday ? 'bold' : '500'}; color: ${isToday ? '#2196f3' : '#333'}; font-size: 1.2rem; margin-bottom: 5px;">
+                            ${day}
+                        </div>
+                        ${hasData ? `
+                            <div style="display: flex; align-items: center; gap: 5px; background: #4caf50; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-top: 5px;">
+                                <i class="fas fa-database"></i>
+                                <span>${dataCount}</span>
+                            </div>
+                        ` : ''}
+                        ${isToday ? `<div style="position: absolute; top: 5px; right: 5px; background: #2196f3; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.65rem; font-weight: 600;">Aujourd'hui</div>` : ''}
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+    
+    return html;
+}
+
+function getAllDatesWithData(swimmers) {
+    const datesMap = new Map(); // date -> count
+    
+    swimmers.forEach(swimmer => {
+        // Bien-être
+        if (swimmer.wellbeingData && Array.isArray(swimmer.wellbeingData)) {
+            swimmer.wellbeingData.forEach(entry => {
+                if (entry.date) {
+                    const count = datesMap.get(entry.date) || 0;
+                    datesMap.set(entry.date, count + 1);
+                }
+            });
+        }
+        
+        // Entraînement
+        if (swimmer.trainingData && Array.isArray(swimmer.trainingData)) {
+            swimmer.trainingData.forEach(entry => {
+                if (entry.date) {
+                    const count = datesMap.get(entry.date) || 0;
+                    datesMap.set(entry.date, count + 1);
+                }
+            });
+        }
+        
+        // Performance
+        if (swimmer.performanceData && Array.isArray(swimmer.performanceData)) {
+            swimmer.performanceData.forEach(entry => {
+                if (entry.date) {
+                    const count = datesMap.get(entry.date) || 0;
+                    datesMap.set(entry.date, count + 1);
+                }
+            });
+        }
+        
+        // Médical
+        if (swimmer.medicalData && Array.isArray(swimmer.medicalData)) {
+            swimmer.medicalData.forEach(entry => {
+                if (entry.date) {
+                    const count = datesMap.get(entry.date) || 0;
+                    datesMap.set(entry.date, count + 1);
+                }
+            });
+        }
+        
+        // Compétition
+        if (swimmer.raceData && Array.isArray(swimmer.raceData)) {
+            swimmer.raceData.forEach(entry => {
+                if (entry.date) {
+                    const count = datesMap.get(entry.date) || 0;
+                    datesMap.set(entry.date, count + 1);
+                }
+            });
+        }
+        
+        // Technique
+        if (swimmer.technicalData && Array.isArray(swimmer.technicalData)) {
+            swimmer.technicalData.forEach(entry => {
+                if (entry.date) {
+                    const count = datesMap.get(entry.date) || 0;
+                    datesMap.set(entry.date, count + 1);
+                }
+            });
+        }
+        
+        // Assiduité
+        if (swimmer.attendanceData && Array.isArray(swimmer.attendanceData)) {
+            swimmer.attendanceData.forEach(entry => {
+                if (entry.date) {
+                    const count = datesMap.get(entry.date) || 0;
+                    datesMap.set(entry.date, count + 1);
+                }
+            });
+        }
+    });
+    
+    return datesMap;
+}
+
+let currentCalendarYear = new Date().getFullYear();
+let currentCalendarMonth = new Date().getMonth();
+
+function changeCalendarMonth(delta) {
+    currentCalendarMonth += delta;
+    
+    if (currentCalendarMonth > 11) {
+        currentCalendarMonth = 0;
+        currentCalendarYear++;
+    } else if (currentCalendarMonth < 0) {
+        currentCalendarMonth = 11;
+        currentCalendarYear--;
+    }
+    
+    const swimmers = getTeamSwimmers();
+    const datesWithData = getAllDatesWithData(swimmers);
+    
+    document.getElementById('calendarMonthYear').textContent = 
+        `${getMonthName(currentCalendarMonth)} ${currentCalendarYear}`;
+    
+    document.getElementById('calendarGrid').innerHTML = 
+        generateCalendarGrid(currentCalendarYear, currentCalendarMonth, datesWithData);
+}
+
+function goToToday() {
+    const today = new Date();
+    currentCalendarYear = today.getFullYear();
+    currentCalendarMonth = today.getMonth();
+    
+    const swimmers = getTeamSwimmers();
+    const datesWithData = getAllDatesWithData(swimmers);
+    
+    document.getElementById('calendarMonthYear').textContent = 
+        `${getMonthName(currentCalendarMonth)} ${currentCalendarYear}`;
+    
+    document.getElementById('calendarGrid').innerHTML = 
+        generateCalendarGrid(currentCalendarYear, currentCalendarMonth, datesWithData);
+}
+
+function getMonthName(monthIndex) {
+    const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    return months[monthIndex];
+}
+
+function showDayData(dateStr) {
+    const swimmers = getTeamSwimmers();
+    const dayData = collectDayData(swimmers, dateStr);
+    
+    if (dayData.total === 0) {
+        alert(`📅 Aucune donnée pour le ${new Date(dateStr).toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        })}`);
+        return;
+    }
+    
+    // Créer un modal pour afficher et modifier les données du jour
+    showDayDataModal(dateStr, dayData);
+}
+
+function collectDayData(swimmers, dateStr) {
+    const data = {
+        wellbeing: [],
+        training: [],
+        performance: [],
+        medical: [],
+        race: [],
+        technical: [],
+        attendance: [],
+        total: 0
+    };
+    
+    swimmers.forEach(swimmer => {
+        // Bien-être
+        if (swimmer.wellbeingData && Array.isArray(swimmer.wellbeingData)) {
+            swimmer.wellbeingData.forEach((entry, index) => {
+                if (entry.date === dateStr) {
+                    data.wellbeing.push({ ...entry, swimmerName: swimmer.name, swimmerId: swimmer.id, dataIndex: index });
+                    data.total++;
+                }
+            });
+        }
+        
+        // Entraînement
+        if (swimmer.trainingData && Array.isArray(swimmer.trainingData)) {
+            swimmer.trainingData.forEach((entry, index) => {
+                if (entry.date === dateStr) {
+                    data.training.push({ ...entry, swimmerName: swimmer.name, swimmerId: swimmer.id, dataIndex: index });
+                    data.total++;
+                }
+            });
+        }
+        
+        // Performance
+        if (swimmer.performanceData && Array.isArray(swimmer.performanceData)) {
+            swimmer.performanceData.forEach((entry, index) => {
+                if (entry.date === dateStr) {
+                    data.performance.push({ ...entry, swimmerName: swimmer.name, swimmerId: swimmer.id, dataIndex: index });
+                    data.total++;
+                }
+            });
+        }
+        
+        // Médical
+        if (swimmer.medicalData && Array.isArray(swimmer.medicalData)) {
+            swimmer.medicalData.forEach((entry, index) => {
+                if (entry.date === dateStr) {
+                    data.medical.push({ ...entry, swimmerName: swimmer.name, swimmerId: swimmer.id, dataIndex: index });
+                    data.total++;
+                }
+            });
+        }
+        
+        // Compétition
+        if (swimmer.raceData && Array.isArray(swimmer.raceData)) {
+            swimmer.raceData.forEach((entry, index) => {
+                if (entry.date === dateStr) {
+                    data.race.push({ ...entry, swimmerName: swimmer.name, swimmerId: swimmer.id, dataIndex: index });
+                    data.total++;
+                }
+            });
+        }
+        
+        // Technique
+        if (swimmer.technicalData && Array.isArray(swimmer.technicalData)) {
+            swimmer.technicalData.forEach((entry, index) => {
+                if (entry.date === dateStr) {
+                    data.technical.push({ ...entry, swimmerName: swimmer.name, swimmerId: swimmer.id, dataIndex: index });
+                    data.total++;
+                }
+            });
+        }
+        
+        // Assiduité
+        if (swimmer.attendanceData && Array.isArray(swimmer.attendanceData)) {
+            swimmer.attendanceData.forEach((entry, index) => {
+                if (entry.date === dateStr) {
+                    data.attendance.push({ ...entry, swimmerName: swimmer.name, swimmerId: swimmer.id, dataIndex: index });
+                    data.total++;
+                }
+            });
+        }
+    });
+    
+    return data;
+}
+
+function showDayDataModal(dateStr, dayData) {
+    const formattedDate = new Date(dateStr).toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    // Créer un modal dynamique
+    const modalHtml = `
+        <div id="dayDataModal" class="modal" style="display: flex;">
+            <div class="modal-content" style="max-width: 1000px; max-height: 90vh; overflow-y: auto;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h3 style="margin: 0; color: white;">
+                        <i class="fas fa-calendar-day"></i> Données du ${formattedDate}
+                    </h3>
+                    <button class="close-modal" onclick="closeDayDataModal()">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 30px;">
+                    ${generateDayDataContent(dateStr, dayData)}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Ajouter le modal au body
+    const existingModal = document.getElementById('dayDataModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeDayDataModal() {
+    const modal = document.getElementById('dayDataModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function generateDayDataContent(dateStr, dayData) {
+    let html = `
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
+            <h4 style="margin: 0; color: #1976d2;">
+                <i class="fas fa-database"></i> ${dayData.total} enregistrement(s) total
+            </h4>
+        </div>
+    `;
+    
+    // Bien-être
+    if (dayData.wellbeing.length > 0) {
+        html += generateDataSection('Bien-être', '😊', '#ff6b35', dayData.wellbeing, 'wellbeing', dateStr);
+    }
+    
+    // Entraînement
+    if (dayData.training.length > 0) {
+        html += generateDataSection('Entraînement', '🏊', '#4facfe', dayData.training, 'training', dateStr);
+    }
+    
+    // Performance
+    if (dayData.performance.length > 0) {
+        html += generateDataSection('Performance', '💪', '#8e44ad', dayData.performance, 'performance', dateStr);
+    }
+    
+    // Médical
+    if (dayData.medical.length > 0) {
+        html += generateDataSection('Médical', '🏥', '#e91e63', dayData.medical, 'medical', dateStr);
+    }
+    
+    // Compétition
+    if (dayData.race.length > 0) {
+        html += generateDataSection('Compétition', '🏅', '#f39c12', dayData.race, 'race', dateStr);
+    }
+    
+    // Technique
+    if (dayData.technical.length > 0) {
+        html += generateDataSection('Technique', '📋', '#00bcd4', dayData.technical, 'technical', dateStr);
+    }
+    
+    // Assiduité
+    if (dayData.attendance.length > 0) {
+        html += generateDataSection('Présence', '✅', '#27ae60', dayData.attendance, 'attendance', dateStr);
+    }
+    
+    return html;
+}
+
+function generateDataSection(title, icon, color, entries, dataType, dateStr) {
+    let html = `
+        <div style="margin-bottom: 30px; border-left: 4px solid ${color}; background: #f8f9fa; border-radius: 8px; overflow: hidden;">
+            <div style="background: ${color}; color: white; padding: 15px;">
+                <h4 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.5rem;">${icon}</span>
+                    <span>${title} (${entries.length})</span>
+                </h4>
+            </div>
+            <div style="padding: 20px;">
+    `;
+    
+    entries.forEach((entry, index) => {
+        html += `
+            <div style="background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <strong style="color: ${color}; font-size: 1.1rem;">
+                        <i class="fas fa-user"></i> ${entry.swimmerName}
+                    </strong>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="editDayEntry('${entry.swimmerId}', '${dataType}', ${entry.dataIndex}, '${dateStr}')" class="btn btn-sm" style="background: #2196f3; color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;">
+                            <i class="fas fa-edit"></i> Modifier
+                        </button>
+                        <button onclick="deleteDayEntry('${entry.swimmerId}', '${dataType}', ${entry.dataIndex}, '${dateStr}')" class="btn btn-sm" style="background: #f44336; color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </div>
+                </div>
+                <div style="background: #f5f5f5; padding: 10px; border-radius: 6px;">
+                    ${formatEntryData(entry, dataType)}
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
+function formatEntryData(entry, dataType) {
+    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">';
+    
+    Object.keys(entry).forEach(key => {
+        if (key !== 'swimmerName' && key !== 'swimmerId' && key !== 'dataIndex' && key !== 'date') {
+            const value = entry[key];
+            if (value !== null && value !== undefined && value !== '') {
+                html += `
+                    <div>
+                        <div style="font-size: 0.85rem; color: #666; font-weight: 500;">${formatFieldName(key)}</div>
+                        <div style="color: #333; font-weight: 600;">${value}</div>
+                    </div>
+                `;
+            }
+        }
+    });
+    
+    html += '</div>';
+    return html;
+}
+
+function formatFieldName(fieldName) {
+    const fieldNames = {
+        sleepHours: '⏰ Heures de sommeil',
+        sleepQuality: '😴 Qualité sommeil',
+        energyLevel: '⚡ Niveau énergie',
+        motivation: '🎯 Motivation',
+        stressLevel: '😰 Niveau stress',
+        muscleRecovery: '💪 Récupération',
+        musclePain: '🩹 Douleur',
+        bodyWeight: '⚖️ Poids',
+        score: '📊 Score',
+        duration: '⏱️ Durée',
+        distance: '🏊 Distance',
+        rpe: '💪 RPE',
+        type: '📝 Type',
+        vma: '🏃 VMA',
+        legStrength: '🦵 Détente jambes',
+        shoulderStrength: '💪 Force épaules',
+        coreStrength: '🔥 Gainage',
+        available: '✅ Disponible',
+        injury: '🩹 Blessure',
+        notes: '📝 Notes',
+        stroke: '🏊 Nage',
+        competitionTime: '⏱️ Temps',
+        personalRecord: '🏅 Record',
+        technicalScore: '📊 Score technique',
+        status: '📋 Statut',
+        excused: '📝 Justifiée'
+    };
+    
+    return fieldNames[fieldName] || fieldName;
+}
+
+function editDayEntry(swimmerId, dataType, dataIndex, dateStr) {
+    const swimmer = getSwimmerById(swimmerId);
+    if (!swimmer) return;
+    
+    const dataArrayName = `${dataType}Data`;
+    const entry = swimmer[dataArrayName][dataIndex];
+    
+    // Créer un formulaire de modification
+    showEditEntryForm(swimmer, dataType, dataIndex, entry, dateStr);
+}
+
+function deleteDayEntry(swimmerId, dataType, dataIndex, dateStr) {
+    if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet enregistrement ?')) {
+        return;
+    }
+    
+    const swimmer = getSwimmerById(swimmerId);
+    if (!swimmer) return;
+    
+    const dataArrayName = `${dataType}Data`;
+    swimmer[dataArrayName].splice(dataIndex, 1);
+    
+    // Sauvegarder
+    const swimmers = getAllSwimmers();
+    const swimmerIndex = swimmers.findIndex(s => s.id === swimmerId);
+    if (swimmerIndex !== -1) {
+        swimmers[swimmerIndex] = swimmer;
+        localStorage.setItem('swimmers', JSON.stringify(swimmers));
+    }
+    
+    alert('✅ Enregistrement supprimé avec succès');
+    
+    // Rafraîchir l'affichage
+    closeDayDataModal();
+    showDayData(dateStr);
+}
+
+function showEditEntryForm(swimmer, dataType, dataIndex, entry, dateStr) {
+    const dataTypeNames = {
+        wellbeing: 'Bien-être',
+        training: 'Entraînement',
+        performance: 'Performance',
+        medical: 'Médical',
+        race: 'Compétition',
+        technical: 'Technique',
+        attendance: 'Présence'
+    };
+    
+    const modalHtml = `
+        <div id="editEntryModal" class="modal" style="display: flex;">
+            <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);">
+                    <h3 style="margin: 0; color: white;">
+                        <i class="fas fa-edit"></i> Modifier - ${dataTypeNames[dataType]}
+                    </h3>
+                    <button class="close-modal" onclick="closeEditEntryModal()">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 30px;">
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <strong>👤 Nageur:</strong> ${swimmer.name}<br>
+                        <strong>📅 Date:</strong> ${new Date(dateStr).toLocaleDateString('fr-FR')}
+                    </div>
+                    
+                    <form id="editEntryForm" onsubmit="saveEditedEntry(event, '${swimmer.id}', '${dataType}', ${dataIndex}, '${dateStr}')">
+                        ${generateEditForm(dataType, entry)}
+                        
+                        <div style="display: flex; gap: 15px; margin-top: 25px;">
+                            <button type="button" onclick="closeEditEntryModal()" class="btn btn-outline" style="flex: 1;">
+                                <i class="fas fa-times"></i> Annuler
+                            </button>
+                            <button type="submit" class="btn btn-primary" style="flex: 2;">
+                                <i class="fas fa-save"></i> Enregistrer les modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Ajouter le modal
+    const existingModal = document.getElementById('editEntryModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeEditEntryModal() {
+    const modal = document.getElementById('editEntryModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function generateEditForm(dataType, entry) {
+    let html = '';
+    
+    switch(dataType) {
+        case 'wellbeing':
+            html = `
+                <div class="form-group">
+                    <label>⏰ Heures de sommeil</label>
+                    <input type="number" id="edit_sleepHours" class="form-control" value="${entry.sleepHours || ''}" min="0" max="24" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label>😴 Qualité du sommeil (1-10)</label>
+                    <input type="number" id="edit_sleepQuality" class="form-control" value="${entry.sleepQuality || ''}" min="1" max="10">
+                </div>
+                <div class="form-group">
+                    <label>⚡ Niveau d'énergie (1-10)</label>
+                    <input type="number" id="edit_energyLevel" class="form-control" value="${entry.energyLevel || ''}" min="1" max="10">
+                </div>
+                <div class="form-group">
+                    <label>🎯 Motivation (1-10)</label>
+                    <input type="number" id="edit_motivation" class="form-control" value="${entry.motivation || ''}" min="1" max="10">
+                </div>
+                <div class="form-group">
+                    <label>😰 Niveau de stress (1-10)</label>
+                    <input type="number" id="edit_stressLevel" class="form-control" value="${entry.stressLevel || ''}" min="1" max="10">
+                </div>
+                <div class="form-group">
+                    <label>💪 Récupération musculaire (1-10)</label>
+                    <input type="number" id="edit_muscleRecovery" class="form-control" value="${entry.muscleRecovery || ''}" min="1" max="10">
+                </div>
+            `;
+            break;
+            
+        case 'training':
+            html = `
+                <div class="form-group">
+                    <label>⏱️ Durée (minutes)</label>
+                    <input type="number" id="edit_duration" class="form-control" value="${entry.duration || ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>🏊 Distance (mètres)</label>
+                    <input type="number" id="edit_distance" class="form-control" value="${entry.distance || ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>💪 RPE (1-10)</label>
+                    <input type="number" id="edit_rpe" class="form-control" value="${entry.rpe || ''}" min="1" max="10">
+                </div>
+                <div class="form-group">
+                    <label>📝 Type</label>
+                    <input type="text" id="edit_type" class="form-control" value="${entry.type || ''}">
+                </div>
+            `;
+            break;
+            
+        case 'performance':
+            html = `
+                <div class="form-group">
+                    <label>🏃 VMA (km/h)</label>
+                    <input type="number" id="edit_vma" class="form-control" value="${entry.vma || ''}" min="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>🦵 Détente jambes (cm)</label>
+                    <input type="number" id="edit_legStrength" class="form-control" value="${entry.legStrength || ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>💪 Force épaules (/min)</label>
+                    <input type="number" id="edit_shoulderStrength" class="form-control" value="${entry.shoulderStrength || ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>🔥 Gainage (secondes)</label>
+                    <input type="number" id="edit_coreStrength" class="form-control" value="${entry.coreStrength || ''}" min="0">
+                </div>
+            `;
+            break;
+            
+        case 'attendance':
+            html = `
+                <div class="form-group">
+                    <label>📋 Statut</label>
+                    <select id="edit_status" class="form-control">
+                        <option value="present" ${entry.status === 'present' ? 'selected' : ''}>✅ Présent</option>
+                        <option value="absent" ${entry.status === 'absent' ? 'selected' : ''}>❌ Absent</option>
+                        <option value="late" ${entry.status === 'late' ? 'selected' : ''}>⏰ Retard</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>📝 Absence justifiée</label>
+                    <select id="edit_excused" class="form-control">
+                        <option value="no" ${entry.excused === 'no' || entry.excused === false ? 'selected' : ''}>Non</option>
+                        <option value="yes" ${entry.excused === 'yes' || entry.excused === true ? 'selected' : ''}>Oui</option>
+                    </select>
+                </div>
+            `;
+            break;
+            
+        default:
+            html = '<p>Type de données non supporté pour l\'édition.</p>';
+    }
+    
+    return html;
+}
+
+function saveEditedEntry(event, swimmerId, dataType, dataIndex, dateStr) {
+    event.preventDefault();
+    
+    const swimmer = getSwimmerById(swimmerId);
+    if (!swimmer) return;
+    
+    const dataArrayName = `${dataType}Data`;
+    const updatedEntry = { ...swimmer[dataArrayName][dataIndex] };
+    
+    // Récupérer les valeurs modifiées
+    const form = document.getElementById('editEntryForm');
+    const inputs = form.querySelectorAll('input, select');
+    
+    inputs.forEach(input => {
+        const fieldName = input.id.replace('edit_', '');
+        let value = input.value;
+        
+        // Conversion des types
+        if (input.type === 'number') {
+            value = value ? parseFloat(value) : null;
+        } else if (input.type === 'select-one') {
+            if (fieldName === 'excused') {
+                value = value === 'yes' ? true : false;
+            }
+        }
+        
+        if (value !== null && value !== '') {
+            updatedEntry[fieldName] = value;
+        }
+    });
+    
+    // Mettre à jour
+    swimmer[dataArrayName][dataIndex] = updatedEntry;
+    
+    // Sauvegarder
+    const swimmers = getAllSwimmers();
+    const swimmerIndex = swimmers.findIndex(s => s.id === swimmerId);
+    if (swimmerIndex !== -1) {
+        swimmers[swimmerIndex] = swimmer;
+        localStorage.setItem('swimmers', JSON.stringify(swimmers));
+    }
+    
+    alert('✅ Modifications enregistrées avec succès');
+    
+    // Fermer les modals et rafraîchir
+    closeEditEntryModal();
+    closeDayDataModal();
+    showDayData(dateStr);
+}
+
+// ============================================
 // UTILITAIRES
 // ============================================
 
@@ -2741,6 +5548,7 @@ window.onclick = function(event) {
     const collectiveModal = document.getElementById('collectiveDataModal');
     const overviewModal = document.getElementById('teamOverviewModal');
     const createTeamModal = document.getElementById('createTeamModal');
+    const calendarModal = document.getElementById('teamCalendarModal');
     
     if (event.target === collectiveModal) {
         collectiveModal.style.display = 'none';
@@ -2750,6 +5558,9 @@ window.onclick = function(event) {
     }
     if (event.target === createTeamModal) {
         createTeamModal.style.display = 'none';
+    }
+    if (event.target === calendarModal) {
+        calendarModal.style.display = 'none';
     }
 };
 

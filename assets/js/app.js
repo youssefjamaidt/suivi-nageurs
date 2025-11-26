@@ -448,6 +448,12 @@ function saveToLocalStorage() {
         
         localStorage.setItem('swimmers', swimmersData);
         localStorage.setItem('currentSwimmerId', currentSwimmerId);
+        
+        // Synchroniser avec Firebase si disponible
+        if (typeof syncService !== 'undefined' && syncService.syncEnabled) {
+            syncService.saveSwimmers(swimmers);
+        }
+        
         console.log('✅ Données sauvegardées:', swimmers.length, 'nageur(s),', (dataSize / 1024).toFixed(2), 'KB');
         return true;
     } catch (e) {
@@ -565,6 +571,41 @@ document.addEventListener('DOMContentLoaded', function() {
     updateDashboard();
     updateActionButtons();
     updateQuickInfo();
+    
+    // ===== NOUVEAU : Connecter le bouton flottant de sélection =====
+    const floatingSelectBtn = document.getElementById('floatingSelectBtn');
+    const circleBtn = document.getElementById('selectorCircleBtn');
+    
+    if (floatingSelectBtn && circleBtn) {
+        floatingSelectBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // Déclencher le clic sur le bouton circulaire existant
+            circleBtn.click();
+        });
+        
+        // Synchroniser l'indicateur visuel
+        function syncFloatingBtnIndicator() {
+            if (currentSwimmerId && currentSwimmerId !== 'all') {
+                floatingSelectBtn.style.background = 'linear-gradient(135deg, #4caf50, #66bb6a)';
+                floatingSelectBtn.title = `Nageur sélectionné: ${getCurrentSwimmerName()}`;
+            } else {
+                floatingSelectBtn.style.background = 'linear-gradient(135deg, #1a73e8, #4285f4)';
+                floatingSelectBtn.title = 'Choisir un nageur';
+            }
+        }
+        
+        // Observer les changements de nageur
+        const originalUpdateCircleIndicator = window.updateCircleIndicator || updateCircleIndicator;
+        window.updateCircleIndicator = function() {
+            if (originalUpdateCircleIndicator) {
+                originalUpdateCircleIndicator();
+            }
+            syncFloatingBtnIndicator();
+        };
+        
+        // Sync initial
+        syncFloatingBtnIndicator();
+    }
     
     // Synchronisation automatique entre onglets/pages
     window.addEventListener('storage', function(e) {

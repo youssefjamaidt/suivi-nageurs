@@ -10,8 +10,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/mobile-responsive.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Configuration Firebase -->
+    <script src="assets/js/firebase-config.js"></script>
+    <script src="assets/js/sync-service.js"></script>
 </head>
 <body>
+    <script>
+        // Vérifier l'accès au chargement de la page
+        if (sessionStorage.getItem('swim_app_access') !== 'granted') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    
     <header>
         <div class="container">
             <div class="header-content">
@@ -130,9 +145,17 @@
                 <!-- Contenu caché, géré par le bouton flottant -->
             </section>
 
-            <!-- Bouton Flottant Saisie de Données -->
-            <div id="floatingDataBtn" class="floating-data-button" title="Saisie de données">
-                <i class="fas fa-swimmer"></i>
+            <!-- Boutons Flottants Groupés -->
+            <div class="floating-buttons-group">
+                <!-- Bouton Sélection Nageur -->
+                <button class="floating-btn floating-select-btn" id="floatingSelectBtn" title="Choisir un nageur">
+                    <i class="fas fa-search"></i>
+                </button>
+                
+                <!-- Bouton Saisie de Données -->
+                <div id="floatingDataBtn" class="floating-data-button" title="Saisie de données">
+                    <i class="fas fa-swimmer"></i>
+                </div>
             </div>
 
             <!-- Panel Saisie de Données -->

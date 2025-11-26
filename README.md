@@ -1,54 +1,109 @@
-# 🏊‍♂️ Système de Suivi des Nageurs
+# 🏊 Suivi Nageurs - Application de Gestion d'Équipe
 
-Application web complète pour le suivi des performances des nageurs avec collecte, analyse et retours personnalisés.
+Application web moderne pour le suivi des performances de natation avec **synchronisation temps réel multi-appareils**.
+
+---
 
 ## ✨ Fonctionnalités
 
-### 1. 📊 Collecte des Données
-- ✅ Création de profils de nageurs (nom, âge, genre, spécialité)
-- ✅ Saisie manuelle via formulaires intuitifs
-- ✅ 4 catégories de données :
-  - **Bien-être** : sommeil, fatigue, douleur, stress (échelle 1-5)
-  - **Entraînement** : volume (minutes), RPE (1-10), charge calculée automatiquement
-  - **Performance** : VMA 6min, force épaule/pectoraux/jambes (kg)
-  - **Statut médical** : disponibilité (0-3), maladies, blessures, autres problèmes
+### 🏊‍♂️ Suivi Individuel (Dashboard Nageur)
+- ✅ Suivi des performances (temps, distances)
+- ✅ Analyse de 13 catégories de données
+- ✅ Graphiques de progression
+- ✅ Export PDF des rapports
+- ✅ Historique complet
 
-### 2. 📈 Analyse et Traitement
-- ✅ Analyse automatique multi-critères
-- ✅ Calcul de tendances et moyennes
-- ✅ Détection de patterns problématiques
-- ✅ Évaluation de la monotonie d'entraînement
-- ✅ Système d'alertes intelligent (bon/attention/problématique)
-- ✅ Graphiques interactifs avec Chart.js
+### 👥 Gestion d'Équipe
+- ✅ Création et gestion d'équipes
+- ✅ Saisie collective des données
+- ✅ Agrégation et analyse d'équipe
+- ✅ Tableau de présences
+- ✅ Comparaison des nageurs
 
-### 3. 💡 Génération de Retours
-- ✅ Retours personnalisés par nageur
-- ✅ Recommandations automatiques basées sur l'analyse
-- ✅ Visualisations claires avec badges de statut
-- ✅ Alertes préventives pour éviter le surentraînement
+### 🔄 Synchronisation Temps Réel **[NOUVEAU]**
+- ⚡ **Multi-appareils** : Ordinateur, tablette, téléphone
+- 🔄 **Temps réel** : Modifications instantanées sur tous les appareils
+- 📡 **Mode hors ligne** : Fonctionne sans connexion
+- 💾 **Backup automatique** : Données sauvegardées sur Firebase
+- 🟢 **Indicateur de statut** : Visualisez l'état de synchronisation
 
-### 4. 💾 Persistance et Sauvegarde **[NOUVEAU]**
-- ✅ **Sauvegarde automatique** dans localStorage
-- ✅ **Export JSON** des données (backup)
-- ✅ **Import JSON** pour restaurer ou partager
-- ✅ **Protection contre la perte de données**
-- ✅ Notifications visuelles des actions
+---
 
-### 5. 📱 Interface Utilisateur
-- ✅ Design moderne et responsive
-- ✅ Navigation intuitive par sections
-- ✅ Tableaux de bord détaillés par nageur
-- ✅ Vue d'ensemble de l'équipe
-- ✅ Compatible mobile/tablette/desktop
+## 🚀 Démarrage Rapide
 
-## 🚀 Installation et Utilisation
+### Option 1 : Utilisation Locale (Sans synchronisation)
 
-### 🌐 Option 1 : Déploiement en Ligne (RECOMMANDÉ)
+1. **Téléchargez** le projet
+2. **Ouvrez** `index.html` dans votre navigateur
+3. **Utilisez** l'application localement
 
-**Déployez gratuitement sur GitHub Pages en 5 minutes !**
+### Option 2 : Avec Synchronisation Firebase (Recommandé)
 
-#### Méthode Automatique (PowerShell)
+#### Installation (5 minutes)
+
+1. **Créez un projet Firebase**
+   - Allez sur https://console.firebase.google.com/
+   - Créez un projet "suivi-nageurs"
+   - Activez "Realtime Database"
+
+2. **Configurez l'application**
+   - Ouvrez `assets/js/firebase-config.js`
+   - Remplacez les valeurs `VOTRE_*` par vos identifiants
+   - Sauvegardez
+
+3. **Testez !**
+   - Ouvrez `index.html`
+   - Vérifiez : 🟢 "Synchronisé" en haut à droite
+
+📚 **Guide détaillé** : Voir `FIREBASE-QUICKSTART.md`
+
+---
+
+## 📁 Structure du Projet
+
+```
+suivi-nageurs/
+├── index.html              # Page d'accueil (2 cartes)
+├── dashboard.html          # Dashboard nageur individuel
+├── equipe.html            # Dashboard équipe
+├── assets/
+│   ├── css/
+│   │   ├── style.css      # Styles principaux
+│   │   └── home.css       # Styles page d'accueil
+│   ├── js/
+│   │   ├── app.js         # Logique dashboard nageur
+│   │   ├── equipe.js      # Logique dashboard équipe
+│   │   ├── firebase-config.js    # Configuration Firebase
+│   │   └── sync-service.js       # Service synchronisation
+├── FIREBASE-QUICKSTART.md         # Guide rapide Firebase (5 min)
+├── GUIDE-DEPLOIEMENT-FIREBASE.md  # Guide complet déploiement
+└── README.md                      # Ce fichier
+```
+
+---
+
+## 🌐 Déploiement en Ligne
+
+### Avec Firebase Hosting (Gratuit)
+
 ```powershell
+# Installer Firebase CLI
+npm install -g firebase-tools
+
+# Se connecter
+firebase login
+
+# Initialiser et déployer
+cd c:\Users\ordi\Desktop\suivi-nageurs
+firebase init
+firebase deploy
+```
+
+➡️ **Résultat** : `https://suivi-nageurs-XXXXX.web.app`
+
+📚 **Guide complet** : `GUIDE-DEPLOIEMENT-FIREBASE.md`
+
+---
 cd "c:\Users\ordi\Desktop\suivi-nageurs"
 .\deploy.ps1
 ```

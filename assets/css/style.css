@@ -1754,14 +1754,51 @@ table tbody tr:hover {
 ======================================== */
 .sticky-selector {
     position: fixed;
-    bottom: 110px; /* Au-dessus du bouton de saisie (70px + 40px de marge) */
+    bottom: 20px;
     right: 20px;
-    z-index: 999; /* Juste en dessous du bouton de saisie */
+    z-index: 999;
     background: transparent;
     border: none;
     padding: 0;
     margin: 0;
     transition: all 0.3s ease;
+}
+
+/* Groupe de boutons flottants */
+.floating-buttons-group {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Bouton flottant de sélection */
+.floating-select-btn {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #1a73e8, #4285f4);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+    font-size: 1.5rem;
+}
+
+.floating-select-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+}
+
+.floating-select-btn:active {
+    transform: scale(0.95);
 }
 
 /* Draggable sur mobile */
@@ -2200,8 +2237,20 @@ table tbody tr:hover {
 /* Responsive pour le bouton circulaire */
 @media (max-width: 768px) {
     .sticky-selector {
-        bottom: 100px; /* Ajusté pour mobile */
+        bottom: 20px;
         right: 15px;
+    }
+    
+    .floating-buttons-group {
+        bottom: 20px;
+        right: 15px;
+        gap: 12px;
+    }
+    
+    .floating-select-btn {
+        width: 55px;
+        height: 55px;
+        font-size: 1.4rem;
     }
     
     .selector-circle-btn {
@@ -2240,8 +2289,20 @@ table tbody tr:hover {
 
 @media (max-width: 480px) {
     .sticky-selector {
-        bottom: 90px;
+        bottom: 20px;
         right: 10px;
+    }
+    
+    .floating-buttons-group {
+        bottom: 20px;
+        right: 10px;
+        gap: 10px;
+    }
+    
+    .floating-select-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
     }
     
     .selector-circle-btn {
