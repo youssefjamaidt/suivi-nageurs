@@ -3776,65 +3776,214 @@ function openAttendanceCalendarForEdit() {
         return;
     }
     
-    // Créer une liste de dates triées
-    const sortedDates = Array.from(allDates).sort().reverse();
+    // Créer un calendrier visuel pour le mois/année actuel
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
     
     // Créer le HTML du calendrier
-    const calendarHTML = `
-        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 600px; max-height: 80vh; overflow-y: auto;">
-            <h3 style="margin: 0 0 20px 0; color: #333; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-calendar-alt"></i> Sélectionner une date à modifier
-            </h3>
-            <p style="color: #666; margin-bottom: 20px;">
-                Cliquez sur une date pour charger et modifier les présences de cette journée.
-            </p>
-            <div style="display: grid; gap: 12px;">
-                ${sortedDates.map(date => {
-                    const dateObj = new Date(date);
-                    const formattedDate = dateObj.toLocaleDateString('fr-FR', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                    });
-                    
-                    // Compter les statuts pour cette date
-                    let presentCount = 0;
-                    let absentCount = 0;
+    const calendarHTML = createVisualCalendar(currentYear, currentMonth, allDates, swimmers);
+    
+    // Afficher dans une modal
+    showModal(calendarHTML);
+}
+
+// Fonction pour créer un calendrier visuel avec les dates marquées
+function createVisualCalendar(year, month, allDates, swimmers) {
+    const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                       'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    
+    // Récupérer le premier jour du mois et le nombre de jours
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    let startingDayOfWeek = firstDay.getDay();
+    if (startingDayOfWeek === 0) startingDayOfWeek = 7; // Dimanche = 7
+    startingDayOfWeek -= 1; // Commencer lundi (0)
+    
+    // Créer les rangées du calendrier
+    let calendarDays = '';
+    let dayCounter = 1;
+    
+    // Semaines
+    for (let week = 0; week < 6; week++) {
+        calendarDays += '<tr>';
+        
+        // Jours de la semaine
+        for (let day = 0; day < 7; day++) {
+            const cellIndex = week * 7 + day;
+            
+            if (cellIndex < startingDayOfWeek || dayCounter > daysInMonth) {
+                // Case vide
+                calendarDays += '<td style="background:#f9f9f9; border:1px solid #e0e0e0;"></td>';
+            } else {
+                // Date du mois
+                const dateStr = String(year) + '-' + String(month + 1).padStart(2, '0') + '-' + String(dayCounter).padStart(2, '0');
+                const hasData = allDates.has(dateStr);
+                
+                // Compter les présences pour cette date
+                let presentCount = 0, absentCount = 0, totalCount = 0;
+                if (hasData) {
                     swimmers.forEach(swimmer => {
-                        const record = swimmer.attendanceData?.find(r => r.date === date);
+                        const record = swimmer.attendanceData?.find(r => r.date === dateStr);
                         if (record) {
+                            totalCount++;
                             if (record.status === 'present') presentCount++;
                             else if (record.status === 'absent') absentCount++;
                         }
                     });
-                    
-                    return `
-                        <button onclick="loadAttendanceForEdit('${date}')" 
-                                style="padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; cursor: pointer; text-align: left; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 10px rgba(102,126,234,0.3);"
-                                onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 15px rgba(102,126,234,0.4)'"
-                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 10px rgba(102,126,234,0.3)'">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                                <div style="font-size: 1.1rem; font-weight: 600;">
-                                    <i class="fas fa-calendar-day"></i> ${formattedDate}
-                                </div>
-                                <i class="fas fa-chevron-right"></i>
+                }
+                
+                const bgColor = hasData ? '#e8f5e9' : 'white';
+                const borderColor = hasData ? '#4caf50' : '#e0e0e0';
+                const fontWeight = hasData ? 'bold' : 'normal';
+                const cursor = hasData ? 'pointer' : 'default';
+                const clickable = hasData ? `onclick="loadAttendanceForEdit('${dateStr}')"` : '';
+                
+                calendarDays += `
+                    <td ${clickable} 
+                        style="
+                            background:${bgColor}; 
+                            border:2px solid ${borderColor}; 
+                            padding:8px; 
+                            text-align:center;
+                            cursor:${cursor};
+                            min-height:80px;
+                            vertical-align:top;
+                            transition: all 0.2s;
+                            font-weight:${fontWeight};"
+                        ${hasData ? `onmouseover="this.style.background='#c8e6c9'; this.style.boxShadow='0 2px 8px rgba(76,175,80,0.4)'"` : ''}
+                        ${hasData ? `onmouseout="this.style.background='#e8f5e9'; this.style.boxShadow='none'"` : ''}
+                        >
+                        <div style="font-size:1.1rem; font-weight:bold; color:#333; margin-bottom:6px;">${dayCounter}</div>
+                        ${hasData ? `
+                            <div style="font-size:0.75rem; color:#4caf50; margin:3px 0;">
+                                <i class="fas fa-check-circle"></i> ${presentCount}
                             </div>
-                            <div style="display: flex; gap: 15px; font-size: 0.9rem; opacity: 0.9;">
-                                <span><i class="fas fa-check-circle"></i> ${presentCount} présents</span>
-                                <span><i class="fas fa-times-circle"></i> ${absentCount} absents</span>
+                            <div style="font-size:0.75rem; color:#f44336; margin:3px 0;">
+                                <i class="fas fa-times-circle"></i> ${absentCount}
                             </div>
-                        </button>
-                    `;
-                }).join('')}
+                            <div style="font-size:0.7rem; color:#666; margin-top:4px; padding-top:4px; border-top:1px solid #ddd;">
+                                ${totalCount} dossier(s)
+                            </div>
+                        ` : ''}
+                    </td>
+                `;
+                
+                dayCounter++;
+            }
+        }
+        
+        calendarDays += '</tr>';
+        
+        // Sortir si tous les jours du mois sont affichés
+        if (dayCounter > daysInMonth) break;
+    }
+    
+    return `
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
+                <h3 style="margin: 0; color: #333; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-calendar-alt"></i> ${monthNames[month]} ${year}
+                </h3>
+                <button onclick="previousMonth()" style="padding: 8px 12px; background:#e0e0e0; border:none; border-radius:6px; cursor:pointer; font-size:1rem;">
+                    <i class="fas fa-chevron-left"></i> Précédent
+                </button>
+                <button onclick="nextMonth()" style="padding: 8px 12px; background:#e0e0e0; border:none; border-radius:6px; cursor:pointer; font-size:1rem;">
+                    Suivant <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
-            <button onclick="closeModal()" style="margin-top: 25px; width: 100%; padding: 15px; background: #e0e0e0; color: #666; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600;">
-                <i class="fas fa-times"></i> Annuler
+            
+            <p style="color: #666; margin-bottom: 15px; text-align:center;">
+                Cliquez sur une date pour charger et modifier les présences.
+            </p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; background: white; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                <thead>
+                    <tr style="background: #f5f5f5;">
+                        ${dayNames.map(day => `<th style="padding: 12px; text-align: center; font-weight: bold; color: #333; border-bottom: 2px solid #e0e0e0;">${day}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${calendarDays}
+                </tbody>
+            </table>
+            
+            <div style="text-align: center; margin-bottom: 15px; font-size: 0.9rem; color: #666;">
+                <span style="display: inline-block; margin-right: 20px;">
+                    <span style="display: inline-block; width: 20px; height: 20px; background: #e8f5e9; border: 2px solid #4caf50; margin-right: 8px; border-radius: 3px;"></span>
+                    Dates avec présences enregistrées
+                </span>
+            </div>
+            
+            <button onclick="closeModal()" style="width: 100%; padding: 15px; background: #e0e0e0; color: #666; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='#d0d0d0'" onmouseout="this.style.background='#e0e0e0'">
+                <i class="fas fa-times"></i> Fermer
             </button>
         </div>
     `;
+}
+
+// Fonction pour afficher le mois précédent
+function previousMonth() {
+    // Cette fonction sera appelée depuis le calendrier
+    // Pour maintenant, il faut relancer le calendrier
+    closeModal();
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() - 1;
     
-    // Afficher dans une modal
+    if (currentMonth < 0) {
+        // Gérer le changement d'année
+        const swimmers = getTeamSwimmers();
+        const allDates = new Set();
+        swimmers.forEach(swimmer => {
+            if (swimmer.attendanceData && Array.isArray(swimmer.attendanceData)) {
+                swimmer.attendanceData.forEach(record => {
+                    allDates.add(record.date);
+                });
+            }
+        });
+        const calendarHTML = createVisualCalendar(currentYear - 1, 11, allDates, swimmers);
+        showModal(calendarHTML);
+    } else {
+        const swimmers = getTeamSwimmers();
+        const allDates = new Set();
+        swimmers.forEach(swimmer => {
+            if (swimmer.attendanceData && Array.isArray(swimmer.attendanceData)) {
+                swimmer.attendanceData.forEach(record => {
+                    allDates.add(record.date);
+                });
+            }
+        });
+        const calendarHTML = createVisualCalendar(currentYear, currentMonth, allDates, swimmers);
+        showModal(calendarHTML);
+    }
+}
+
+// Fonction pour afficher le mois suivant
+function nextMonth() {
+    closeModal();
+    const today = new Date();
+    let currentYear = today.getFullYear();
+    let currentMonth = today.getMonth() + 1;
+    
+    if (currentMonth > 11) {
+        // Gérer le changement d'année
+        currentYear++;
+        currentMonth = 0;
+    }
+    
+    const swimmers = getTeamSwimmers();
+    const allDates = new Set();
+    swimmers.forEach(swimmer => {
+        if (swimmer.attendanceData && Array.isArray(swimmer.attendanceData)) {
+            swimmer.attendanceData.forEach(record => {
+                allDates.add(record.date);
+            });
+        }
+    });
+    const calendarHTML = createVisualCalendar(currentYear, currentMonth, allDates, swimmers);
     showModal(calendarHTML);
 }
 
