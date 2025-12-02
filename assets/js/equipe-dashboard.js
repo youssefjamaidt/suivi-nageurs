@@ -2593,6 +2593,7 @@ function generateAttendanceSwimmersTab(attendanceStats, swimmers) {
                         <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">📊 Total</th>
                         <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">📈 Taux</th>
                         <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">🏆 Statut</th>
+                        <th style="padding: 15px 12px; text-align: center; font-weight: 600; font-size: 0.95rem;">📜 Historique</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -2641,6 +2642,11 @@ function generateAttendanceSwimmersTab(attendanceStats, swimmers) {
                                 }">
                                     ${stat.rate >= 95 ? '⭐ Excellent' : stat.rate >= 80 ? '✅ Bon' : stat.rate >= 60 ? '⚠️ Moyen' : '❌ Faible'}
                                 </span>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center;">
+                                <button onclick="openSwimmerHistory('${stat.name ? stat.name.replace(/'/g,"\\'") : ''}')" style="padding:6px 10px; border-radius:8px; border:1px solid #e0e0e0; background:white; cursor:pointer;">
+                                    <i class="fas fa-history"></i> Voir
+                                </button>
                             </td>
                         </tr>
                     `).join('')}
@@ -2798,7 +2804,7 @@ function calculateTeamAttendanceStats(swimmers) {
                 excusedLates: excusedLates,
                 total: total,
                 rate: rate
-            });
+            , id: swimmer.id });
         } else {
             // Nageur sans données = assiduité parfaite par défaut
             detailedSwimmerStats.push({
@@ -2810,7 +2816,7 @@ function calculateTeamAttendanceStats(swimmers) {
                 excusedLates: 0,
                 total: 0,
                 rate: 100
-            });
+            , id: swimmer.id });
         }
     });
     
@@ -3618,40 +3624,16 @@ function renderAttendanceForm(swimmers) {
                             </div>
                         </div>
                         
-                        <div class="attendance-status-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button onclick="setAttendanceStatus('${swimmer.id}', 'present')" 
-                                    class="attendance-status-btn status-present ${window.attendanceStatuses[swimmer.id] === 'present' ? 'active' : ''}" 
-                                    data-status="present"
-                                    style="padding: 10px 18px; border: 2px solid #4caf50; border-radius: 8px; background: ${window.attendanceStatuses[swimmer.id] === 'present' ? '#4caf50' : 'white'}; color: ${window.attendanceStatuses[swimmer.id] === 'present' ? 'white' : '#4caf50'}; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;">
-                                ✅ Présent
+                        <div class="attendance-status-buttons" style="display:flex; gap:8px; align-items:center;">
+                            <!-- Single-cycle status button: cycles through statuses on each click -->
+                            <button onclick="cycleAttendanceStatus('${swimmer.id}')"
+                                    class="attendance-status-btn attendance-status-single ${window.attendanceStatuses[swimmer.id] || 'absent'}"
+                                    data-status="${window.attendanceStatuses[swimmer.id] || 'absent'}"
+                                    style="padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.95rem; min-width:160px; transition: all 0.18s;">
+                                ${getStatusLabel(window.attendanceStatuses[swimmer.id] || 'absent')}
                             </button>
-                            
-                            <button onclick="setAttendanceStatus('${swimmer.id}', 'absent')" 
-                                    class="attendance-status-btn status-absent ${window.attendanceStatuses[swimmer.id] === 'absent' ? 'active' : ''}" 
-                                    data-status="absent"
-                                    style="padding: 10px 18px; border: 2px solid #f44336; border-radius: 8px; background: ${window.attendanceStatuses[swimmer.id] === 'absent' ? '#f44336' : 'white'}; color: ${window.attendanceStatuses[swimmer.id] === 'absent' ? 'white' : '#f44336'}; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;">
-                                ❌ Absent
-                            </button>
-                            
-                            <button onclick="setAttendanceStatus('${swimmer.id}', 'absent_excused')" 
-                                    class="attendance-status-btn status-absent-excused ${window.attendanceStatuses[swimmer.id] === 'absent_excused' ? 'active' : ''}" 
-                                    data-status="absent_excused"
-                                    style="padding: 10px 18px; border: 2px solid #9c27b0; border-radius: 8px; background: ${window.attendanceStatuses[swimmer.id] === 'absent_excused' ? '#9c27b0' : 'white'}; color: ${window.attendanceStatuses[swimmer.id] === 'absent_excused' ? 'white' : '#9c27b0'}; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;">
-                                📝 Absent Justifié
-                            </button>
-                            
-                            <button onclick="setAttendanceStatus('${swimmer.id}', 'late')" 
-                                    class="attendance-status-btn status-late ${window.attendanceStatuses[swimmer.id] === 'late' ? 'active' : ''}" 
-                                    data-status="late"
-                                    style="padding: 10px 18px; border: 2px solid #ff9800; border-radius: 8px; background: ${window.attendanceStatuses[swimmer.id] === 'late' ? '#ff9800' : 'white'}; color: ${window.attendanceStatuses[swimmer.id] === 'late' ? 'white' : '#ff9800'}; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;">
-                                ⏰ Retard
-                            </button>
-                            
-                            <button onclick="setAttendanceStatus('${swimmer.id}', 'late_excused')" 
-                                    class="attendance-status-btn status-late-excused ${window.attendanceStatuses[swimmer.id] === 'late_excused' ? 'active' : ''}" 
-                                    data-status="late_excused"
-                                    style="padding: 10px 18px; border: 2px solid #2196f3; border-radius: 8px; background: ${window.attendanceStatuses[swimmer.id] === 'late_excused' ? '#2196f3' : 'white'}; color: ${window.attendanceStatuses[swimmer.id] === 'late_excused' ? 'white' : '#2196f3'}; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;">
-                                ⏰ Retard Justifié
+                            <button onclick="openSwimmerHistory('${swimmer.id}')" title="Visualiser l'historique" style="padding: 8px 10px; border-radius:8px; border:1px solid #e0e0e0; background:white; cursor:pointer; font-size:0.9rem; color:#333;">
+                                <i class="fas fa-history"></i>
                             </button>
                         </div>
                     </div>
@@ -3916,34 +3898,43 @@ function setAttendanceStatus(swimmerId, status) {
     const card = document.querySelector(`.attendance-swimmer-card[data-swimmer-id="${swimmerId}"]`);
     if (card) {
         const buttons = card.querySelectorAll('.attendance-status-btn');
-        buttons.forEach(btn => {
-            const btnStatus = btn.dataset.status;
-            const isActive = btnStatus === status;
-            
-            btn.classList.toggle('active', isActive);
-            
-            // Couleurs des boutons
-            const colors = {
-                present: { border: '#4caf50', bg: '#4caf50', text: 'white', bgInactive: 'white', textInactive: '#4caf50' },
-                absent: { border: '#f44336', bg: '#f44336', text: 'white', bgInactive: 'white', textInactive: '#f44336' },
-                absent_excused: { border: '#9c27b0', bg: '#9c27b0', text: 'white', bgInactive: 'white', textInactive: '#9c27b0' },
-                late: { border: '#ff9800', bg: '#ff9800', text: 'white', bgInactive: 'white', textInactive: '#ff9800' },
-                late_excused: { border: '#2196f3', bg: '#2196f3', text: 'white', bgInactive: 'white', textInactive: '#2196f3' }
-            };
-            
-            const color = colors[btnStatus];
-            if (isActive) {
-                btn.style.background = color.bg;
-                btn.style.color = color.text;
-                btn.style.transform = 'scale(1.05)';
-                btn.style.boxShadow = `0 4px 12px ${color.bg}66`;
-            } else {
-                btn.style.background = color.bgInactive;
-                btn.style.color = color.textInactive;
-                btn.style.transform = 'scale(1)';
-                btn.style.boxShadow = 'none';
+        // If there are multiple status buttons (legacy), update them.
+        if (buttons.length > 1) {
+            buttons.forEach(btn => {
+                const btnStatus = btn.dataset.status;
+                const isActive = btnStatus === status;
+                btn.classList.toggle('active', isActive);
+
+                const colors = getStatusColors(btnStatus);
+                if (colors) {
+                    if (isActive) {
+                        btn.style.background = colors.bg;
+                        btn.style.color = colors.text;
+                        btn.style.transform = 'scale(1.05)';
+                        btn.style.boxShadow = `0 4px 12px ${colors.bg}66`;
+                    } else {
+                        btn.style.background = colors.bgInactive;
+                        btn.style.color = colors.textInactive;
+                        btn.style.transform = 'scale(1)';
+                        btn.style.boxShadow = 'none';
+                    }
+                }
+            });
+        } else if (buttons.length === 1) {
+            // Single-button mode: update the single button label, data and style
+            const btn = buttons[0];
+            btn.dataset.status = status;
+            btn.innerHTML = getStatusLabel(status);
+            btn.className = 'attendance-status-btn attendance-status-single ' + status;
+
+            const colors = getStatusColors(status);
+            if (colors) {
+                btn.style.background = colors.bg;
+                btn.style.color = colors.text;
+                btn.style.border = `2px solid ${colors.border}`;
+                btn.style.boxShadow = `0 6px 14px ${colors.bg}44`;
             }
-        });
+        }
     }
     
     // Mettre à jour les compteurs
@@ -3978,6 +3969,119 @@ function updateAttendanceCounts() {
     if (absentExcusedEl) absentExcusedEl.textContent = counts.absent_excused;
     if (lateEl) lateEl.textContent = counts.late;
     if (lateExcusedEl) lateExcusedEl.textContent = counts.late_excused;
+}
+
+// Retourne le label affiché pour un statut
+function getStatusLabel(status) {
+    const labels = {
+        present: '✅ Présent',
+        absent: '❌ Absent',
+        absent_excused: '📝 Absent Justifié',
+        late: '⏰ Retard',
+        late_excused: '⏰ Retard Justifié'
+    };
+    return labels[status] || '❓ Inconnu';
+}
+
+// Couleurs et styles par statut
+function getStatusColors(status) {
+    const map = {
+        present: { border: '#4caf50', bg: '#4caf50', text: 'white', bgInactive: 'white', textInactive: '#4caf50' },
+        absent: { border: '#f44336', bg: '#f44336', text: 'white', bgInactive: 'white', textInactive: '#f44336' },
+        absent_excused: { border: '#9c27b0', bg: '#9c27b0', text: 'white', bgInactive: 'white', textInactive: '#9c27b0' },
+        late: { border: '#ff9800', bg: '#ff9800', text: 'white', bgInactive: 'white', textInactive: '#ff9800' },
+        late_excused: { border: '#2196f3', bg: '#2196f3', text: 'white', bgInactive: 'white', textInactive: '#2196f3' }
+    };
+    return map[status];
+}
+
+// Cycle le statut d'un nageur (single-button mode)
+function cycleAttendanceStatus(swimmerId) {
+    if (!window.attendanceStatuses) window.attendanceStatuses = {};
+    const order = ['present', 'absent', 'absent_excused', 'late', 'late_excused'];
+    const current = window.attendanceStatuses[swimmerId] || 'absent';
+    const idx = order.indexOf(current);
+    const next = order[(idx + 1) % order.length];
+    setAttendanceStatus(swimmerId, next);
+    // Save change in state
+    window.attendanceStatuses[swimmerId] = next;
+    updateAttendanceCounts();
+}
+
+// Ouvrir la modal d'historique pour un nageur
+function openSwimmerHistory(swimmerId) {
+    const swimmers = getAllSwimmers();
+    const swimmer = swimmers.find(s => s.id === swimmerId);
+    if (!swimmer) {
+        alert('Nageur introuvable');
+        return;
+    }
+
+    const entries = (swimmer.attendanceData || []).slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+    const rows = entries.map(e => `
+        <tr>
+            <td style="padding:8px 12px">${new Date(e.date).toLocaleDateString('fr-FR')}</td>
+            <td style="padding:8px 12px">${getStatusLabel(e.excused ? (e.status === 'absent' ? 'absent_excused' : (e.status === 'late' ? 'late_excused' : e.status)) : e.status)}</td>
+            <td style="padding:8px 12px">${e.timestamp ? new Date(e.timestamp).toLocaleString('fr-FR') : ''}</td>
+        </tr>`).join('');
+
+    const content = `
+        <div style="background:white; padding:20px; max-width:700px; border-radius:10px;">
+            <h3 style="margin:0 0 10px 0">Historique - ${swimmer.name}</h3>
+            <p style="color:#666; margin:0 0 10px 0">${entries.length} enregistrement(s)</p>
+            <div style="max-height: 60vh; overflow-y:auto; margin-top:10px;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f3f3f3; text-align:left;">
+                            <th style="padding:10px;">Date</th>
+                            <th style="padding:10px;">Statut</th>
+                            <th style="padding:10px;">Horodatage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows || '<tr><td colspan="3" style="padding:12px; color:#666">Aucun enregistrement</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px;">
+                <button onclick="closeModal()" style="padding:10px 14px; border-radius:8px; border:none; background:#e0e0e0; color:#333">Fermer</button>
+            </div>
+        </div>
+    `;
+
+    if (typeof showModal === 'function') {
+        showModal(content);
+    } else {
+        // fallback: open in a new window
+        const w = window.open('', '_blank');
+        w.document.write(content);
+    }
+}
+
+// Affiche une modal avec le contenu HTML
+function showModal(htmlContent) {
+    let modalDiv = document.getElementById('customModal');
+    if (!modalDiv) {
+        modalDiv = document.createElement('div');
+        modalDiv.id = 'customModal';
+        document.body.appendChild(modalDiv);
+    }
+    modalDiv.innerHTML = `
+        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999;">
+            <div style="position:relative; background:white; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.2); max-width:90vw; max-height:90vh; overflow:auto;">
+                ${htmlContent}
+            </div>
+        </div>
+    `;
+    modalDiv.style.display = 'block';
+}
+
+// Ferme la modal
+function closeModal() {
+    const modalDiv = document.getElementById('customModal');
+    if (modalDiv) {
+        modalDiv.style.display = 'none';
+    }
 }
 
 // Fonction pour charger les données existantes et les modifier
@@ -4020,26 +4124,27 @@ function loadExistingAttendanceForEdit() {
                     const card = document.querySelector(`.attendance-swimmer-card[data-swimmer-id="${swimmer.id}"]`);
                     if (card) {
                         const buttons = card.querySelectorAll('.attendance-status-btn');
-                        buttons.forEach(btn => {
-                            const btnStatus = btn.dataset.status;
-                            const isActive = btnStatus === status;
-                            btn.classList.toggle('active', isActive);
-                            
-                            // Appliquer les couleurs
-                            const colors = {
-                                present: { border: '#4caf50', bg: '#4caf50' },
-                                absent: { border: '#f44336', bg: '#f44336' },
-                                absent_excused: { border: '#9c27b0', bg: '#9c27b0' },
-                                late: { border: '#ff9800', bg: '#ff9800' },
-                                late_excused: { border: '#2196f3', bg: '#2196f3' }
-                            };
-                            
-                            const color = colors[btnStatus];
-                            if (color) {
-                                btn.style.background = isActive ? color.bg : 'white';
-                                btn.style.color = isActive ? 'white' : color.border;
-                            }
-                        });
+                        if (buttons.length > 1) {
+                            // Legacy multi-button UI
+                            buttons.forEach(btn => {
+                                const btnStatus = btn.dataset.status;
+                                const isActive = btnStatus === status;
+                                btn.classList.toggle('active', isActive);
+                                const colors = getStatusColors(btnStatus) || {};
+                                btn.style.background = isActive ? (colors.bg || 'white') : (colors.bgInactive || 'white');
+                                btn.style.color = isActive ? (colors.text || '#333') : (colors.textInactive || '#333');
+                            });
+                        } else if (buttons.length === 1) {
+                            // Single-button mode
+                            const btn = buttons[0];
+                            btn.dataset.status = status;
+                            btn.innerHTML = getStatusLabel(status);
+                            btn.className = 'attendance-status-btn attendance-status-single ' + status;
+                            const colors = getStatusColors(status) || {};
+                            if (colors.bg) btn.style.background = colors.bg;
+                            if (colors.text) btn.style.color = colors.text;
+                            if (colors.border) btn.style.border = '2px solid ' + colors.border;
+                        }
                     }
                 }, 100);
             }
