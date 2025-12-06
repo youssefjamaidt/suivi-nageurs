@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Local - App Suivi Nageurs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        
+        .test-section:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102,126,234,0.1);
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .test-section p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .checklist {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        
+        .check-item.pass {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .check-item.fail {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        
+        .check-item.pending {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .check-icon {
+            font-size: 1.3rem;
+            min-width: 25px;
+        }
+        
+        .check-item.pass .check-icon {
+            color: #4caf50;
+        }
+        
+        .check-item.fail .check-icon {
+            color: #f44336;
+        }
+        
+        .check-item.pending .check-icon {
+            color: #ff9800;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+        }
+        
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #e68900;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status-badge.success {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        
+        .status-badge.pending {
+            background: #ffe0b2;
+            color: #e65100;
+        }
+        
+        .status-badge.error {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .info-box strong {
+            color: #1976d2;
+        }
+        
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-swimmer"></i> Test Local - Suivi Nageurs</h1>
+            <p>Vérification des fonctionnalités principales</p>
+        </div>
+        
+        <div class="content">
+            <!-- Section 1: Infrastructure -->
+            <div class="test-section">
+                <h2><i class="fas fa-server"></i> 1. Infrastructure</h2>
+                <p>Vérifier que le serveur et les fichiers sont accessibles.</p>
+                
+                <div class="checklist">
+                    <div class="check-item pass">
+                        <div class="check-icon"><i class="fas fa-check-circle"></i></div>
+                        <div>Serveur local en cours d'exécution sur port 8000</div>
+                    </div>
+                    <div class="check-item pending" id="check-index">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Accès à index.html</div>
+                    </div>
+                    <div class="check-item pending" id="check-equipe">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Accès à equipe.html</div>
+                    </div>
+                    <div class="check-item pending" id="check-dashboard-js">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Chargement equipe-dashboard.js</div>
+                    </div>
+                    <div class="check-item pending" id="check-attendance-js">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Chargement attendance-form.js (nouvelle architecture)</div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-primary" onclick="testInfrastructure()">
+                        <i class="fas fa-play"></i> Tester Infrastructure
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Section 2: Formulaire de Présence -->
+            <div class="test-section">
+                <h2><i class="fas fa-clipboard-list"></i> 2. Formulaire de Présence</h2>
+                <p>Tester les fonctionnalités du formulaire de suivi de présence.</p>
+                
+                <div class="checklist">
+                    <div class="check-item pending" id="check-form-render">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Rendu du formulaire de présence</div>
+                    </div>
+                    <div class="check-item pending" id="check-date-selector">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Sélecteur de date fonctionnel</div>
+                    </div>
+                    <div class="check-item pending" id="check-status-buttons">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Boutons de statut cycliques</div>
+                    </div>
+                    <div class="check-item pending" id="check-status-counts">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Compteurs de statuts en temps réel</div>
+                    </div>
+                    <div class="check-item pending" id="check-calendar">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Calendrier visuel pour sélection date</div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-success" onclick="testAttendanceForm()">
+                        <i class="fas fa-play"></i> Tester Formulaire
+                    </button>
+                    <button class="btn btn-primary" onclick="window.location.href='http://localhost:8000/equipe.html'">
+                        <i class="fas fa-external-link-alt"></i> Ouvrir Équipe
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Section 3: Stockage Local -->
+            <div class="test-section">
+                <h2><i class="fas fa-database"></i> 3. Stockage Local (localStorage)</h2>
+                <p>Vérifier que les données de présence sont sauvegardées.</p>
+                
+                <div class="checklist">
+                    <div class="check-item pending" id="check-localStorage">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>localStorage accessible</div>
+                    </div>
+                    <div class="check-item pending" id="check-swimmers-data">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Données des nageurs présentes</div>
+                    </div>
+                    <div class="check-item pending" id="check-attendance-data">
+                        <div class="check-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div>Historique de présence sauvegardé</div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-warning" onclick="testLocalStorage()">
+                        <i class="fas fa-database"></i> Tester localStorage
+                    </button>
+                    <button class="btn btn-primary" onclick="showStorageData()">
+                        <i class="fas fa-eye"></i> Afficher les données
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Section 4: Actions Rapides -->
+            <div class="test-section">
+                <h2><i class="fas fa-bolt"></i> 4. Actions Rapides</h2>
+                <p>Accès direct aux sections principales de l'application.</p>
+                
+                <div class="grid">
+                    <button class="btn btn-primary" onclick="window.location.href='http://localhost:8000/index.html'">
+                        <i class="fas fa-home"></i> Accueil
+                    </button>
+                    <button class="btn btn-primary" onclick="window.location.href='http://localhost:8000/equipe.html'">
+                        <i class="fas fa-users"></i> Équipe
+                    </button>
+                    <button class="btn btn-primary" onclick="window.location.href='http://localhost:8000/dashboard.html'">
+                        <i class="fas fa-chart-pie"></i> Dashboard
+                    </button>
+                    <button class="btn btn-primary" onclick="window.location.href='http://localhost:8000/nageur.html'">
+                        <i class="fas fa-swimmer"></i> Nageur
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Section 5: Console & Diagnostics -->
+            <div class="test-section">
+                <h2><i class="fas fa-bug"></i> 5. Diagnostics</h2>
+                <p>Informations de diagnostic sur le système.</p>
+                
+                <div class="info-box">
+                    <strong>💡 Astuce:</strong> Ouvrez la console du navigateur (F12 → Console) pour voir les logs détaillés.
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-warning" onclick="runDiagnostics()">
+                        <i class="fas fa-stethoscope"></i> Exécuter Diagnostics
+                    </button>
+                    <button class="btn btn-primary" onclick="clearLocalStorage()">
+                        <i class="fas fa-trash"></i> Vider localStorage
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>🔧 Test local - Suivi Nageurs v1.0 | Port 8000</p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">
+                Pour arrêter le serveur: Ctrl+C dans le terminal | 
+                <a href="http://localhost:8000" style="color: #667eea; text-decoration: none;">Serveur local</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // TESTS INFRASTRUCTURE
+        // ============================================
+        
+        async function testInfrastructure() {
+            console.log('🔍 Test Infrastructure - Début');
+            
+            const tests = [
+                { id: 'check-index', url: '/', name: 'index.html' },
+                { id: 'check-equipe', url: '/equipe.html', name: 'equipe.html' },
+                { id: 'check-dashboard-js', url: '/assets/js/equipe-dashboard.js', name: 'equipe-dashboard.js' },
+                { id: 'check-attendance-js', url: '/assets/js/attendance-form.js', name: 'attendance-form.js' }
+            ];
+            
+            for (const test of tests) {
+                try {
+                    const response = await fetch(test.url);
+                    if (response.ok) {
+                        updateCheck(test.id, 'pass', `✅ ${test.name} - ${response.status} OK`);
+                        console.log(`✅ ${test.name} accessible`);
+                    } else {
+                        updateCheck(test.id, 'fail', `❌ ${test.name} - ${response.status}`);
+                        console.error(`❌ ${test.name} - ${response.status}`);
+                    }
+                } catch (error) {
+                    updateCheck(test.id, 'fail', `❌ ${test.name} - Erreur`);
+                    console.error(`❌ ${test.name}:`, error.message);
+                }
+            }
+            
+            alert('✅ Test infrastructure terminé! Consultez la console pour les détails.');
+        }
+        
+        // ============================================
+        // TESTS FORMULAIRE
+        // ============================================
+        
+        function testAttendanceForm() {
+            console.log('🎯 Test Formulaire de Présence - Début');
+            
+            let score = 0;
+            let total = 0;
+            
+            // Test 1: Fonction renderAttendanceForm existe
+            total++;
+            if (typeof renderAttendanceForm === 'function') {
+                updateCheck('check-form-render', 'pass', '✅ renderAttendanceForm() disponible');
+                score++;
+                console.log('✅ renderAttendanceForm existe');
+            } else {
+                updateCheck('check-form-render', 'fail', '❌ renderAttendanceForm() manquante');
+                console.error('❌ renderAttendanceForm n\'existe pas');
+            }
+            
+            // Test 2: Sélecteur date
+            total++;
+            if (document.getElementById('attendanceDate')) {
+                updateCheck('check-date-selector', 'pass', '✅ Input date présent');
+                score++;
+            } else {
+                updateCheck('check-date-selector', 'pending', '⏳ Input date non trouvé (charger formulaire d\'abord)');
+            }
+            
+            // Test 3: Boutons statut
+            total++;
+            if (document.querySelectorAll('.attendance-status-btn').length > 0) {
+                updateCheck('check-status-buttons', 'pass', `✅ ${document.querySelectorAll('.attendance-status-btn').length} boutons trouvés`);
+                score++;
+            } else {
+                updateCheck('check-status-buttons', 'pending', '⏳ Boutons non trouvés (charger formulaire d\'abord)');
+            }
+            
+            // Test 4: Compteurs
+            total++;
+            if (document.getElementById('presentCount')) {
+                updateCheck('check-status-counts', 'pass', '✅ Compteurs présents');
+                score++;
+            } else {
+                updateCheck('check-status-counts', 'pending', '⏳ Compteurs non trouvés (charger formulaire d\'abord)');
+            }
+            
+            // Test 5: Fonction calendrier
+            total++;
+            if (typeof openAttendanceCalendarForEdit === 'function') {
+                updateCheck('check-calendar', 'pass', '✅ Calendrier disponible');
+                score++;
+                console.log('✅ Calendrier fonction disponible');
+            } else {
+                updateCheck('check-calendar', 'fail', '❌ Calendrier indisponible');
+                console.error('❌ Calendrier manquant');
+            }
+            
+            alert(`✅ Test formulaire: ${score}/${total} réussis!`);
+        }
+        
+        // ============================================
+        // TESTS LOCALSTORAGE
+        // ============================================
+        
+        function testLocalStorage() {
+            console.log('💾 Test localStorage - Début');
+            
+            // Test 1: localStorage accessible
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                updateCheck('check-localStorage', 'pass', '✅ localStorage accessible');
+                console.log('✅ localStorage OK');
+            } catch (error) {
+                updateCheck('check-localStorage', 'fail', '❌ localStorage indisponible');
+                console.error('❌ localStorage:', error.message);
+                return;
+            }
+            
+            // Test 2: Données nageurs
+            try {
+                const swimmers = JSON.parse(localStorage.getItem('swimmers') || '[]');
+                if (swimmers.length > 0) {
+                    updateCheck('check-swimmers-data', 'pass', `✅ ${swimmers.length} nageur(s) trouvé(s)`);
+                    console.log(`✅ ${swimmers.length} nageurs en localStorage`);
+                } else {
+                    updateCheck('check-swimmers-data', 'pending', '⏳ Aucun nageur (données vides)');
+                    console.log('⏳ localStorage vide');
+                }
+            } catch (error) {
+                updateCheck('check-swimmers-data', 'fail', '❌ Erreur de parsing');
+                console.error('❌ Erreur:', error.message);
+            }
+            
+            // Test 3: Historique présence
+            try {
+                const swimmers = JSON.parse(localStorage.getItem('swimmers') || '[]');
+                let attendanceCount = 0;
+                swimmers.forEach(s => {
+                    if (s.attendanceData) {
+                        attendanceCount += s.attendanceData.length;
+                    }
+                });
+                
+                if (attendanceCount > 0) {
+                    updateCheck('check-attendance-data', 'pass', `✅ ${attendanceCount} enregistrement(s) de présence`);
+                    console.log(`✅ ${attendanceCount} présences en localStorage`);
+                } else {
+                    updateCheck('check-attendance-data', 'pending', '⏳ Aucune présence enregistrée');
+                }
+            } catch (error) {
+                updateCheck('check-attendance-data', 'fail', '❌ Erreur');
+                console.error('❌ Erreur:', error.message);
+            }
+            
+            alert('✅ Test localStorage terminé!');
+        }
+        
+        function showStorageData() {
+            console.clear();
+            console.log('📊 DONNÉES LOCALSTORAGE:');
+            console.log('=======================');
+            
+            try {
+                const swimmers = JSON.parse(localStorage.getItem('swimmers') || '[]');
+                console.log(`Nageurs (${swimmers.length}):`);
+                swimmers.forEach((s, i) => {
+                    console.log(`  ${i+1}. ${s.name} (${s.id})`);
+                    if (s.attendanceData) {
+                        console.log(`     → ${s.attendanceData.length} présence(s)`);
+                        s.attendanceData.slice(-3).forEach(a => {
+                            console.log(`        ${a.date}: ${a.status}`);
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Erreur:', error.message);
+            }
+            
+            alert('Données affichées dans la console (F12)');
+        }
+        
+        // ============================================
+        // DIAGNOSTICS
+        // ============================================
+        
+        function runDiagnostics() {
+            console.clear();
+            console.log('🔍 DIAGNOSTICS SYSTÈME:');
+            console.log('=======================\n');
+            
+            // 1. Navigateur
+            console.log('1️⃣ NAVIGATEUR:');
+            console.log(`  Navigateur: ${navigator.userAgent}`);
+            console.log(`  Langue: ${navigator.language}`);
+            console.log(`  En ligne: ${navigator.onLine ? '✅ OUI' : '❌ NON'}\n`);
+            
+            // 2. localStorage
+            console.log('2️⃣ STOCKAGE:');
+            try {
+                const testKey = '_test_' + Date.now();
+                localStorage.setItem(testKey, 'test');
+                const available = localStorage.getItem(testKey) === 'test';
+                localStorage.removeItem(testKey);
+                console.log(`  localStorage: ${available ? '✅ DISPONIBLE' : '❌ INDISPONIBLE'}`);
+                console.log(`  Taille utilisée: ${JSON.stringify(localStorage).length} bytes\n`);
+            } catch (error) {
+                console.log(`  localStorage: ❌ ERREUR - ${error.message}\n`);
+            }
+            
+            // 3. Fonctions principales
+            console.log('3️⃣ FONCTIONS PRINCIPALES:');
+            const functions = [
+                'getTeamSwimmers',
+                'getAllSwimmers',
+                'renderAttendanceForm',
+                'saveAttendanceData',
+                'openAttendanceCalendarForEdit',
+                'cycleAttendanceStatus'
+            ];
+            functions.forEach(fn => {
+                const exists = typeof window[fn] === 'function';
+                console.log(`  ${fn}(): ${exists ? '✅' : '❌'}`);
+            });
+            console.log();
+            
+            // 4. Performance
+            console.log('4️⃣ PERFORMANCE:');
+            console.log(`  URL: ${window.location.href}`);
+            console.log(`  Heure: ${new Date().toLocaleString('fr-FR')}`);
+            console.log(`  Uptime: ${(performance.now() / 1000).toFixed(2)}s\n`);
+            
+            alert('✅ Diagnostics terminés! Consultez la console (F12) pour les détails complets.');
+        }
+        
+        function clearLocalStorage() {
+            if (confirm('⚠️ Êtes-vous sûr de vouloir effacer toutes les données localStorage?')) {
+                localStorage.clear();
+                alert('✅ localStorage effacée');
+                location.reload();
+            }
+        }
+        
+        // ============================================
+        // UTILITAIRES
+        // ============================================
+        
+        function updateCheck(elementId, status, text) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const icon = element.querySelector('.check-icon i');
+            const textDiv = element.querySelector('div:last-child');
+            
+            element.className = 'check-item ' + status;
+            
+            if (status === 'pass') {
+                icon.className = 'fas fa-check-circle';
+            } else if (status === 'fail') {
+                icon.className = 'fas fa-times-circle';
+            } else {
+                icon.className = 'fas fa-question-circle';
+            }
+            
+            textDiv.textContent = text;
+        }
+        
+        // Auto-test au chargement
+        window.addEventListener('load', () => {
+            console.log('🚀 Page de test chargée');
+            console.log('📍 Serveur local: http://localhost:8000');
+        });
+    </script>
+</body>
+</html>

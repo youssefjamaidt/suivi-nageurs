@@ -3540,99 +3540,119 @@ function renderSwimmerSelectionScreen(type, swimmers) {
 function renderAttendanceForm(swimmers) {
     const today = new Date().toISOString().split('T')[0];
     
-    // Récupérer la dernière date enregistrée pour charger les données
+    // Récupérer la date actuellement affichée ou la dernière date enregistrée
     const lastAttendanceDate = getLastAttendanceDate(swimmers);
-    const dateToUse = lastAttendanceDate || today;
+    const dateToUse = window.currentAttendanceDate || lastAttendanceDate || today;
     
     // Initialiser le statut de chaque nageur
     if (!window.attendanceStatuses) {
         window.attendanceStatuses = {};
     }
     
-    // Charger les données existantes pour la dernière date
+    // Charger les données existantes pour la date
     loadAttendanceForDate(swimmers, dateToUse);
     
     // Conserver la date sélectionnée globalement
     window.currentAttendanceDate = dateToUse;
     
-    return `
+    // Déterminer si on édite une date existante
+    const allSwimmers = getAllSwimmers();
+    const dateHasData = allSwimmers.some(swimmer => 
+        swimmer.attendanceData && 
+        swimmer.attendanceData.some(record => record.date === dateToUse)
+    );
+    
+    // Formater la date pour affichage
+    const dateFormatted = new Date(dateToUse + 'T00:00:00').toLocaleDateString('fr-FR', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    // Configuration similaire à renderCollectiveDataForm
+    const config = { icon: '✅', title: 'Feuille de Présence', color: '#27ae60' };
+    
+    let html = `
         <div style="margin-bottom: 20px;">
-            <button onclick="showCollectiveDataEntry()" class="btn btn-outline">
+            <button onclick="showCollectiveDataEntry()" class="btn btn-outline" style="float: left;">
                 <i class="fas fa-arrow-left"></i> Retour
             </button>
+            <div style="clear: both;"></div>
         </div>
         
-        <h4 style="margin: 25px 0; color: #333; text-align: center;">
-            <span style="font-size: 2rem;">✅</span> Feuille de Présence
+        <h4 style="margin: 20px 0; color: #333;">
+            <span style="font-size: 2rem;">${config.icon}</span> ${config.title}
         </h4>
         
-        <!-- Calendrier en haut -->
-        <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); padding: 25px; border-radius: 12px; margin-bottom: 30px; color: white; box-shadow: 0 4px 15px rgba(39,174,96,0.3);">
-            <label style="display: block; margin-bottom: 10px; font-weight: 600; font-size: 1.1rem;">
-                <i class="fas fa-calendar-alt"></i> Sélectionner la Date
-            </label>
-            <input type="date" id="attendanceDate" value="${dateToUse}" style="width: 100%; padding: 12px 15px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.95); font-size: 1.1rem; color: #333; font-weight: 500;" onchange="loadAttendanceForSelectedDate()">
-            <div id="attendanceDateDisplay" style="margin-top: 10px; font-size: 1.05rem; opacity: 0.9; text-align: center;">
-                ${new Date(dateToUse).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        <!-- Section Date - Similaire aux autres formulaires -->
+        <div style="background: ${config.color}15; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid ${config.color};">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="attendanceDate" style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 10px;">
+                    <i class="fas fa-calendar-alt"></i> Date
+                </label>
+                <input type="date" id="attendanceDate" class="form-control" value="${dateToUse}" onchange="handleAttendanceDateChange()" required style="font-size: 1rem; padding: 12px 15px;">
+                <small style="display: block; margin-top: 8px; color: ${config.color}; font-weight: 500;">
+                    📅 ${dateFormatted}
+                </small>
             </div>
         </div>
         
-        <!-- Info box -->
-        <div style="background: ${lastAttendanceDate ? '#e3f2fd' : '#fff3cd'}; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid ${lastAttendanceDate ? '#2196f3' : '#ffc107'};">
-            <p style="margin: 0; color: ${lastAttendanceDate ? '#1976d2' : '#856404'}; font-weight: 500;">
-                <i class="fas fa-${lastAttendanceDate ? 'history' : 'exclamation-triangle'}"></i> 
-                ${lastAttendanceDate ? `<strong>Historique chargé:</strong> Données du ${new Date(lastAttendanceDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}. Modifiez si nécessaire.` : '<strong>Nouvelle date:</strong> Tous les nageurs sont définis comme "Absent" par défaut. Modifiez les statuts et enregistrez.'}
+        <!-- Info Box -->
+        <div style="background: ${dateHasData ? '#e3f2fd' : '#fff3cd'}; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid ${dateHasData ? '#2196f3' : '#ffc107'};">
+            <p style="margin: 0; color: ${dateHasData ? '#1976d2' : '#856404'}; font-weight: 500;">
+                <i class="fas fa-${dateHasData ? 'history' : 'plus-circle'}"></i>
+                ${dateHasData ? `<strong>Mode Modification</strong> - Données du ${dateFormatted} chargées. Modifiez et enregistrez.` : `<strong>Nouvelle Saisie</strong> - Tous les nageurs sont "Absent" par défaut.`}
             </p>
         </div>
         
-        <!-- Compteurs en haut -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 25px;">
+        <!-- Compteurs - Grille responsive comme renderCollectiveDataForm -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 25px;">
             <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); border-radius: 10px; color: white; box-shadow: 0 2px 8px rgba(76,175,80,0.3);">
                 <div style="font-size: 2rem; font-weight: bold;" id="presentCount">0</div>
-                <div style="font-size: 0.85rem; opacity: 0.9;">✅ Présents</div>
+                <div style="font-size: 0.8rem; opacity: 0.9;">✅ Présents</div>
             </div>
             <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #f44336 0%, #e57373 100%); border-radius: 10px; color: white; box-shadow: 0 2px 8px rgba(244,67,54,0.3);">
                 <div style="font-size: 2rem; font-weight: bold;" id="absentCount">0</div>
-                <div style="font-size: 0.85rem; opacity: 0.9;">❌ Absents</div>
+                <div style="font-size: 0.8rem; opacity: 0.9;">❌ Absents</div>
             </div>
             <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%); border-radius: 10px; color: white; box-shadow: 0 2px 8px rgba(156,39,176,0.3);">
                 <div style="font-size: 2rem; font-weight: bold;" id="absentExcusedCount">0</div>
-                <div style="font-size: 0.85rem; opacity: 0.9;">📝 Abs. Justifiés</div>
+                <div style="font-size: 0.8rem; opacity: 0.9;">📝 Justifiés</div>
             </div>
             <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%); border-radius: 10px; color: white; box-shadow: 0 2px 8px rgba(255,152,0,0.3);">
                 <div style="font-size: 2rem; font-weight: bold;" id="lateCount">0</div>
-                <div style="font-size: 0.85rem; opacity: 0.9;">⏰ Retards</div>
+                <div style="font-size: 0.8rem; opacity: 0.9;">⏰ Retards</div>
             </div>
             <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%); border-radius: 10px; color: white; box-shadow: 0 2px 8px rgba(33,150,243,0.3);">
                 <div style="font-size: 2rem; font-weight: bold;" id="lateExcusedCount">0</div>
-                <div style="font-size: 0.85rem; opacity: 0.9;">⏰ Ret. Justifiés</div>
+                <div style="font-size: 0.8rem; opacity: 0.9;">⏰ Ret. Justi.</div>
             </div>
         </div>
         
-        <!-- Liste des nageurs avec boutons de statut -->
-        <div style="max-height: 50vh; overflow-y: auto; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; background: #fafafa;">
+        <!-- Nageurs - Conteneur scrollable -->
+        <div id="attendanceSwimmersContainer" style="max-height: 50vh; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: #fafafa;">
             ${swimmers.map((swimmer, index) => `
-                <div class="attendance-swimmer-card" data-swimmer-id="${swimmer.id}" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: all 0.3s;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                <div class="swimmer-attendance-card" data-swimmer-id="${swimmer.id}" style="background: white; border-radius: 8px; padding: 15px; margin-bottom: 12px; border-left: 4px solid ${config.color}; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 200px;">
-                            <div style="font-weight: 600; color: #333; font-size: 1.1rem; margin-bottom: 5px;">
-                                <span style="display: inline-block; width: 30px; height: 30px; background: #27ae60; color: white; border-radius: 50%; text-align: center; line-height: 30px; margin-right: 10px; font-size: 0.9rem;">${index + 1}</span>
+                            <div style="font-weight: 600; color: #333; display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                <span style="background: ${config.color}; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: bold;">${index + 1}</span>
                                 ${swimmer.name || 'Nageur ' + (index + 1)}
                             </div>
-                            <div style="font-size: 0.85rem; color: #666; margin-left: 40px;">
+                            <small style="color: #666; margin-left: 38px;">
                                 <i class="fas fa-user"></i> ${swimmer.username || 'N/A'}
-                            </div>
+                            </small>
                         </div>
                         
-                        <div class="attendance-status-buttons" style="display:flex; gap:8px; align-items:center;">
-                            <!-- Single-cycle status button: cycles through statuses on each click -->
+                        <div style="display: flex; gap: 8px; align-items: center;">
                             <button onclick="cycleAttendanceStatus('${swimmer.id}')"
                                     class="attendance-status-btn attendance-status-single ${window.attendanceStatuses[swimmer.id] || 'absent'}"
                                     data-status="${window.attendanceStatuses[swimmer.id] || 'absent'}"
-                                    style="padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.95rem; min-width:160px; transition: all 0.18s;">
+                                    style="padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; min-width: 140px; border: none; color: white; transition: all 0.2s;">
                                 ${getStatusLabel(window.attendanceStatuses[swimmer.id] || 'absent')}
                             </button>
-                            <button onclick="openSwimmerHistory('${swimmer.id}')" title="Visualiser l'historique" style="padding: 8px 10px; border-radius:8px; border:1px solid #e0e0e0; background:white; cursor:pointer; font-size:0.9rem; color:#333;">
+                            <button onclick="openSwimmerHistory('${swimmer.id}')" title="Historique" style="padding: 8px 10px; border-radius: 6px; border: 1px solid #ddd; background: white; cursor: pointer; color: ${config.color}; transition: all 0.2s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
                                 <i class="fas fa-history"></i>
                             </button>
                         </div>
@@ -3641,39 +3661,66 @@ function renderAttendanceForm(swimmers) {
             `).join('')}
         </div>
         
-        <!-- Boutons en bas -->
-        <div style="margin-top: 30px; padding-top: 25px; border-top: 3px solid #e0e0e0; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;" id="attendanceButtonsContainer">
-            <!-- Bouton Annuler en mode modification (caché par défaut) -->
-            <button onclick="cancelAttendanceEdit()" class="btn" id="cancelEditBtn" style="display:none; flex: 1; min-width: 200px; max-width: 250px; padding: 15px; font-size: 1.05rem; background: white; color: #e53935; border: 2px solid #e53935; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-weight: 600;" onmouseover="this.style.background='#ffebee'" onmouseout="this.style.background='white'">
-                <i class="fas fa-times-circle"></i> Annuler Modification
+        <!-- Boutons en bas - Flexbox responsive -->
+        <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #ddd; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+            <button onclick="cancelAttendanceEdit()" class="btn" id="cancelEditBtn" style="display: ${dateHasData ? 'flex' : 'none'}; align-items: center; gap: 8px; flex: 0 1 auto; padding: 12px 20px; background: white; color: #e53935; border: 2px solid #e53935; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='#ffebee'" onmouseout="this.style.background='white'">
+                <i class="fas fa-times-circle"></i> Annuler
             </button>
-            <button onclick="openAttendanceCalendarForEdit()" class="btn" id="editDateBtn" style="flex: 1; min-width: 200px; max-width: 250px; padding: 15px; font-size: 1.05rem; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 3px 10px rgba(255,152,0,0.3); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <i class="fas fa-edit"></i> Modifier une Date
+            <button onclick="openAttendanceCalendarForEdit()" class="btn" id="editDateBtn" style="flex: 0 1 auto; padding: 12px 20px; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 3px 10px rgba(255,152,0,0.2); font-weight: 600; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <i class="fas fa-calendar"></i> Sélectionner Date
             </button>
-            <button onclick="saveAttendanceData()" class="btn btn-primary" id="saveAttendanceBtn" style="flex: 2; min-width: 280px; max-width: 450px; padding: 15px; font-size: 1.1rem; background: linear-gradient(135deg, #27ae60 0%, #229954 100%); border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 3px 10px rgba(39,174,96,0.3); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <i class="fas fa-save"></i> Enregistrer la Présence (${swimmers.length} nageurs)
+            <button onclick="saveAttendanceData()" class="btn btn-primary" id="saveAttendanceBtn" style="flex: 1 1 auto; min-width: 200px; padding: 12px 20px; background: linear-gradient(135deg, #27ae60 0%, #229954 100%); color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 3px 10px rgba(39,174,96,0.2); font-weight: 600; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <i class="fas fa-save"></i> <span id="saveButtonText">Enregistrer</span>
             </button>
         </div>
         
         <script>
-            // Initialiser les compteurs
             updateAttendanceCounts();
         </script>
     `;
+    
+    return html;
 }
 
 function updateAttendanceDateDisplay() {
     const dateInput = document.getElementById('attendanceDate');
-    const display = document.getElementById('attendanceDateDisplay');
+    const display = document.querySelector('#attendanceDate ~ small');
     if (dateInput && display) {
-        const date = new Date(dateInput.value);
-        display.textContent = date.toLocaleDateString('fr-FR', { 
+        const date = new Date(dateInput.value + 'T00:00:00');
+        display.textContent = '📅 ' + date.toLocaleDateString('fr-FR', { 
             weekday: 'long', 
             year: 'numeric', 
             month: 'long', 
             day: 'numeric' 
         });
     }
+}
+
+// ✅ NOUVELLE FONCTION: Gère le changement de date dans l'input
+function handleAttendanceDateChange() {
+    const dateInput = document.getElementById('attendanceDate');
+    if (!dateInput) return;
+    
+    const selectedDate = dateInput.value;
+    const swimmers = getTeamSwimmers();
+    
+    // Charger les données pour la nouvelle date
+    loadAttendanceForDate(swimmers, selectedDate);
+    
+    // Mettre à jour la date globale
+    window.currentAttendanceDate = selectedDate;
+    
+    // Mettre à jour l'affichage de la date
+    updateAttendanceDateDisplay();
+    
+    // Rafraîchir les compteurs sans regénérer tout le formulaire
+    updateAttendanceCounts();
+    
+    // Regénérer les cartes des nageurs pour refléter les nouveaux statuts
+    refreshAttendanceSwimmersCards(swimmers);
+    
+    // Mettre à jour les boutons
+    updateEditModeUI();
 }
 
 // Fonction pour obtenir la dernière date avec des données de présence
@@ -3696,7 +3743,26 @@ function getLastAttendanceDate(swimmers) {
     return lastDate;
 }
 
-// Fonction pour charger les données de présence pour une date spécifique
+// ✅ NOUVELLE FONCTION: Rafraîchit les cartes des nageurs sans regénérer tout
+function refreshAttendanceSwimmersCards(swimmers) {
+    const container = document.getElementById('attendanceSwimmersContainer');
+    if (!container) return;
+    
+    swimmers.forEach((swimmer, index) => {
+        const card = container.querySelector(`[data-swimmer-id="${swimmer.id}"]`);
+        if (card) {
+            // Mettre à jour le bouton de statut
+            const statusBtn = card.querySelector('.attendance-status-btn');
+            if (statusBtn) {
+                const currentStatus = window.attendanceStatuses[swimmer.id] || 'absent';
+                statusBtn.className = `attendance-status-btn attendance-status-single ${currentStatus}`;
+                statusBtn.dataset.status = currentStatus;
+                statusBtn.textContent = getStatusLabel(currentStatus);
+            }
+        }
+    });
+}
+
 function loadAttendanceForDate(swimmers, date) {
     if (!window.attendanceStatuses) {
         window.attendanceStatuses = {};
@@ -3739,25 +3805,8 @@ function loadAttendanceForDate(swimmers, date) {
 }
 
 // Fonction appelée quand on change la date dans le formulaire
-function loadAttendanceForSelectedDate() {
-    const dateInput = document.getElementById('attendanceDate');
-    if (!dateInput) return;
-    
-    const selectedDate = dateInput.value;
-    const swimmers = getTeamSwimmers();
-    
-    // Charger les données pour la nouvelle date
-    loadAttendanceForDate(swimmers, selectedDate);
-    
-    // Mettre à jour l'affichage de la date
-    updateAttendanceDateDisplay();
-    
-    // Regénérer le formulaire avec les nouvelles données
-    const content = document.getElementById('collectiveDataContent');
-    content.innerHTML = renderAttendanceForm(swimmers);
-}
 
-// Fonction pour ouvrir le calendrier et modifier une date existante
+// ✅ FONCTION AMÉLIORÉE: Ouvrir le calendrier pour sélectionner une date à éditer
 function openAttendanceCalendarForEdit() {
     const swimmers = getTeamSwimmers();
     const allDates = new Set();
@@ -3784,7 +3833,7 @@ function openAttendanceCalendarForEdit() {
                 <span style="font-size: 1.1rem; font-weight: 600;" id="calendarMonthYear">Décembre 2025</span>
             </h3>
             <p style="color: #666; margin-bottom: 20px; font-size: 0.95rem;">
-                Cliquez sur une date pour saisir la présence. Un formulaire vide s'affichera.
+                <strong>💡 Cliquez sur une date</strong> pour modifier la présence. Les données seront chargées.
             </p>
             
             <!-- Calendrier Visuel -->
@@ -3818,6 +3867,32 @@ function openAttendanceCalendarForEdit() {
     setTimeout(() => {
         generateCalendarGrid(currentYear, currentMonth, allDates);
     }, 100);
+}
+
+// ✅ FONCTION AMÉLIORÉE: Créer une nouvelle saisie pour une date spécifique
+function createNewAttendanceForDate(date) {
+    const swimmers = getTeamSwimmers();
+    
+    // Charger les données existantes pour cette date
+    loadAttendanceForDate(swimmers, date);
+    
+    // Mettre à jour la date globale
+    window.currentAttendanceDate = date;
+    
+    // Mettre à jour la date dans le formulaire
+    const dateInput = document.getElementById('attendanceDate');
+    if (dateInput) {
+        dateInput.value = date;
+        updateAttendanceDateDisplay();
+    }
+    
+    // Mettre à jour l'affichage
+    updateAttendanceCounts();
+    refreshAttendanceSwimmersCards(swimmers);
+    updateEditModeUI();
+    
+    // Fermer la modal
+    closeModal();
 }
 
 // Fonction pour générer la grille du calendrier
@@ -3875,55 +3950,6 @@ function generateCalendarGrid(year, month, existingDates) {
         
         grid.appendChild(dayBtn);
     }
-}
-
-// Fonction pour créer une nouvelle saisie pour une date spécifique
-function createNewAttendanceForDate(date) {
-    const swimmers = getTeamSwimmers();
-    
-    // Réinitialiser à zéro
-    window.attendanceStatuses = {};
-    swimmers.forEach(swimmer => {
-        window.attendanceStatuses[swimmer.id] = 'absent';
-    });
-    
-    // Mettre à jour la date dans le formulaire
-    const dateInput = document.getElementById('attendanceDate');
-    if (dateInput) {
-        dateInput.value = date;
-        updateAttendanceDateDisplay();
-    }
-    
-    // Activer le mode nouvelle saisie (pas modification)
-    window.attendanceEditMode = null;
-    window.attendanceEditDate = null;
-    
-    // Regénérer le formulaire
-    const content = document.getElementById('collectiveDataContent');
-    content.innerHTML = renderAttendanceForm(swimmers);
-    
-    // Mettre à jour l'UI des boutons
-    setTimeout(() => {
-        updateEditModeUI();
-    }, 50);
-    
-    // Fermer la modal
-    closeModal();
-    
-    // Message de confirmation
-    setTimeout(() => {
-        const infoBox = document.querySelector('#collectiveDataContent [style*="background: #e3f2fd"]');
-        if (infoBox) {
-            infoBox.style.background = '#e8f5e9';
-            infoBox.style.borderLeft = '4px solid #27ae60';
-            infoBox.innerHTML = `
-                <i class="fas fa-plus-circle" style="color: #27ae60; margin-right: 10px;"></i>
-                <span style="color: #1b5e20; font-weight: 500;">
-                    <strong>Nouvelle saisie:</strong> Formulaire vierge pour le ${new Date(date).toLocaleDateString('fr-FR')}. Sélectionnez les statuts et enregistrez.
-                </span>
-            `;
-        }
-    }, 100);
 }
 
 // Fonction pour annuler la modification et revenir à nouveau formulaire
